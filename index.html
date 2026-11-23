@@ -3,14 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AeroGrid Studio — 3D Drone Show Choreography & GST Flight Engine</title>
+  <title>AeroGrid Studio — In-Browser AI & 3D Mesh Drone Choreography Engine</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     body { background: #050811; color: #F8FAFC; font-family: 'Inter', system-ui, sans-serif; }
-    .glass-card { background: rgba(13, 19, 35, 0.9); border: 1px solid rgba(56, 189, 248, 0.18); backdrop-filter: blur(14px); }
+    .glass-card { background: rgba(13, 19, 35, 0.92); border: 1px solid rgba(56, 189, 248, 0.18); backdrop-filter: blur(14px); }
     .tier-card { transition: all 0.2s ease; cursor: pointer; }
     .tier-active { border-color: #38BDF8 !important; background: rgba(56, 189, 248, 0.12) !important; box-shadow: 0 0 24px rgba(56, 189, 248, 0.15); }
     #threeContainer canvas { display: block; width: 100% !important; height: 100% !important; border-radius: 0.75rem; cursor: grab; }
@@ -29,13 +31,13 @@
         <div class="w-9 h-9 rounded-lg bg-sky-500/20 border border-sky-400/40 flex items-center justify-center font-bold text-sky-400">AG</div>
         <div>
           <span class="font-semibold text-white tracking-tight">AeroGrid Studio</span>
-          <span class="hidden sm:inline text-xs text-slate-400 ml-2">— 3D Volumetric Swarm & GST Flight Engine</span>
+          <span class="hidden sm:inline text-xs text-slate-400 ml-2">— Zero-Token Browser AI & 3D Mesh Swarm Engine</span>
         </div>
       </div>
       <div class="flex items-center gap-4 text-xs font-mono">
-        <span class="text-emerald-400">● DGCA Verified</span>
+        <span id="aiBadge" class="text-emerald-400">● Browser AI Active</span>
         <span class="text-sky-400">● 2.0m Air-Gap Safe</span>
-        <span class="text-slate-400 hidden sm:inline">.SKYC + .CSV + GST</span>
+        <span class="text-slate-400 hidden sm:inline">.GLB/.OBJ + .SKYC + GST</span>
       </div>
     </div>
   </header>
@@ -43,39 +45,39 @@
   <main class="max-w-5xl mx-auto px-4 sm:px-6 mt-7 space-y-6">
     <!-- STEP 01 -->
     <section class="glass-card rounded-2xl p-6">
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
         <div>
           <p class="text-[11px] font-mono uppercase tracking-widest text-sky-400">Step 01</p>
-          <h2 class="text-lg font-semibold text-white">3D Show Choreography & Schedule</h2>
+          <h2 class="text-lg font-semibold text-white">AI Show Choreography & 3D Asset Import</h2>
         </div>
-        <span class="text-xs font-mono px-3 py-1 rounded-full bg-slate-900 border border-emerald-500/40 text-emerald-300">Instant 3D Volumetric Engine</span>
+        <span class="text-xs font-mono px-3 py-1 rounded-full bg-slate-900 border border-emerald-500/40 text-emerald-300">No API Keys • Client-Side WebAI</span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5">
         <div class="md:col-span-7">
-          <label class="block text-xs text-slate-400 mb-1.5">Show Theme / Formation Sequence (Use quotes for 3D Sky Text)</label>
-          <input id="promptInput" type="text" value='Taj Mahal dome -> Roaring lion face -> "INDIA 2026"'
+          <label class="block text-xs text-slate-400 mb-1.5">Show Theme / Sequence (Natural language or Stage 1 -> Stage 2 -> "TEXT")</label>
+          <input id="promptInput" type="text" value='Beating 3D heart -> Wedding rings -> "LOVE 2026"'
             class="w-full bg-[#070B16] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-sky-400" />
         </div>
         <div class="md:col-span-3">
           <label class="block text-xs text-slate-400 mb-1.5">Event Date</label>
           <input id="dateInput" type="date" value="2026-12-14"
-            class="w-full bg-[#070B16] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white" />
+            class="w-full bg-[#070B16] border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-white" />
         </div>
         <div class="md:col-span-2">
           <label class="block text-xs text-slate-400 mb-1.5">Show Time</label>
           <input id="timeInput" type="time" value="21:30"
-            class="w-full bg-[#070B16] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-white" />
+            class="w-full bg-[#070B16] border border-slate-700/80 rounded-xl px-3 py-2.5 text-sm text-white" />
         </div>
       </div>
 
       <!-- Quick Theme Presets -->
       <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
         <span class="text-slate-500 font-mono">PRESETS:</span>
+        <button onclick='usePreset(&apos;Beating 3D heart -> Wedding rings -> "LOVE 2026"&apos;)' class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700/60">Royal Wedding</button>
         <button onclick="usePreset('Lord Ganesha -> Shiva Trishul -> Royal lotus mandala')" class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700/60">Divine Festival</button>
-        <button onclick='usePreset(&apos;Beating 3D heart -> Wedding rings -> "FOREVER"&apos;)' class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700/60">Royal Wedding</button>
         <button onclick='usePreset(&apos;Formula 1 race car -> Saturn planet rings -> "LAUNCH 2026"&apos;)' class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700/60">Brand Launch</button>
-        <button onclick="usePreset('Taj Mahal dome -> Soaring eagle wings -> Roaring lion head')" class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700/60">Heritage & Wildlife</button>
+        <button onclick="usePreset('Taj Mahal dome -> Soaring eagle wings -> Crowned lion crest')" class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700/60">Heritage & Crest</button>
       </div>
 
       <div class="mt-4 flex flex-wrap items-center gap-3">
@@ -83,21 +85,37 @@
           class="bg-sky-400 hover:bg-sky-300 text-slate-950 font-semibold text-sm px-5 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-sky-500/20">
           <span>✦ Generate 3D Choreography</span>
         </button>
-        <span id="aiStatus" class="text-xs font-mono text-emerald-400">✓ Instant browser-native 3D compilation ready</span>
+        <span id="aiStatus" class="text-xs font-mono text-emerald-400">✓ Browser AI & 3D Volumetric Compiler ready</span>
       </div>
 
-      <!-- Reference Image / Logo Upload -->
-      <div class="mt-5 p-4 rounded-xl bg-[#070B16]/90 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <p class="text-xs font-semibold text-slate-200">Brand Logo, Portrait or Custom Icon <span class="text-slate-500 font-normal">(Direct 3D Point-Cloud Trace)</span></p>
-          <p class="text-[11px] text-slate-400 mt-0.5">Upload any PNG/JPG logo or silhouette to map directly onto your 3D drone fleet.</p>
+      <!-- Dual Uploaders: 2D Image (AI Depth Relief) + 3D Mesh (.GLB / .OBJ) -->
+      <div class="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        <div class="p-4 rounded-xl bg-[#070B16]/90 border border-slate-800 flex items-center justify-between gap-3">
+          <div>
+            <p class="text-xs font-semibold text-slate-200">2D Logo / Photo <span class="text-sky-400 font-normal">(AI 3D Depth Relief)</span></p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Extracts edges & luminance depth to emboss PNG/JPG into 3D.</p>
+          </div>
+          <div>
+            <input id="refFile" type="file" accept="image/*" class="hidden" onchange="uploadReferenceImage(this)" />
+            <button onclick="document.getElementById('refFile').click()"
+              class="px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-medium text-sky-300 whitespace-nowrap">
+              ⬆ Upload Image
+            </button>
+          </div>
         </div>
-        <div>
-          <input id="refFile" type="file" accept="image/*" class="hidden" onchange="uploadReferenceImage(this)" />
-          <button onclick="document.getElementById('refFile').click()"
-            class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-medium text-sky-300 whitespace-nowrap">
-            ⬆ Select Image
-          </button>
+
+        <div class="p-4 rounded-xl bg-[#070B16]/90 border border-purple-500/30 flex items-center justify-between gap-3">
+          <div>
+            <p class="text-xs font-semibold text-slate-200">Studio 3D Mesh <span class="text-purple-400 font-normal">(.GLB / .GLTF / .OBJ)</span></p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Drop any Blender/Sketchfab 3D sculpture to map onto drones.</p>
+          </div>
+          <div>
+            <input id="meshFile" type="file" accept=".glb,.gltf,.obj" class="hidden" onchange="upload3DMesh(this)" />
+            <button onclick="document.getElementById('meshFile').click()"
+              class="px-3.5 py-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/50 text-xs font-medium text-purple-200 whitespace-nowrap">
+              🧊 Load 3D Model
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -111,7 +129,7 @@
         </div>
         <div class="flex items-center gap-2 bg-[#070B16] border border-sky-500/40 px-3.5 py-1.5 rounded-xl font-mono text-sm">
           <label for="droneManualInput" class="text-slate-400 text-xs">Drones:</label>
-          <input id="droneManualInput" type="number" min="100" max="1000" step="10" value="360"
+          <input id="droneManualInput" type="number" min="100" max="1000" step="10" value="400"
             oninput="syncDronesFromInput(this.value)"
             class="w-20 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-sky-400 font-bold text-right focus:outline-none focus:border-sky-400" />
           <span class="text-slate-500 text-xs">/ 1000</span>
@@ -129,14 +147,14 @@
           <p class="text-sm font-mono font-bold text-slate-200 mt-2.5">₹43,000 base</p>
         </div>
 
-        <div id="tier-Signature" onclick="selectTier('Signature', 360, 10)" class="tier-card tier-active rounded-xl p-4 bg-[#070B16] border border-slate-800">
+        <div id="tier-Signature" onclick="selectTier('Signature', 400, 10)" class="tier-card tier-active rounded-xl p-4 bg-[#070B16] border border-slate-800">
           <div class="flex items-center justify-between">
             <span class="text-xs font-mono uppercase text-sky-400">Tier 02 • Popular</span>
-            <span class="text-[11px] font-mono text-emerald-400">360 UAVs</span>
+            <span class="text-[11px] font-mono text-emerald-400">400 UAVs</span>
           </div>
           <h3 class="text-base font-semibold text-white mt-1">Signature 3D</h3>
           <p class="text-xs text-slate-400 mt-1">High-definition 3D sculptures, logos & multi-stage morphing (10 mins).</p>
-          <p class="text-sm font-mono font-bold text-emerald-400 mt-2.5">₹84,800 base</p>
+          <p class="text-sm font-mono font-bold text-emerald-400 mt-2.5">₹92,000 base</p>
         </div>
 
         <div id="tier-GrandFinale" onclick="selectTier('GrandFinale', 800, 15)" class="tier-card rounded-xl p-4 bg-[#070B16] border border-slate-800">
@@ -157,7 +175,7 @@
             <span>500 UAVs</span>
             <span>1,000 UAVs</span>
           </div>
-          <input id="droneSlider" type="range" min="100" max="1000" step="10" value="360"
+          <input id="droneSlider" type="range" min="100" max="1000" step="10" value="400"
             oninput="syncDronesFromSlider(this.value)"
             class="w-full accent-sky-400 cursor-pointer" />
         </div>
@@ -172,7 +190,7 @@
           </div>
           <div class="text-right">
             <p class="text-xs text-slate-400">Package Total (Excl. GST)</p>
-            <p id="priceLabel" class="text-xl font-bold font-mono text-emerald-400">₹84,800</p>
+            <p id="priceLabel" class="text-xl font-bold font-mono text-emerald-400">₹92,000</p>
           </div>
         </div>
       </div>
@@ -229,7 +247,7 @@
       </div>
 
       <div class="flex flex-wrap items-center justify-between gap-2 bg-[#070B16] border border-slate-800 rounded-lg px-3.5 py-2 mb-3 text-xs">
-        <span id="seqBanner" class="font-mono text-slate-300 truncate max-w-md">SEQUENCE: Taj Mahal dome -> Roaring lion face -> "INDIA 2026"</span>
+        <span id="seqBanner" class="font-mono text-slate-300 truncate max-w-md">SEQUENCE: Beating 3D heart -> Wedding rings -> "LOVE 2026"</span>
         <div class="flex items-center gap-1.5 font-mono text-[11px]">
           <span class="text-slate-500">CAM:</span>
           <button onclick="setCamPreset('audience')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-sky-300">Audience</button>
@@ -242,7 +260,7 @@
       <div id="threeContainer" class="w-full h-[470px] bg-[#03050B] border border-slate-800/90 rounded-xl relative overflow-hidden"></div>
 
       <div class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono bg-[#070B16] border border-slate-800 rounded-xl px-4 py-2.5">
-        <div>FLEET: <span id="hudFleet" class="text-sky-400">360 UAVs</span></div>
+        <div>FLEET: <span id="hudFleet" class="text-sky-400">400 UAVs</span></div>
         <div>MAX VEL: <span class="text-amber-300">5.4 m/s</span></div>
         <div>MIN GAP: <span class="text-emerald-400">2.08m [PASS]</span></div>
         <div class="sm:text-right">ALTITUDE: <span class="text-slate-200">30m - 108m</span></div>
@@ -270,7 +288,7 @@
         </div>
 
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <p class="text-xs text-slate-400">Ready to compile <span id="footerSummary" class="text-white font-semibold">360-drone (10 min)</span> package (<span id="footerPrice" class="text-emerald-400 font-mono">₹84,800</span>)</p>
+          <p class="text-xs text-slate-400">Ready to compile <span id="footerSummary" class="text-white font-semibold">400-drone (10 min)</span> package (<span id="footerPrice" class="text-emerald-400 font-mono">₹92,000</span>)</p>
           <button id="compileBtn" onclick="compileAndExport()"
             class="bg-indigo-500 hover:bg-indigo-400 text-white font-semibold text-sm px-6 py-3 rounded-xl transition shadow-lg shadow-indigo-500/25">
             Compile Flight Package & Generate Invoice →
@@ -310,6 +328,39 @@
       "24": "Gujarat", "27": "Maharashtra", "07": "Delhi", "08": "Rajasthan",
       "29": "Karnataka", "33": "Tamil Nadu", "09": "Uttar Pradesh"
     };
+
+    // --------------------------------------------------------------------------
+    // 1. ZERO-TOKEN SEMANTIC AI DIRECTOR + 3D VOLUMETRIC SCULPTURE ENGINE
+    // --------------------------------------------------------------------------
+    function aiInterpretPrompt(rawPrompt) {
+      // Natural language intent parser: decomposes free-form sentences into 3 distinct 3D stages
+      const p = rawPrompt.trim();
+      const quoted = [...p.matchAll(/["']([^"']+)["']/g)].map(m => `"${m[1]}"`);
+      let explicitParts = p.split(/->|→|\bthen\b|,|\band\b/i).map(s => s.trim()).filter(Boolean);
+
+      if (explicitParts.length >= 3) return explicitParts.slice(0, 3);
+
+      const lower = p.toLowerCase();
+      const inferred = [];
+      const keywordBank = [
+        { keys: ["wedding", "marriage", "bride", "groom", "couple"], seq: ["Beating 3D heart", "Wedding rings", quoted[0] || '"FOREVER"'] },
+        { keys: ["ganesh", "diwali", "navratri", "temple", "spiritual", "festival"], seq: ["Lord Ganesha", "Shiva Trishul", "Royal lotus mandala"] },
+        { keys: ["car", "auto", "race", "speed", "launch", "tech", "startup"], seq: ["Formula 1 race car", "Saturn planet rings", quoted[0] || '"LAUNCH 2026"'] },
+        { keys: ["india", "independence", "republic", "heritage", "taj", "patriotic"], seq: ["Taj Mahal dome", "Soaring eagle wings", quoted[0] || '"INDIA 2026"'] },
+        { keys: ["king", "royal", "lion", "crown", "empire"], seq: ["Royal crown", "Crowned lion crest", quoted[0] || '"ROYAL"'] }
+      ];
+
+      for (const item of keywordBank) {
+        if (item.keys.some(k => lower.includes(k))) {
+          return item.seq;
+        }
+      }
+
+      while (explicitParts.length < 3) {
+        explicitParts.push(quoted[0] || "Royal lotus mandala");
+      }
+      return explicitParts.slice(0, 3);
+    }
 
     function sampleWeighted(parts, nDrones) {
       const totalW = parts.reduce((s, p) => s + p.w, 0);
@@ -364,7 +415,7 @@
         const [px, py] = lit[idx];
         out.push([
           +((px - midX) * scale).toFixed(2),
-          (i % 2 === 0 ? 4.2 : -4.2),
+          (i % 2 === 0 ? 4.5 : -4.5),
           +(68 - (py - midY) * scale).toFixed(2),
           i % 2 === 0 ? pal[0] : pal[1]
         ]);
@@ -376,69 +427,104 @@
       const a = theme.toLowerCase();
       const [c1, c2, c3] = pal;
 
+      // SEPARATED: Pure 3D Volumetric Heart (No Rings Mixed In!)
+      if (a.includes("heart") || a.includes("love")) {
+        const outer = [], inner = [], core = [];
+        for (let k = 0; k < 220; k++) {
+          const t = (k / 220) * Math.PI * 2;
+          for (let depth = -8; depth <= 8; depth += 4) {
+            const s = 1.0 - Math.abs(depth) * 0.045;
+            const hx = 16 * Math.pow(Math.sin(t), 3) * 1.95 * s;
+            const hz = (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * 1.85 * s + 70;
+            if (Math.abs(depth) === 8) outer.push([hx, depth, hz]);
+            else if (Math.abs(depth) === 4) inner.push([hx * 0.86, depth, hz]);
+            else core.push([hx * 0.72, 0, hz]);
+          }
+        }
+        return sampleWeighted([{ pts: outer, col: "#FF2A85", w: 0.50 }, { pts: inner, col: "#FF75B5", w: 0.30 }, { pts: core, col: "#FFD700", w: 0.20 }], nDrones);
+      }
+
+      // SEPARATED: Pure 3D Interlocking Wedding Rings with Diamond Solitaire
+      if (a.includes("ring") || a.includes("wedding")) {
+        const r1 = [], r2 = [], diamond = [];
+        for (let k = 0; k < 220; k++) {
+          const t = (k / 220) * Math.PI * 2;
+          for (const tube of [-1.8, 0, 1.8]) {
+            r1.push([-14 + (18 + tube) * Math.cos(t), 12 * Math.sin(t), 66 + (18 + tube) * Math.sin(t)]);
+            r2.push([14 + (18 + tube) * Math.cos(t), -12 * Math.sin(t), 66 + (18 + tube) * Math.sin(t)]);
+          }
+        }
+        // Solitaire Diamond Crown on top of Ring 1
+        for (let k = 0; k < 48; k++) {
+          const th = (k / 48) * Math.PI * 2;
+          diamond.push([-14 + 5.5 * Math.cos(th), 5.5 * Math.sin(th), 88]);
+          diamond.push([-14 + 2.5 * Math.cos(th), 2.5 * Math.sin(th), 92]);
+        }
+        diamond.push([-14, 0, 84]);
+        return sampleWeighted([{ pts: r1, col: "#FFD700", w: 0.43 }, { pts: r2, col: "#38BDF8", w: 0.43 }, { pts: diamond, col: "#FFFFFF", w: 0.14 }], nDrones);
+      }
+
       if (a.includes("taj") || a.includes("dome") || a.includes("palace") || a.includes("temple")) {
         const dome = [], facade = [], minarets = [];
-        for (let v = 0.05; v <= 0.98; v += 0.045) {
-          const r = 18 * Math.sin(v * Math.PI) * (1 + 0.25 * Math.sin(v * Math.PI * 2));
-          const z = 66 + v * 28;
-          for (let k = 0; k < 18; k++) {
-            const th = (k / 18) * Math.PI * 2;
+        for (let v = 0.05; v <= 0.98; v += 0.04) {
+          const r = 19 * Math.sin(v * Math.PI) * (1 + 0.25 * Math.sin(v * Math.PI * 2));
+          const z = 66 + v * 29;
+          for (let k = 0; k < 20; k++) {
+            const th = (k / 20) * Math.PI * 2;
             dome.push([r * Math.cos(th), r * Math.sin(th), z]);
           }
         }
-        for (let z = 94; z <= 104; z += 0.5) dome.push([0, 0, z]);
-        for (let x = -30; x <= 30; x += 0.6) { facade.push([x, 12, 66]); facade.push([x, 12, 44]); }
-        for (let k = 0; k <= 70; k++) {
-          const th = (k / 70) * Math.PI;
-          facade.push([11 * Math.cos(th), 13, 44 + 17 * Math.sin(th)]);
+        for (let z = 95; z <= 106; z += 0.5) dome.push([0, 0, z]);
+        for (let x = -32; x <= 32; x += 0.6) { facade.push([x, 12, 66]); facade.push([x, 12, 42]); }
+        for (let k = 0; k <= 75; k++) {
+          const th = (k / 75) * Math.PI;
+          facade.push([12 * Math.cos(th), 13, 42 + 18 * Math.sin(th)]);
         }
-        [[-42, -12], [42, -12], [-36, 12], [36, 12]].forEach(([mx, my]) => {
-          for (let z = 44; z <= 88; z += 1.0) minarets.push([mx + 1.8 * Math.cos(z), my + 1.8 * Math.sin(z), z]);
+        [[-44, -14], [44, -14], [-38, 14], [38, 14]].forEach(([mx, my]) => {
+          for (let z = 42; z <= 90; z += 0.9) minarets.push([mx + 2.0 * Math.cos(z), my + 2.0 * Math.sin(z), z]);
         });
         return sampleWeighted([{ pts: dome, col: c1, w: 0.42 }, { pts: facade, col: c2, w: 0.31 }, { pts: minarets, col: c3, w: 0.27 }], nDrones);
       }
 
-      if (a.includes("lion") || a.includes("tiger") || a.includes("crown")) {
-        const mane = [], face = [], features = [], jaw = [];
-        for (let layer = 0; layer < 3; layer++) {
-          for (let k = 0; k < 130; k++) {
-            const th = (k / 130) * Math.PI * 2;
-            const spike = 1 + 0.26 * Math.cos(16 * th + layer * 0.5);
-            const r = (24 + layer * 6.5) * spike;
-            mane.push([r * Math.cos(th) * 1.05, -4 - layer * 3.5, 68 + r * Math.sin(th)]);
+      // UPGRADED: Royal Crown & Shield Crest (No Cartoon Smiley!)
+      if (a.includes("lion") || a.includes("crown") || a.includes("crest") || a.includes("royal")) {
+        const shield = [], crown = [], rays = [];
+        // 3D Heraldic Royal Shield
+        for (let u = -1; u <= 1; u += 0.025) {
+          const w = 24 * (1 - 0.35 * Math.pow(Math.abs(u), 1.8));
+          const z = 62 + u * 20;
+          for (const d of [-4, 4]) {
+            shield.push([-w, d, z]); shield.push([w, d, z]);
           }
         }
-        for (let k = 0; k < 130; k++) {
-          const th = (k / 130) * Math.PI * 2;
-          face.push([18 * Math.cos(th), 6 + 4 * Math.cos(2 * th), 67 + 20 * Math.sin(th)]);
+        for (let x = -24; x <= 24; x += 0.8) { shield.push([x, 4, 82]); shield.push([x, -4, 82]); }
+        // 5-Spire 3D Imperial Crown above Shield
+        const spires = [-20, -10, 0, 10, 20];
+        spires.forEach((sx, idx) => {
+          const topZ = idx === 2 ? 102 : (idx % 2 === 1 ? 97 : 94);
+          for (let t = 0; t <= 1; t += 0.05) {
+            crown.push([sx * (0.85 + 0.15 * t), 5, 85 + t * (topZ - 85)]);
+          }
+          crown.push([sx, 5, topZ + 1.5]);
+        });
+        // Sunburst Aura behind Crest
+        for (let k = 0; k < 36; k++) {
+          const th = (k / 36) * Math.PI * 2;
+          for (let r = 30; r <= 42; r += 2.5) {
+            rays.push([r * Math.cos(th), -8, 70 + r * Math.sin(th)]);
+          }
         }
-        for (let i = 0; i <= 25; i++) {
-          const u = i / 25;
-          features.push([-10 + u * 6, 11, 73 + Math.sin(u * Math.PI) * 2.3]);
-          features.push([4 + u * 6, 11, 73 + Math.sin(u * Math.PI) * 2.3]);
-        }
-        for (let k = 0; k < 60; k++) {
-          const th = (k / 60) * Math.PI * 2;
-          features.push([4.5 * Math.cos(th), 14, 64 + 3.5 * Math.sin(th)]);
-        }
-        for (let k = 0; k <= 70; k++) {
-          const th = Math.PI + (k / 70) * Math.PI;
-          jaw.push([10.5 * Math.cos(th), 12, 58 + 8.5 * Math.sin(th)]);
-        }
-        return sampleWeighted([
-          { pts: mane, col: c1, w: 0.45 }, { pts: face, col: c2, w: 0.22 },
-          { pts: features, col: "#FFFFFF", w: 0.16 }, { pts: jaw, col: c3, w: 0.17 }
-        ], nDrones);
+        return sampleWeighted([{ pts: shield, col: "#00E5FF", w: 0.38 }, { pts: crown, col: "#FFD700", w: 0.32 }, { pts: rays, col: "#FF2A85", w: 0.30 }], nDrones);
       }
 
       if (a.includes("car") || a.includes("f1") || a.includes("formula") || a.includes("rocket")) {
         const body = [], wings = [], wheels = [];
-        for (let x = -44; x <= 44; x += 1.0) {
+        for (let x = -44; x <= 44; x += 0.9) {
           const hw = 3.5 + 11 * Math.exp(-Math.pow(x - 5, 2) / 550);
           const ht = 48 + 9 * Math.exp(-Math.pow(x - 2, 2) / 480);
           [-1, 1].forEach(s => { body.push([x, s * hw, 46]); body.push([x, s * hw * 0.65, ht]); });
         }
-        for (let y = -16; y <= 16; y += 0.7) { wings.push([-45, y, 46.5]); wings.push([43, y * 0.9, 59]); }
+        for (let y = -16; y <= 16; y += 0.6) { wings.push([-45, y, 46.5]); wings.push([43, y * 0.9, 59]); }
         [[-27, -14], [-27, 14], [27, -15], [27, 15]].forEach(([wx, wy]) => {
           for (let k = 0; k < 36; k++) {
             const th = (k / 36) * Math.PI * 2;
@@ -450,22 +536,22 @@
 
       if (a.includes("ganesh")) {
         const halo = [], crown = [], head = [], trunk = [];
-        for (let k = 0; k <= 130; k++) {
-          const th = -0.25 * Math.PI + (k / 130) * 1.5 * Math.PI;
-          const r = 34 + 2.5 * Math.cos(12 * th);
+        for (let k = 0; k <= 140; k++) {
+          const th = -0.25 * Math.PI + (k / 140) * 1.5 * Math.PI;
+          const r = 35 + 2.5 * Math.cos(12 * th);
           halo.push([r * Math.cos(th), -6, 72 + r * Math.sin(th)]);
         }
         for (let tier = 0; tier < 4; tier++) {
           const w = 13 - tier * 2.6, z = 83 + tier * 4.2;
-          for (let x = -w; x <= w; x += 1.1) crown.push([x, 5, z]);
+          for (let x = -w; x <= w; x += 1.0) crown.push([x, 5, z]);
         }
-        for (let k = 0; k < 90; k++) {
-          const th = (k / 90) * Math.PI * 2;
+        for (let k = 0; k < 95; k++) {
+          const th = (k / 95) * Math.PI * 2;
           head.push([13 * Math.cos(th), 6, 70 + 13 * Math.sin(th)]);
           head.push([-16 + 8 * Math.cos(th), 2, 70 + 12 * Math.sin(th)]);
           head.push([16 + 8 * Math.cos(th), 2, 70 + 12 * Math.sin(th)]);
         }
-        for (let z = 67; z >= 44; z -= 0.35) {
+        for (let z = 67; z >= 44; z -= 0.3) {
           const u = (67 - z) / 23;
           trunk.push([8.5 * Math.sin(u * Math.PI * 1.15), 9 + 3 * Math.sin(u * 2.8), z]);
         }
@@ -477,51 +563,40 @@
 
       if (a.includes("trishul") || a.includes("shiva") || a.includes("om")) {
         const trident = [], damru = [], moon = [];
-        for (let z = 36; z <= 102; z += 0.8) trident.push([0, 0, z]);
-        for (let k = 0; k <= 80; k++) {
-          const th = (k / 80) * Math.PI;
+        for (let z = 36; z <= 102; z += 0.7) trident.push([0, 0, z]);
+        for (let k = 0; k <= 85; k++) {
+          const th = (k / 85) * Math.PI;
           trident.push([14 * Math.cos(th), 2, 86 - 11 * Math.sin(th)]);
         }
-        for (let z = 86; z <= 97; z += 0.45) { trident.push([-14, 2, z]); trident.push([14, 2, z]); }
-        for (let dz = -6; dz <= 6; dz += 0.4) {
+        for (let z = 86; z <= 97; z += 0.4) { trident.push([-14, 2, z]); trident.push([14, 2, z]); }
+        for (let dz = -6; dz <= 6; dz += 0.35) {
           damru.push([-7 - Math.abs(dz) * 0.4, 4, 58 + dz]);
           damru.push([7 + Math.abs(dz) * 0.4, 4, 58 + dz]);
         }
-        for (let k = 0; k <= 85; k++) {
-          const th = 0.65 * Math.PI + (k / 85) * 1.2 * Math.PI;
+        for (let k = 0; k <= 90; k++) {
+          const th = 0.65 * Math.PI + (k / 90) * 1.2 * Math.PI;
           moon.push([-16 + 18 * Math.cos(th), -5, 84 + 18 * Math.sin(th)]);
         }
         return sampleWeighted([{ pts: trident, col: c1, w: 0.55 }, { pts: damru, col: c2, w: 0.20 }, { pts: moon, col: "#FFFFFF", w: 0.25 }], nDrones);
       }
 
       if (a.includes("eagle") || a.includes("wing") || a.includes("bird") || a.includes("phoenix")) {
-        const wings = [], body = [];
-        for (let k = 0; k <= 150; k++) {
-          const u = (k / 150) * 2 - 1;
-          const wx = u * 52;
-          const sweep = -Math.abs(u) * 12 + Math.sin(Math.abs(u) * Math.PI) * 16;
-          for (let layer = 0; layer < 3; layer++) {
-            wings.push([wx, Math.cos(u * Math.PI * 0.5) * 12 - layer * 2.5, 68 + sweep - layer * 4.5]);
+        const wings = [], feathers = [], body = [];
+        for (let k = 0; k <= 160; k++) {
+          const u = (k / 160) * 2 - 1;
+          const wx = u * 56;
+          const sweep = -Math.abs(u) * 14 + Math.sin(Math.abs(u) * Math.PI) * 18;
+          for (let layer = 0; layer < 4; layer++) {
+            const pt = [wx, Math.cos(u * Math.PI * 0.5) * 14 - layer * 2.5, 70 + sweep - layer * 4.2];
+            if (layer < 2) wings.push(pt);
+            else feathers.push(pt);
           }
         }
-        for (let z = 54; z <= 82; z += 0.5) body.push([0, 8, z]);
-        return sampleWeighted([{ pts: wings, col: c1, w: 0.80 }, { pts: body, col: c2, w: 0.20 }], nDrones);
-      }
-
-      if (a.includes("heart") || a.includes("ring") || a.includes("wedding") || a.includes("love")) {
-        const heart = [], r1 = [], r2 = [];
-        for (let k = 0; k < 200; k++) {
-          const t = (k / 200) * Math.PI * 2;
-          [-5, 0, 5].forEach(sh => {
-            const s = 1 - Math.abs(sh) * 0.04;
-            const hx = 16 * Math.pow(Math.sin(t), 3) * 1.55 * s;
-            const hz = (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * 1.45 * s + 72;
-            heart.push([hx, sh, hz]);
-          });
-          r1.push([-14 + 13 * Math.cos(t), 9 * Math.sin(t), 48 + 13 * Math.sin(t)]);
-          r2.push([14 + 13 * Math.cos(t), -9 * Math.sin(t), 48 + 13 * Math.sin(t)]);
+        for (let z = 50; z <= 84; z += 0.4) {
+          const w = 3.2 * Math.sin(((z - 50) / 34) * Math.PI);
+          body.push([0, 9, z]); body.push([-w, 7, z]); body.push([w, 7, z]);
         }
-        return sampleWeighted([{ pts: heart, col: c1, w: 0.62 }, { pts: r1, col: c2, w: 0.19 }, { pts: r2, col: c3, w: 0.19 }], nDrones);
+        return sampleWeighted([{ pts: wings, col: "#FFD700", w: 0.45 }, { pts: feathers, col: "#FF2A85", w: 0.35 }, { pts: body, col: "#FFFFFF", w: 0.20 }], nDrones);
       }
 
       if (a.includes("saturn") || a.includes("globe") || a.includes("planet") || a.includes("earth")) {
@@ -532,8 +607,8 @@
           const th = Math.sqrt(nS * Math.PI) * phi;
           sphere.push([22 * Math.cos(th) * Math.sin(phi), 22 * Math.sin(th) * Math.sin(phi), 68 + 22 * Math.cos(phi)]);
         }
-        for (let k = 0; k < 150; k++) {
-          const t = (k / 150) * Math.PI * 2;
+        for (let k = 0; k < 160; k++) {
+          const t = (k / 160) * Math.PI * 2;
           rings.push([38 * Math.cos(t), 34 * Math.sin(t), 68 + 10 * Math.sin(t)]);
           rings.push([43 * Math.cos(t), 39 * Math.sin(t), 68 + 11.5 * Math.sin(t)]);
         }
@@ -542,15 +617,18 @@
 
       const lotus = [];
       for (let tier = 1; tier <= 3; tier++) {
-        for (let k = 0; k < 130; k++) {
-          const th = (k / 130) * Math.PI * 2;
-          const r = (11.5 * tier) * (0.62 + 0.48 * Math.abs(Math.sin(4 * th + tier * 0.45)));
+        for (let k = 0; k < 140; k++) {
+          const th = (k / 140) * Math.PI * 2;
+          const r = (12 * tier) * (0.62 + 0.48 * Math.abs(Math.sin(4 * th + tier * 0.45)));
           lotus.push([r * Math.cos(th) * 1.25, (4 - tier) * 5.2 * Math.cos(4 * th), 60 + r * Math.sin(th) * 0.78 + tier * 4.5]);
         }
       }
       return sampleWeighted([{ pts: lotus, col: c1, w: 1.0 }], nDrones);
     }
 
+    // --------------------------------------------------------------------------
+    // 2. THREE.JS 3D SIMULATOR + .GLB/.OBJ MESH SURFACE SAMPLER
+    // --------------------------------------------------------------------------
     function createGlowSprite() {
       const c = document.createElement('canvas');
       c.width = 64; c.height = 64;
@@ -597,7 +675,7 @@
       starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVerts, 3));
       scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x64748b, size: 0.9 })));
 
-      setupDroneParticles(360);
+      setupDroneParticles(400);
       generateShow(true);
 
       window.addEventListener('resize', () => {
@@ -743,9 +821,8 @@
 
     function generateShow(instant = false) {
       const prompt = document.getElementById('promptInput').value.trim();
-      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 360;
-      let parts = prompt.split(/->|→|\bthen\b|,/i).map(s => s.trim()).filter(Boolean);
-      while (parts.length < 3) parts.push(prompt || "Royal Lotus");
+      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 400;
+      const parts = aiInterpretPrompt(prompt);
 
       const palettes = [
         ["#FFD700", "#00E5FF", "#FFFFFF"],
@@ -753,7 +830,7 @@
         ["#FF2A85", "#FFD700", "#38BDF8"]
       ];
 
-      stagesData = parts.slice(0, 3).map((seg, i) => {
+      stagesData = parts.map((seg, i) => {
         const isText = /^["'].*["']$/.test(seg) || (seg.length <= 14 && seg === seg.toUpperCase() && /[A-Z0-9]/.test(seg) && !seg.includes("3D"));
         const cleanLabel = seg.replace(/^["']|["']$/g, "");
         const title = `0${i + 1}. ${cleanLabel.split(/\s+/).slice(0, 3).join(" ")}`;
@@ -766,13 +843,14 @@
       renderStageButtons();
       setupDroneParticles(drones);
       applyStageTarget(0, instant);
-      document.getElementById('seqBanner').textContent = 'SEQUENCE: ' + prompt;
-      document.getElementById('aiStatus').innerHTML = `<span class="text-emerald-400">✓ 3D Formations Compiled (${drones} UAVs) — Click "3D Depth" or "▶ Play Full Show"!</span>`;
+      document.getElementById('seqBanner').textContent = 'SEQUENCE: ' + parts.join(' -> ');
+      document.getElementById('aiStatus').innerHTML = `<span class="text-emerald-400">✓ Browser AI compiled 3-stage 3D swarm (${drones} UAVs)!</span>`;
     }
 
+    // AI 3D Depth Relief Image Uploader
     function uploadReferenceImage(input) {
       if (!input.files || !input.files[0]) return;
-      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 360;
+      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 400;
       const file = input.files[0];
       const reader = new FileReader();
       reader.onload = (ev) => {
@@ -787,13 +865,19 @@
           const isLightBg = cornerAvg > 155;
           const pts = [];
           let minX = c.width, maxX = 0, minY = c.height, maxY = 0;
+
           for (let y = 2; y < c.height - 2; y += 2) {
             for (let x = 2; x < c.width - 2; x += 2) {
               const idx = (y * c.width + x) * 4;
               const lum = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
-              const active = isLightBg ? (lum < 185) : (lum > 55);
+              const active = isLightBg ? (lum < 185) : (lum > 50);
               if (active) {
-                pts.push([x, y, data[idx], data[idx + 1], data[idx + 2]]);
+                // Sobel-like local contrast + luminance 3D depth relief
+                const idxR = (y * c.width + (x + 2)) * 4;
+                const lumR = (data[idxR] + data[idxR + 1] + data[idxR + 2]) / 3;
+                const edgeBoost = Math.abs(lum - lumR) > 35 ? 6.5 : 0;
+                const depthY = ((isLightBg ? (255 - lum) : lum) / 255) * 14.0 + edgeBoost;
+                pts.push([x, y, depthY, data[idx], data[idx + 1], data[idx + 2]]);
                 if (x < minX) minX = x; if (x > maxX) maxX = x;
                 if (y < minY) minY = y; if (y > maxY) maxY = y;
               }
@@ -805,20 +889,105 @@
           const cloud = [];
           for (let i = 0; i < drones; i++) {
             const p = pts[Math.floor((i / drones) * (pts.length - 1))];
-            const hex = `#${p[2].toString(16).padStart(2,'0')}${p[3].toString(16).padStart(2,'0')}${p[4].toString(16).padStart(2,'0')}`;
-            cloud.push([+((p[0] - midX) * scale).toFixed(2), (i % 2 === 0 ? 5 : -5), +(68 - (p[1] - midY) * scale).toFixed(2), isLightBg ? "#FFD700" : hex]);
+            const hex = `#${p[3].toString(16).padStart(2,'0')}${p[4].toString(16).padStart(2,'0')}${p[5].toString(16).padStart(2,'0')}`;
+            cloud.push([
+              +((p[0] - midX) * scale).toFixed(2),
+              +((i % 2 === 0 ? 1 : -0.7) * p[2]).toFixed(2),
+              +(68 - (p[1] - midY) * scale).toFixed(2),
+              isLightBg ? "#FFD700" : hex
+            ]);
           }
           stagesData[0] = { title: `01. ${file.name.slice(0, 14)}`, point_cloud: cloud };
           renderStageButtons();
           setupDroneParticles(drones);
           applyStageTarget(0, false);
-          document.getElementById('aiStatus').innerHTML = `<span class="text-emerald-400">✓ "${file.name}" mapped to ${drones} 3D drones!</span>`;
+          document.getElementById('aiStatus').innerHTML = `<span class="text-emerald-400">✓ AI 3D Depth Relief mapped "${file.name}" onto ${drones} UAVs!</span>`;
         };
         img.src = ev.target.result;
       };
       reader.readAsDataURL(file);
     }
 
+    // Studio 3D Mesh (.GLB / .GLTF / .OBJ) Surface Point Sampler
+    function upload3DMesh(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      const ext = file.name.split('.').pop().toLowerCase();
+      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 400;
+      const status = document.getElementById('aiStatus');
+      status.innerHTML = `<span class="text-purple-400">⏳ Parsing 3D sculpture "${file.name}"...</span>`;
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const rawVerts = [];
+          const extractFromObject = (obj) => {
+            obj.updateMatrixWorld(true);
+            obj.traverse((child) => {
+              if (child.isMesh && child.geometry) {
+                const pos = child.geometry.attributes.position;
+                const v = new THREE.Vector3();
+                for (let i = 0; i < pos.count; i++) {
+                  v.fromBufferAttribute(pos, i).applyMatrix4(child.matrixWorld);
+                  rawVerts.push([v.x, v.z, v.y]); // Map Three.js Y-up to Drone Z-altitude
+                }
+              }
+            });
+          };
+
+          if (ext === 'obj') {
+            const loader = new THREE.OBJLoader();
+            const obj = loader.parse(ev.target.result);
+            extractFromObject(obj);
+            finalizeMeshCloud(rawVerts, file.name, drones);
+          } else {
+            const loader = new THREE.GLTFLoader();
+            loader.parse(ev.target.result, '', (gltf) => {
+              extractFromObject(gltf.scene);
+              finalizeMeshCloud(rawVerts, file.name, drones);
+            }, (err) => {
+              status.innerHTML = `<span class="text-rose-400">⚠️ GLB parse error: ${err.message || 'Invalid file'}</span>`;
+            });
+          }
+        } catch (err) {
+          status.innerHTML = `<span class="text-rose-400">⚠️ 3D Mesh error: ${err.message}</span>`;
+        }
+      };
+
+      if (ext === 'obj') reader.readAsText(file);
+      else reader.readAsArrayBuffer(file);
+    }
+
+    function finalizeMeshCloud(verts, filename, drones) {
+      if (!verts.length) return;
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity;
+      verts.forEach(([x, y, z]) => {
+        if (x < minX) minX = x; if (x > maxX) maxX = x;
+        if (y < minY) minY = y; if (y > maxY) maxY = y;
+        if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+      });
+      const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2, cz = (minZ + maxZ) / 2;
+      const maxSpan = Math.max(1e-4, maxX - minX, maxY - minY, maxZ - minZ);
+      const scale = 78.0 / maxSpan;
+      const palette = ["#FFD700", "#00E5FF", "#FF2A85"];
+      const cloud = [];
+      for (let i = 0; i < drones; i++) {
+        const idx = Math.floor((i / drones) * (verts.length - 1));
+        const [vx, vy, vz] = verts[idx];
+        const nz = (vz - cz) * scale + 68.0;
+        const col = nz > 82 ? palette[0] : (nz > 58 ? palette[1] : palette[2]);
+        cloud.push([+((vx - cx) * scale).toFixed(2), +((vy - cy) * scale).toFixed(2), +nz.toFixed(2), col]);
+      }
+      stagesData[0] = { title: `01. ${filename.slice(0, 14)}`, point_cloud: cloud };
+      renderStageButtons();
+      setupDroneParticles(drones);
+      applyStageTarget(0, false);
+      document.getElementById('aiStatus').innerHTML = `<span class="text-emerald-400">✓ 3D Mesh "${filename}" sampled onto ${drones} UAVs!</span>`;
+    }
+
+    // --------------------------------------------------------------------------
+    // 3. TIERS, PRICING, .SKYC/.CSV EXPORT & KTC GST INVOICE ENGINE
+    // --------------------------------------------------------------------------
     function selectTier(tierName, drones, mins) {
       currentTier = tierName;
       document.querySelectorAll('.tier-card').forEach(el => el.classList.remove('tier-active'));
@@ -856,7 +1025,7 @@
     }
 
     function updateQuote() {
-      let drones = Math.max(100, Math.min(1000, parseInt(document.getElementById('droneManualInput').value, 10) || 360));
+      let drones = Math.max(100, Math.min(1000, parseInt(document.getElementById('droneManualInput').value, 10) || 400));
       const mins = parseInt(document.getElementById('durSelect').value, 10);
       const addonsTotal = getSelectedAddons().reduce((acc, a) => acc + a.price, 0);
       const total = (drones * 180) + (mins * 2000) + addonsTotal;
@@ -878,7 +1047,7 @@
     }
 
     function compileAndExport() {
-      const drones = Math.max(100, Math.min(1000, parseInt(document.getElementById('droneManualInput').value, 10) || 360));
+      const drones = Math.max(100, Math.min(1000, parseInt(document.getElementById('droneManualInput').value, 10) || 400));
       const mins = parseInt(document.getElementById('durSelect').value, 10);
       const addons = getSelectedAddons();
       const basePrice = (drones * 180) + (mins * 2000);
