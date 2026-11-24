@@ -430,16 +430,20 @@
     function build3DTextCloud(textStr, nDrones, colorTheme = "tricolour", fontCss = "900 Arial, sans-serif") {
       const clean = (textStr || "AEROGRID").trim().slice(0, 18);
       const c = document.createElement('canvas');
-      c.width = 800; c.height = 200;
+      c.width = 900; c.height = 220;
       const ctx = c.getContext('2d');
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, c.width, c.height);
-      const fsize = Math.max(44, Math.min(116, Math.floor(660 / Math.max(1, clean.length * 0.58))));
+      const fsize = Math.max(52, Math.min(128, Math.floor(760 / Math.max(1, clean.length * 0.56))));
       ctx.font = fontCss.replace(/^\d+/, String(fsize));
       if (!/^\d+/.test(ctx.font)) ctx.font = `900 ${fsize}px Arial, sans-serif`;
-      ctx.fillStyle = '#fff';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#fff';
+      ctx.strokeText(clean, c.width / 2, c.height / 2);
+      ctx.fillStyle = '#fff';
       ctx.fillText(clean, c.width / 2, c.height / 2);
 
       const imgData = ctx.getImageData(0, 0, c.width, c.height).data;
@@ -447,7 +451,7 @@
       let minX = c.width, maxX = 0, minY = c.height, maxY = 0;
       for (let y = 0; y < c.height; y += 2) {
         for (let x = 0; x < c.width; x += 2) {
-          if (imgData[(y * c.width + x) * 4] > 130) {
+          if (imgData[(y * c.width + x) * 4] > 128) {
             lit.push([x, y]);
             if (x < minX) minX = x; if (x > maxX) maxX = x;
             if (y < minY) minY = y; if (y > maxY) maxY = y;
@@ -456,12 +460,13 @@
       }
       if (lit.length < 15) return buildElementCloud("taj", nDrones);
       const midX = (minX + maxX) / 2, midY = (minY + maxY) / 2;
-      const scale = Math.min(116 / Math.max(1, maxX - minX), 40 / Math.max(1, maxY - minY));
+      const scale = Math.min(118 / Math.max(1, maxX - minX), 40 / Math.max(1, maxY - minY));
       const solidMap = { gold: "#FFD700", cyan: "#00E5FF", pink: "#FF2A85", white: "#FFFFFF" };
       const out = [];
       for (let i = 0; i < nDrones; i++) {
-        const idx = Math.floor((i / nDrones) * (lit.length - 1));
-        const [px, py] = lit[idx];
+        // Golden-ratio quasi-random sampling eliminates grid/Braille aliasing completely
+        const frac = (i * 0.618033988749895) % 1;
+        const [px, py] = lit[Math.floor(frac * lit.length)];
         const normX = (px - minX) / Math.max(1, maxX - minX);
         const triCol = normX < 0.34 ? "#FF9933" : (normX < 0.67 ? "#FFFFFF" : "#10B981");
         const col = colorTheme === "tricolour" ? triCol : (solidMap[colorTheme] || "#00E5FF");
@@ -536,48 +541,59 @@
         ], nDrones);
       }
 
-      // 2. DANCING PEACOCK — Graceful S-Curved Neck, Crest Plumes & Radiating Feather Quills + Ocelli Eyes
+      // 2. DANCING PEACOCK — Sculpted Face, Beak, Royal Crest & Radiating Ocelli Feather Fan
       if (id === "peacock") {
         const quills = [], eyes = [], body = [];
-        // 19 Radiating Tail Feather Quills with Golden-Emerald Ocelli Eye Spots
         const numQuills = 19;
         for (let q = 0; q < numQuills; q++) {
           const ang = -0.14 * Math.PI + (q / (numQuills - 1)) * 1.28 * Math.PI;
           const maxR = 42 + 4 * Math.sin((q / (numQuills - 1)) * Math.PI);
-          for (let r = 10; r <= maxR; r += 2.2) {
-            const depthZ = -5 - (r / maxR) * 6;
+          for (let r = 12; r <= maxR; r += 2.3) {
+            const depthZ = -6 - (r / maxR) * 5;
             quills.push([r * Math.cos(ang) * 1.18, depthZ, 52 + r * Math.sin(ang), r > maxR - 5 ? "#10B981" : "#00E5FF"]);
           }
-          // Glowing Ocellus Eye Ring at tip of each feather
           const er = maxR - 4;
           const ex = er * Math.cos(ang) * 1.18, ez = 52 + er * Math.sin(ang);
           for (let k = 0; k < 8; k++) {
             const th = (k / 8) * Math.PI * 2;
-            eyes.push([ex + 2.2 * Math.cos(th), -4, ez + 2.2 * Math.sin(th), "#FFD700"]);
+            eyes.push([ex + 2.2 * Math.cos(th), -4.5, ez + 2.2 * Math.sin(th), "#FFD700"]);
           }
-          eyes.push([ex, -3.5, ez, "#FF2A85"]);
+          eyes.push([ex, -4, ez, "#FF2A85"]);
         }
 
-        // Graceful S-Curve Neck, Sculpted Torso, Beak & 3-Feather Crown
-        for (let u = 0; u <= 1; u += 0.015) {
-          const nx = Math.sin(u * Math.PI * 1.1) * 5.2;
-          const nz = 44 + u * 35;
-          const thick = 4.2 * Math.sin(u * Math.PI * 0.75) + 1.4;
-          for (let k = 0; k < 8; k++) {
-            const th = (k / 8) * Math.PI * 2;
-            body.push([nx + thick * Math.cos(th), 6 + thick * 0.7 * Math.sin(th), nz, u > 0.7 ? "#38BDF8" : "#10B981"]);
+        // Sculpted S-Curve Neck & Teardrop Breast
+        for (let u = 0; u <= 1; u += 0.02) {
+          const nx = Math.sin(u * Math.PI * 0.95) * 4.2;
+          const nz = 43 + u * 31;
+          const thick = u < 0.55 ? (5.2 * Math.sin((u / 0.55) * Math.PI * 0.8) + 1.5) : 2.1;
+          for (let k = 0; k < 10; k++) {
+            const th = (k / 10) * Math.PI * 2;
+            body.push([nx + thick * Math.cos(th), 7 + thick * 0.6 * Math.sin(th), nz, u > 0.65 ? "#00E5FF" : "#10B981"]);
           }
         }
-        // Beak & Crown Plumes
-        for (let b = 0; b <= 5; b += 1) body.push([4 + b * 1.1, 7, 78 - b * 0.3, "#FFD700"]);
-        [-3, 0, 3].forEach(dx => {
-          body.push([2 + dx * 0.6, 6, 82, "#FFD700"], [2 + dx, 6, 85, "#FF2A85"]);
+        // Distinct Peacock Head Sphere + Glowing White Eye + Golden Beak + 3-Feather Crown
+        const hx = 3.2, hz = 76.5;
+        for (let k = 0; k < 24; k++) {
+          const th = (k / 24) * Math.PI * 2;
+          body.push([hx + 3.4 * Math.cos(th), 8, hz + 3.2 * Math.sin(th), "#38BDF8"]);
+          body.push([hx + 1.8 * Math.cos(th), 8.5, hz + 1.8 * Math.sin(th), "#00E5FF"]);
+        }
+        body.push([hx + 1.2, 9.2, hz + 0.6, "#FFFFFF"]); // Eye
+        // Sharp Golden Beak pointing right
+        for (let b = 0; b <= 5; b++) {
+          body.push([hx + 3.4 + b * 1.1, 8.5, hz - b * 0.25, "#FFD700"]);
+          body.push([hx + 3.4 + b * 0.9, 8.5, hz - 0.8 - b * 0.15, "#FF9E00"]);
+        }
+        // 3 Royal Crown Plumes above head
+        [-2.2, 0, 2.2].forEach(dx => {
+          body.push([hx - 0.5 + dx * 0.5, 8, hz + 4.5, "#FFD700"]);
+          body.push([hx - 0.5 + dx, 8, hz + 7.2, "#FF2A85"]);
         });
 
         return allocateParts([
-          { pts: quills, col: "#00E5FF", w: 0.48 },
-          { pts: eyes, col: "#FFD700", w: 0.28 },
-          { pts: body, col: "#10B981", w: 0.24 }
+          { pts: quills, col: "#00E5FF", w: 0.44 },
+          { pts: eyes, col: "#FFD700", w: 0.26 },
+          { pts: body, col: "#10B981", w: 0.30 }
         ], nDrones);
       }
 
@@ -722,28 +738,33 @@
         return allocateParts([{ pts, col: "#FF2A85", w: 1.0 }], nDrones);
       }
 
-      // 8. INTERLOCKING WEDDING RINGS + FACETED DIAMOND SOLITAIRE
+      // 8. INTERLOCKING WEDDING RINGS + FACETED SOLITAIRE CROWN
       if (id === "rings") {
         const r1 = [], r2 = [], diamond = [];
-        for (let k = 0; k < 200; k++) {
-          const t = (k / 200) * Math.PI * 2;
+        for (let k = 0; k < 220; k++) {
+          const t = (k / 220) * Math.PI * 2;
           for (let a = 0; a < 8; a++) {
             const phi = (a / 8) * Math.PI * 2;
             const tubeR = 2.4;
             const rad = 19 + tubeR * Math.cos(phi);
             const off = tubeR * Math.sin(phi);
-            r1.push([-13 + rad * Math.cos(t), 11 * Math.sin(t) + off, 66 + rad * Math.sin(t), "#FFD700"]);
-            r2.push([13 + rad * Math.cos(t), -11 * Math.sin(t) + off, 66 + rad * Math.sin(t), "#38BDF8"]);
+            r1.push([-12.5 + rad * Math.cos(t), 11 * Math.sin(t) + off, 65 + rad * Math.sin(t), "#FFD700"]);
+            r2.push([12.5 + rad * Math.cos(t), -11 * Math.sin(t) + off, 65 + rad * Math.sin(t), "#38BDF8"]);
           }
         }
-        for (let k = 0; k < 48; k++) {
-          const th = (k / 48) * Math.PI * 2;
-          diamond.push([-13 + 6 * Math.cos(th), 6 * Math.sin(th), 90, "#FFFFFF"], [-13 + 3 * Math.cos(th), 3 * Math.sin(th), 94, "#E0F2FE"]);
+        // Faceted Diamond Solitaire mounted cleanly at top of Gold Ring (-12.5, 0, 84..94)
+        for (let k = 0; k < 36; k++) {
+          const th = (k / 36) * Math.PI * 2;
+          diamond.push([-12.5 + 5.8 * Math.cos(th), 5.8 * Math.sin(th), 89.5, "#FFFFFF"]); // Girdle
+          diamond.push([-12.5 + 3.2 * Math.cos(th), 3.2 * Math.sin(th), 93.0, "#E0F2FE"]); // Table
+          if (k % 3 === 0) {
+            diamond.push([-12.5 + 2.8 * Math.cos(th), 2.8 * Math.sin(th), 86.5, "#38BDF8"]); // Pavilion
+          }
         }
-        diamond.push([-13, 0, 85, "#FFFFFF"]);
+        diamond.push([-12.5, 0, 84.5, "#FFD700"]); // Prong base
         return allocateParts([{ pts: r1, col: "#FFD700", w: 0.43 }, { pts: r2, col: "#38BDF8", w: 0.43 }, { pts: diamond, col: "#FFFFFF", w: 0.14 }], nDrones);
       }
-
+      
       // 9. 3D EARTH GLOBE — Fibonacci Sphere with Continents, Oceans & Polar Ice Caps
       if (id === "earth") {
         const pts = [];
