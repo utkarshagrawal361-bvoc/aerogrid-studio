@@ -991,7 +991,7 @@
       `).join('');
 
       document.getElementById('elementGrid').innerHTML = ELEMENT_CATALOG.map(el => `
-        <div onclick="applyElementToActiveSlide('${el.key}', '${el.name}')"
+        <div onclick="applyElementToActiveSlide('${el.id}', '${el.name}')"
           class="elem-card p-3 rounded-xl bg-[#070B16] border border-slate-800 flex flex-col items-center text-center gap-1">
           <span class="text-2xl">${el.icon}</span>
           <span class="text-[11px] font-semibold text-slate-200 leading-tight">${el.name}</span>
