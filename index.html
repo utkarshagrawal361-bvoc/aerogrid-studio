@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AeroGrid Studio — Visual 3D Drone Choreography Platform</title>
+  <title>AeroGrid Studio — Broadcast-Grade 3D Drone Choreography Platform</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -12,8 +12,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     * { box-sizing: border-box; }
-    body { background: #050811; color: #F8FAFC; font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; }
-    .studio-panel { background: #0B1120; border-color: rgba(56, 189, 248, 0.16); }
+    body { background: #03060E; color: #F8FAFC; font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; }
+    .studio-panel { background: #090F1D; border-color: rgba(56, 189, 248, 0.16); }
     .nav-btn.active { background: rgba(56, 189, 248, 0.16); color: #38BDF8; border-left: 3px solid #38BDF8; }
     .slide-card { transition: all 0.18s ease; cursor: pointer; }
     .slide-card.active { border-color: #38BDF8 !important; background: rgba(56, 189, 248, 0.12) !important; box-shadow: 0 0 18px rgba(56, 189, 248, 0.18); }
@@ -32,20 +32,20 @@
 </head>
 <body class="h-screen flex flex-col select-none">
 
-  <!-- TOP CANVA STUDIO HEADER -->
-  <header class="h-14 border-b border-slate-800 bg-[#070B16] px-4 flex items-center justify-between gap-3 shrink-0 z-30">
+  <!-- TOP STUDIO HEADER -->
+  <header class="h-14 border-b border-slate-800 bg-[#050914] px-4 flex items-center justify-between gap-3 shrink-0 z-30">
     <div class="flex items-center gap-2.5">
       <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center font-black text-slate-950 text-sm">AG</div>
       <div class="leading-tight">
         <span class="font-bold text-white text-sm tracking-tight">AeroGrid Studio</span>
-        <span class="hidden lg:inline text-[11px] text-emerald-400 font-mono ml-2">● DGCA 2.0m Safe</span>
+        <span class="hidden lg:inline text-[11px] text-emerald-400 font-mono ml-2">● Real-World Swarm Choreography</span>
       </div>
     </div>
 
     <!-- Magic Prompt Bar -->
-    <div class="flex-1 max-w-xl flex items-center gap-2 bg-[#0D1526] border border-slate-700/80 rounded-xl px-3 py-1.5">
+    <div class="flex-1 max-w-xl flex items-center gap-2 bg-[#0C1425] border border-slate-700/80 rounded-xl px-3 py-1.5">
       <span class="text-sky-400 text-xs">✦</span>
-      <input id="magicPrompt" type="text" value='Marigold flower -> Dancing peacock -> "INDIA 2026"'
+      <input id="magicPrompt" type="text" value='Taj Mahal -> Dancing Peacock -> "INDIA 2026"'
         onkeydown="if(event.key==='Enter') applyMagicPrompt()"
         placeholder='Magic prompt: e.g. Taj Mahal -> Peacock -> "INDIA 2026"'
         class="w-full bg-transparent text-xs text-white focus:outline-none" />
@@ -56,9 +56,9 @@
 
     <!-- Right Action Controls -->
     <div class="flex items-center gap-2">
-      <div class="hidden sm:flex items-center gap-1.5 bg-[#0D1526] border border-slate-700/80 rounded-xl px-2.5 py-1 text-xs font-mono">
+      <div class="hidden sm:flex items-center gap-1.5 bg-[#0C1425] border border-slate-700/80 rounded-xl px-2.5 py-1 text-xs font-mono">
         <span class="text-slate-400">UAVs:</span>
-        <input id="droneManualInput" type="number" min="100" max="1000" step="10" value="500"
+        <input id="droneManualInput" type="number" min="100" max="1000" step="10" value="800"
           onchange="changeFleetCount(this.value)"
           class="w-14 bg-transparent text-sky-400 font-bold text-right focus:outline-none" />
       </div>
@@ -73,16 +73,16 @@
     </div>
   </header>
 
-  <!-- MAIN WORKSPACE (LEFT SIDEBAR + CENTER STAGE) -->
+  <!-- MAIN WORKSPACE -->
   <div class="flex-1 flex overflow-hidden">
 
-    <!-- ICON RAIL (CANVA STYLE) -->
-    <nav class="w-16 bg-[#070B16] border-r border-slate-800 flex flex-col items-center py-3 gap-2 shrink-0">
-      <button id="tabBtn-templates" onclick="switchSidebarTab('templates')" class="nav-btn active w-full py-2.5 flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white">
-        <span class="text-base">🗂️</span><span>Templates</span>
-      </button>
-      <button id="tabBtn-elements" onclick="switchSidebarTab('elements')" class="nav-btn w-full py-2.5 flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white">
+    <!-- LEFT RAIL -->
+    <nav class="w-16 bg-[#050914] border-r border-slate-800 flex flex-col items-center py-3 gap-2 shrink-0">
+      <button id="tabBtn-elements" onclick="switchSidebarTab('elements')" class="nav-btn active w-full py-2.5 flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white">
         <span class="text-base">✨</span><span>Elements</span>
+      </button>
+      <button id="tabBtn-templates" onclick="switchSidebarTab('templates')" class="nav-btn w-full py-2.5 flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white">
+        <span class="text-base">🗂️</span><span>Templates</span>
       </button>
       <button id="tabBtn-text" onclick="switchSidebarTab('text')" class="nav-btn w-full py-2.5 flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white">
         <span class="text-base">🔤</span><span>Text</span>
@@ -92,40 +92,40 @@
       </button>
     </nav>
 
-    <!-- DRAWER PANEL -->
+    <!-- SIDEBAR DRAWER -->
     <aside class="w-72 studio-panel border-r border-slate-800 p-4 overflow-y-auto shrink-0">
-      <!-- TAB 1: TEMPLATES -->
-      <div id="panel-templates" class="space-y-3">
+      <!-- TAB 1: 3D ELEMENTS -->
+      <div id="panel-elements" class="space-y-3">
         <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">Show Templates</h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">One-click 3-slide complete choreographies</p>
-        </div>
-        <div id="templateList" class="space-y-2.5"></div>
-      </div>
-
-      <!-- TAB 2: 3D ELEMENTS -->
-      <div id="panel-elements" class="hidden space-y-3">
-        <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">3D Volumetric Elements</h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">Click any element to apply to active Slide</p>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">Mega-Show Formations</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">Real-world parametric 3D swarm sculptures</p>
         </div>
         <div id="elementGrid" class="grid grid-cols-2 gap-2"></div>
+      </div>
+
+      <!-- TAB 2: TEMPLATES -->
+      <div id="panel-templates" class="hidden space-y-3">
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">Complete Show Templates</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">One-click 3-act choreographed shows</p>
+        </div>
+        <div id="templateList" class="space-y-2.5"></div>
       </div>
 
       <!-- TAB 3: TEXT STUDIO -->
       <div id="panel-text" class="hidden space-y-3.5">
         <div>
           <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">3D Sky Typography</h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">Single-plane razor-sharp LED banner</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">High-density stadium LED sky banner</p>
         </div>
         <div>
           <label class="block text-[11px] text-slate-400 mb-1">Banner Text (Max 18 chars)</label>
           <input id="customTextInput" type="text" value="INDIA 2026" maxlength="18"
-            class="w-full bg-[#070B16] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-sky-400 focus:outline-none" />
+            class="w-full bg-[#050914] border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-sky-400 focus:outline-none" />
         </div>
         <div>
           <label class="block text-[11px] text-slate-400 mb-1">Font Style</label>
-          <select id="textFontSelect" class="w-full bg-[#070B16] border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white">
+          <select id="textFontSelect" class="w-full bg-[#050914] border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white">
             <option value="900 Arial, sans-serif">Bold Arena Block</option>
             <option value="italic bold Georgia, serif">Royal Wedding Serif</option>
             <option value="bold 'Courier New', monospace">Tech Cyber Mono</option>
@@ -133,7 +133,7 @@
         </div>
         <div>
           <label class="block text-[11px] text-slate-400 mb-1">LED Color Theme</label>
-          <select id="textColorSelect" class="w-full bg-[#070B16] border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white">
+          <select id="textColorSelect" class="w-full bg-[#050914] border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white">
             <option value="tricolour">Indian Tricolour (Saffron-White-Green)</option>
             <option value="gold">Imperial Gold (#FFD700)</option>
             <option value="cyan">Electric Sky Cyan (#00E5FF)</option>
@@ -150,13 +150,13 @@
       <!-- TAB 4: UPLOADS -->
       <div id="panel-uploads" class="hidden space-y-4">
         <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">Custom Media & 3D Meshes</h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">Import brand logos or Blender/Sketchfab models</p>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">Custom Brand & 3D Import</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">Convert client logos or 3D models into swarms</p>
         </div>
 
-        <div class="p-3.5 rounded-xl bg-[#070B16] border border-slate-800 space-y-2">
-          <p class="text-xs font-semibold text-white">2D Logo / Silhouette (PNG/JPG)</p>
-          <p class="text-[11px] text-slate-400">AI 3D depth relief extracts edges & height.</p>
+        <div class="p-3.5 rounded-xl bg-[#050914] border border-slate-800 space-y-2">
+          <p class="text-xs font-semibold text-white">2D Brand Logo / Portrait (PNG/JPG)</p>
+          <p class="text-[11px] text-slate-400">Extracts solid fill + 3D relief depth.</p>
           <input id="refFile" type="file" accept="image/*" class="hidden" onchange="uploadReferenceImage(this)" />
           <button onclick="document.getElementById('refFile').click()"
             class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-semibold text-sky-300">
@@ -164,9 +164,9 @@
           </button>
         </div>
 
-        <div class="p-3.5 rounded-xl bg-[#070B16] border border-purple-500/30 space-y-2">
-          <p class="text-xs font-semibold text-white">Studio 3D Model (.GLB / .OBJ)</p>
-          <p class="text-[11px] text-slate-400">Samples actual 3D vertices onto your drone swarm.</p>
+        <div class="p-3.5 rounded-xl bg-[#050914] border border-purple-500/30 space-y-2">
+          <p class="text-xs font-semibold text-white">Studio 3D Mesh (.GLB / .OBJ)</p>
+          <p class="text-[11px] text-slate-400">Surface sampling for Blender/Sketchfab models.</p>
           <input id="meshFile" type="file" accept=".glb,.gltf,.obj" class="hidden" onchange="upload3DMesh(this)" />
           <button onclick="document.getElementById('meshFile').click()"
             class="w-full py-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/50 text-xs font-semibold text-purple-200">
@@ -182,11 +182,11 @@
     </aside>
 
     <!-- CENTER 3D STAGE -->
-    <main class="flex-1 flex flex-col bg-[#03050B] relative overflow-hidden">
+    <main class="flex-1 flex flex-col bg-[#02040A] relative overflow-hidden">
       <!-- Floating Top Stage Bar -->
-      <div class="h-11 bg-[#070B16]/90 border-b border-slate-800/80 px-4 flex items-center justify-between gap-2 text-xs shrink-0">
+      <div class="h-11 bg-[#050914]/95 border-b border-slate-800/80 px-4 flex items-center justify-between gap-2 text-xs shrink-0">
         <div class="flex items-center gap-2">
-          <span id="statusToast" class="font-mono text-[11px] text-emerald-400">✓ Studio Ready</span>
+          <span id="statusToast" class="font-mono text-[11px] text-emerald-400">✓ Real-World Swarm Choreography Active</span>
         </div>
 
         <div class="flex items-center gap-2 font-mono text-[11px]">
@@ -199,15 +199,15 @@
             <option value="direct">Direct Morph</option>
           </select>
 
-          <span class="text-slate-500 ml-2">VENUE:</span>
+          <span class="text-slate-500 ml-1">VENUE:</span>
           <select id="venueSelect" onchange="changeVenue(this.value)"
             class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-amber-300 focus:outline-none">
-            <option value="grid">Night Grid</option>
-            <option value="stadium">Stadium Arena</option>
+            <option value="stadium" selected>Stadium Arena</option>
             <option value="palace">Royal Palace Lawn</option>
+            <option value="grid">Night Grid</option>
           </select>
 
-          <span class="text-slate-500 ml-2">CAM:</span>
+          <span class="text-slate-500 ml-1">CAM:</span>
           <button onclick="setCamPreset('audience')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-sky-300">Audience</button>
           <button onclick="setCamPreset('side')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-purple-300">3D Depth</button>
           <button onclick="setCamPreset('top')" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300">Aerial</button>
@@ -219,10 +219,10 @@
       <div id="threeContainer" class="flex-1 w-full relative"></div>
 
       <!-- Telemetry Strip -->
-      <div class="h-8 bg-[#070B16] border-t border-slate-800/80 px-4 flex items-center justify-between text-[11px] font-mono text-slate-400 shrink-0">
-        <div>ACTIVE SLIDE: <span id="hudSlideName" class="text-white font-semibold">01. Marigold Flower</span></div>
+      <div class="h-8 bg-[#050914] border-t border-slate-800/80 px-4 flex items-center justify-between text-[11px] font-mono text-slate-400 shrink-0">
+        <div>ACTIVE SLIDE: <span id="hudSlideName" class="text-white font-semibold">01. Taj Mahal</span></div>
         <div class="flex items-center gap-4">
-          <span>FLEET: <b id="hudFleet" class="text-sky-400">500 UAVs</b></span>
+          <span>FLEET: <b id="hudFleet" class="text-sky-400">800 UAVs</b></span>
           <span>MAX VEL: <b class="text-amber-300">5.2 m/s</b></span>
           <span>SPACING: <b class="text-emerald-400">2.10m [SAFE]</b></span>
         </div>
@@ -230,15 +230,15 @@
     </main>
   </div>
 
-  <!-- BOTTOM CANVA STORYBOARD TIMELINE -->
-  <footer class="h-32 bg-[#070B16] border-t border-slate-800 px-4 py-2.5 flex items-center gap-4 shrink-0 z-30">
+  <!-- BOTTOM STORYBOARD TIMELINE -->
+  <footer class="h-32 bg-[#050914] border-t border-slate-800 px-4 py-2.5 flex items-center gap-4 shrink-0 z-30">
     <div class="flex flex-col justify-between h-full pr-3 border-r border-slate-800 shrink-0">
       <button id="playShowBtn" onclick="togglePlayShow()"
         class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20">
         ▶ Play Full Show
       </button>
       <div class="text-[11px] font-mono text-slate-400">
-        Total Duration: <b id="totalDurLabel" class="text-white">45s</b>
+        Total Show: <b id="totalDurLabel" class="text-white">50s</b>
       </div>
     </div>
 
@@ -251,7 +251,7 @@
     </button>
   </footer>
 
-  <!-- EXPORT, PRICING & KTC GST INVOICE MODAL -->
+  <!-- EXPORT & KTC GST INVOICE MODAL -->
   <div id="exportModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-[#0B1120] border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-5">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -262,14 +262,13 @@
         <button onclick="toggleExportModal(false)" class="px-3 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white text-xs">✕ Close</button>
       </div>
 
-      <!-- Fleet & Add-ons -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-        <div class="bg-[#070B16] border border-slate-800 p-3 rounded-xl">
+        <div class="bg-[#050914] border border-slate-800 p-3 rounded-xl">
           <label class="text-slate-400 block mb-1">Fleet Size (100 - 1,000 UAVs)</label>
-          <input id="modalDroneInput" type="number" min="100" max="1000" step="10" value="500" oninput="changeFleetCount(this.value)"
+          <input id="modalDroneInput" type="number" min="100" max="1000" step="10" value="800" oninput="changeFleetCount(this.value)"
             class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sky-400 font-mono font-bold" />
         </div>
-        <div class="bg-[#070B16] border border-slate-800 p-3 rounded-xl">
+        <div class="bg-[#050914] border border-slate-800 p-3 rounded-xl">
           <label class="text-slate-400 block mb-1">Show Duration</label>
           <select id="durSelect" onchange="updateQuote()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white font-semibold">
             <option value="8">8 Minutes</option>
@@ -277,36 +276,35 @@
             <option value="15">15 Minutes</option>
           </select>
         </div>
-        <div class="bg-[#070B16] border border-slate-800 p-3 rounded-xl flex flex-col justify-center">
+        <div class="bg-[#050914] border border-slate-800 p-3 rounded-xl flex flex-col justify-center">
           <span class="text-slate-400">Taxable Show Total</span>
-          <span id="priceLabel" class="text-lg font-mono font-bold text-emerald-400">₹1,10,000</span>
+          <span id="priceLabel" class="text-lg font-mono font-bold text-emerald-400">₹1,64,000</span>
         </div>
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-        <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#070B16] border border-slate-800 cursor-pointer">
+        <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#050914] border border-slate-800 cursor-pointer">
           <input type="checkbox" class="addon-chk accent-sky-400" data-name="Cold-Spark Pyro Drones (24x)" data-price="18000" onchange="updateQuote()" />
           <span>Pyro Drones (+₹18k)</span>
         </label>
-        <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#070B16] border border-slate-800 cursor-pointer">
+        <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#050914] border border-slate-800 cursor-pointer">
           <input type="checkbox" class="addon-chk accent-sky-400" data-name="SMPTE Live Music DMX Sync" data-price="9500" onchange="updateQuote()" />
           <span>DMX Music (+₹9.5k)</span>
         </label>
-        <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#070B16] border border-slate-800 cursor-pointer">
+        <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#050914] border border-slate-800 cursor-pointer">
           <input type="checkbox" class="addon-chk accent-sky-400" data-name="4K Dual-Drone Aftermovie" data-price="12000" onchange="updateQuote()" />
           <span>4K Film (+₹12k)</span>
         </label>
-        <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#070B16] border border-slate-800 cursor-pointer">
+        <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#050914] border border-slate-800 cursor-pointer">
           <input type="checkbox" class="addon-chk accent-sky-400" data-name="DGCA Fast-Track NOC" data-price="7500" onchange="updateQuote()" />
           <span>DGCA NOC (+₹7.5k)</span>
         </label>
       </div>
 
-      <!-- Optional Client GST -->
       <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
-        <input id="compName" type="text" placeholder="Client / Company Name" class="bg-[#070B16] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white" />
-        <input id="compGstin" type="text" placeholder="GSTIN (e.g. 24AABCU9603R1ZM)" oninput="autoDetectState(this.value)" class="bg-[#070B16] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white uppercase" />
-        <select id="compState" class="bg-[#070B16] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+        <input id="compName" type="text" placeholder="Client / Company Name" class="bg-[#050914] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white" />
+        <input id="compGstin" type="text" placeholder="GSTIN (e.g. 24AABCU9603R1ZM)" oninput="autoDetectState(this.value)" class="bg-[#050914] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white uppercase" />
+        <select id="compState" class="bg-[#050914] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
           <option value="24" selected>24 - Gujarat (CGST+SGST)</option>
           <option value="27">27 - Maharashtra (IGST)</option>
           <option value="07">07 - Delhi (IGST)</option>
@@ -315,7 +313,7 @@
           <option value="33">33 - Tamil Nadu (IGST)</option>
           <option value="09">09 - Uttar Pradesh (IGST)</option>
         </select>
-        <input id="compAddr" type="text" placeholder="Billing City / Address" class="bg-[#070B16] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white" />
+        <input id="compAddr" type="text" placeholder="Billing City / Address" class="bg-[#050914] border border-slate-700 rounded-xl px-3 py-2 text-xs text-white" />
       </div>
 
       <button onclick="compileAndExport()" class="w-full py-3 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-sm">
@@ -339,7 +337,7 @@
 
   <script>
     // --------------------------------------------------------------------------
-    // 1. STUDIO STATE, TEMPLATES & 3D ELEMENT CATALOG
+    // 1. REAL-WORLD DRONE SHOW PARAMETRIC POINT-CLOUD CHOREOGRAPHY ENGINE
     // --------------------------------------------------------------------------
     let scene, camera, renderer, controls, dronePoints, trailLines, venueGroup;
     let currentPositions, startPositions, targetPositions, prevPositions, droneColors;
@@ -358,74 +356,71 @@
     };
 
     const ELEMENT_CATALOG = [
-      { id: "marigold", name: "Marigold Flower", icon: "🌼", cat: "Festival" },
-      { id: "peacock", name: "Dancing Peacock", icon: "🦚", cat: "Heritage" },
-      { id: "diya", name: "Diwali Diya Lamp", icon: "🪔", cat: "Festival" },
-      { id: "taj", name: "Taj Mahal Dome", icon: "🕌", cat: "Heritage" },
+      { id: "taj", name: "Taj Mahal", icon: "🕌", cat: "Heritage" },
+      { id: "peacock", name: "Dancing Peacock", icon: "🦚", cat: "National" },
+      { id: "marigold", name: "Marigold Bloom", icon: "🌼", cat: "Festival" },
       { id: "ganesha", name: "Lord Ganesha", icon: "🕉️", cat: "Divine" },
       { id: "trishul", name: "Shiva Trishul", icon: "🔱", cat: "Divine" },
-      { id: "heart", name: "3D Beating Heart", icon: "💖", cat: "Wedding" },
+      { id: "diya", name: "Diwali Diya", icon: "🪔", cat: "Festival" },
+      { id: "heart", name: "Beating 3D Heart", icon: "💖", cat: "Wedding" },
       { id: "rings", name: "Wedding Rings", icon: "💍", cat: "Wedding" },
-      { id: "f1car", name: "Formula 1 Car", icon: "🏎️", cat: "Launch" },
-      { id: "saturn", name: "Saturn Planet", icon: "🪐", cat: "Space" },
-      { id: "crown", name: "Imperial Crown", icon: "👑", cat: "Royal" },
-      { id: "eagle", name: "Soaring Eagle", icon: "🦅", cat: "Wildlife" }
+      { id: "earth", name: "3D Earth Globe", icon: "🌍", cat: "Global" },
+      { id: "rocket", name: "ISRO Rocket", icon: "🚀", cat: "Aerospace" },
+      { id: "trophy", name: "World Cup Trophy", icon: "🏆", cat: "Sports" },
+      { id: "f1car", name: "Formula 1 Car", icon: "🏎️", cat: "Motorsport" }
     ];
 
     const SHOW_TEMPLATES = [
       {
-        title: "Grand Indian Festival",
-        desc: "Marigold -> Peacock -> Tricolour INDIA 2026",
+        title: "Incredible India Mega-Show",
+        desc: "Taj Mahal -> Dancing Peacock -> INDIA 2026",
         items: [
-          { type: "element", key: "marigold", label: "Marigold Flower", dur: 15, trans: "spiral" },
-          { type: "element", key: "peacock", label: "Dancing Peacock", dur: 15, trans: "burst" },
+          { type: "element", id: "taj", label: "Taj Mahal", dur: 15, trans: "spiral" },
+          { type: "element", id: "peacock", label: "Dancing Peacock", dur: 15, trans: "burst" },
           { type: "text", text: "INDIA 2026", color: "tricolour", font: "900 Arial, sans-serif", label: "INDIA 2026", dur: 20, trans: "wave" }
         ]
       },
       {
-        title: "Royal Wedding Entry",
-        desc: "3D Heart -> Diamond Rings -> FOREVER",
+        title: "Royal Wedding Finale",
+        desc: "Beating 3D Heart -> Wedding Rings -> FOREVER",
         items: [
-          { type: "element", key: "heart", label: "3D Heart", dur: 15, trans: "burst" },
-          { type: "element", key: "rings", label: "Wedding Rings", dur: 15, trans: "spiral" },
+          { type: "element", id: "heart", label: "Beating 3D Heart", dur: 15, trans: "burst" },
+          { type: "element", id: "rings", label: "Wedding Rings", dur: 15, trans: "spiral" },
           { type: "text", text: "FOREVER", color: "gold", font: "italic bold Georgia, serif", label: "FOREVER", dur: 20, trans: "direct" }
         ]
       },
       {
         title: "Diwali & Divine Gala",
-        desc: "Lord Ganesha -> Trishul -> Glowing Diya",
+        desc: "Lord Ganesha -> Shiva Trishul -> Diwali Diya",
         items: [
-          { type: "element", key: "ganesha", label: "Lord Ganesha", dur: 15, trans: "spiral" },
-          { type: "element", key: "trishul", label: "Shiva Trishul", dur: 15, trans: "wave" },
-          { type: "element", key: "diya", label: "Diwali Diya", dur: 20, trans: "burst" }
+          { type: "element", id: "ganesha", label: "Lord Ganesha", dur: 15, trans: "spiral" },
+          { type: "element", id: "trishul", label: "Shiva Trishul", dur: 15, trans: "wave" },
+          { type: "element", id: "diya", label: "Diwali Diya", dur: 20, trans: "burst" }
         ]
       },
       {
-        title: "Mega Corporate Launch",
-        desc: "Formula 1 Car -> Saturn -> LAUNCH 2026",
+        title: "Stadium & Auto Premiere",
+        desc: "Formula 1 Car -> World Cup Trophy -> CHAMPIONS",
         items: [
-          { type: "element", key: "f1car", label: "Formula 1 Car", dur: 15, trans: "direct" },
-          { type: "element", key: "saturn", label: "Saturn Planet", dur: 15, trans: "spiral" },
-          { type: "text", text: "LAUNCH 2026", color: "cyan", font: "900 Arial, sans-serif", label: "LAUNCH 2026", dur: 20, trans: "burst" }
+          { type: "element", id: "f1car", label: "Formula 1 Car", dur: 15, trans: "direct" },
+          { type: "element", id: "trophy", label: "World Cup Trophy", dur: 15, trans: "spiral" },
+          { type: "text", text: "CHAMPIONS", color: "gold", font: "900 Arial, sans-serif", label: "CHAMPIONS", dur: 20, trans: "burst" }
         ]
       }
     ];
 
-    // --------------------------------------------------------------------------
-    // 2. TRUE VOLUMETRIC 3D SCULPTURE GENERATORS (ZERO EMOJI FALLBACK)
-    // --------------------------------------------------------------------------
-    function sampleWeighted(parts, nDrones) {
+    function allocateParts(parts, nDrones) {
       const totalW = parts.reduce((s, p) => s + p.w, 0);
       const out = [];
-      let allocated = 0;
+      let assigned = 0;
       parts.forEach((p, idx) => {
         if (!p.pts.length) return;
-        const k = (idx === parts.length - 1) ? (nDrones - allocated) : Math.max(1, Math.round(nDrones * (p.w / totalW)));
-        allocated += k;
+        const k = (idx === parts.length - 1) ? (nDrones - assigned) : Math.max(1, Math.round(nDrones * (p.w / totalW)));
+        assigned += k;
         for (let i = 0; i < k; i++) {
-          const j = Math.floor((i / Math.max(1, k)) * (p.pts.length - 1));
+          const j = Math.floor(((i + 0.5) / k) * p.pts.length) % p.pts.length;
           const pt = p.pts[j];
-          out.push([+pt[0].toFixed(2), +pt[1].toFixed(2), +pt[2].toFixed(2), p.col]);
+          out.push([+pt[0].toFixed(2), +pt[1].toFixed(2), +pt[2].toFixed(2), pt[3] || p.col]);
         }
       });
       while (out.length < nDrones && out.length > 0) out.push([...out[out.length % out.length]]);
@@ -435,11 +430,11 @@
     function build3DTextCloud(textStr, nDrones, colorTheme = "tricolour", fontCss = "900 Arial, sans-serif") {
       const clean = (textStr || "AEROGRID").trim().slice(0, 18);
       const c = document.createElement('canvas');
-      c.width = 760; c.height = 190;
+      c.width = 800; c.height = 200;
       const ctx = c.getContext('2d');
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, c.width, c.height);
-      const fsize = Math.max(40, Math.min(110, Math.floor(640 / Math.max(1, clean.length * 0.58))));
+      const fsize = Math.max(44, Math.min(116, Math.floor(660 / Math.max(1, clean.length * 0.58))));
       ctx.font = fontCss.replace(/^\d+/, String(fsize));
       if (!/^\d+/.test(ctx.font)) ctx.font = `900 ${fsize}px Arial, sans-serif`;
       ctx.fillStyle = '#fff';
@@ -452,16 +447,16 @@
       let minX = c.width, maxX = 0, minY = c.height, maxY = 0;
       for (let y = 0; y < c.height; y += 2) {
         for (let x = 0; x < c.width; x += 2) {
-          if (imgData[(y * c.width + x) * 4] > 135) {
+          if (imgData[(y * c.width + x) * 4] > 130) {
             lit.push([x, y]);
             if (x < minX) minX = x; if (x > maxX) maxX = x;
             if (y < minY) minY = y; if (y > maxY) maxY = y;
           }
         }
       }
-      if (lit.length < 15) return buildElementCloud("marigold", nDrones);
+      if (lit.length < 15) return buildElementCloud("taj", nDrones);
       const midX = (minX + maxX) / 2, midY = (minY + maxY) / 2;
-      const scale = Math.min(114 / Math.max(1, maxX - minX), 38 / Math.max(1, maxY - minY));
+      const scale = Math.min(116 / Math.max(1, maxX - minX), 40 / Math.max(1, maxY - minY));
       const solidMap = { gold: "#FFD700", cyan: "#00E5FF", pink: "#FF2A85", white: "#FFFFFF" };
       const out = [];
       for (let i = 0; i < nDrones; i++) {
@@ -475,269 +470,384 @@
       return out;
     }
 
-    function buildElementCloud(key, nDrones) {
-      // 1. MARIGOLD FLOWER
-      if (key === "marigold") {
-        const core = [], midPetals = [], outerPetals = [], stemLeaves = [];
-        for (let ring = 1; ring <= 6; ring++) {
-          const phi = (ring / 7) * (Math.PI * 0.55);
-          const rad = 28 * Math.sin(phi), depthY = 18 * Math.cos(phi);
-          const nPts = 36 + ring * 18, petalsCount = 10 + ring * 4;
-          for (let k = 0; k < nPts; k++) {
-            const th = (k / nPts) * Math.PI * 2;
-            const ruffle = 1.0 + 0.16 * Math.sin(petalsCount * th + ring * 0.7);
-            const pt = [rad * ruffle * Math.cos(th), depthY + 2.2 * Math.cos(petalsCount * th), 72 + rad * ruffle * Math.sin(th)];
-            if (ring <= 2) core.push(pt);
-            else if (ring <= 4) midPetals.push(pt);
-            else outerPetals.push(pt);
+    // AUTHENTIC REAL-WORLD DRONE CHOREOGRAPHY FORMATIONS (NO BLOCKS/PRIMITIVES)
+    function buildElementCloud(id, nDrones) {
+      // 1. TAJ MAHAL — Authentic Bulbous Mughal Onion Dome, Lotus Finial, Central Iwan Arch & 4 Minarets
+      if (id === "taj") {
+        const mainDome = [], chhatris = [], facade = [], minarets = [];
+        // Onion dome profile: wide belly, pinched neck, pointed finial
+        for (let u = 0.0; u <= 1.0; u += 0.025) {
+          const r = u < 0.72
+            ? 20 * Math.sin((u / 0.72) * Math.PI * 0.85) * 1.12
+            : 20 * Math.sin(0.85 * Math.PI) * 1.12 * Math.pow(1 - (u - 0.72) / 0.28, 1.8);
+          const z = 68 + u * 31;
+          const rings = Math.max(6, Math.round(r * 1.6));
+          for (let k = 0; k < rings; k++) {
+            const th = (k / rings) * Math.PI * 2;
+            mainDome.push([r * Math.cos(th), r * Math.sin(th), z, u > 0.82 ? "#FFD700" : "#FFFFFF"]);
           }
         }
-        for (let z = 34; z <= 54; z += 0.6) stemLeaves.push([Math.sin((z - 34) * 0.12) * 1.5, -2, z]);
-        for (let u = 0; u <= 1; u += 0.04) {
-          const lx = u * 18, lz = 43 + Math.sin(u * Math.PI) * 5;
-          stemLeaves.push([-lx, 0, lz + 2.5 * Math.sin(u * Math.PI)], [-lx, 0, lz - 2.5 * Math.sin(u * Math.PI)]);
-          stemLeaves.push([lx, 0, lz - 2 + 2.5 * Math.sin(u * Math.PI)], [lx, 0, lz - 2 - 2.5 * Math.sin(u * Math.PI)]);
+        for (let z = 99; z <= 107; z += 0.5) mainDome.push([0, 0, z, "#FFD700"]);
+
+        // Two flanking Chhatri domes
+        [-21, 21].forEach(cx => {
+          for (let u = 0; u <= 1; u += 0.08) {
+            const r = 6.5 * Math.sin(u * Math.PI);
+            for (let k = 0; k < 12; k++) {
+              const th = (k / 12) * Math.PI * 2;
+              chhatris.push([cx + r * Math.cos(th), 4 + r * Math.sin(th), 68 + u * 11, "#FFD700"]);
+            }
+          }
+        });
+
+        // Marble Pishtaq Facade & Pointed Mughal Iwan Arch
+        for (let x = -32; x <= 32; x += 1.4) {
+          facade.push([x, 10, 67, "#38BDF8"], [x, 10, 42, "#38BDF8"]);
+          if (Math.abs(x) > 11) {
+            for (let z = 44; z <= 65; z += 3.5) facade.push([x, 10, z, "#E2E8F0"]);
+          }
         }
-        return sampleWeighted([
-          { pts: core, col: "#FF5500", w: 0.22 }, { pts: midPetals, col: "#FF9E00", w: 0.34 },
-          { pts: outerPetals, col: "#FFD60A", w: 0.32 }, { pts: stemLeaves, col: "#10B981", w: 0.12 }
+        // Central Grand Archway
+        for (let t = 0; t <= 1; t += 0.015) {
+          const ang = t * Math.PI;
+          const ax = 10.5 * Math.cos(ang);
+          const az = 42 + 21 * Math.pow(Math.sin(ang), 0.75);
+          facade.push([ax, 11, az, "#FFD700"], [ax * 0.82, 11, az - 2, "#00E5FF"]);
+        }
+
+        // 4 Slender Minarets with 3 Balconies each
+        [[-45, -12], [45, -12], [-40, 12], [40, 12]].forEach(([mx, my]) => {
+          for (let z = 42; z <= 92; z += 1.3) {
+            const taper = 2.6 - ((z - 42) / 50) * 1.1;
+            const isBalcony = (Math.abs(z - 58) < 1 || Math.abs(z - 74) < 1 || Math.abs(z - 88) < 1);
+            const rad = isBalcony ? taper + 1.5 : taper;
+            for (let k = 0; k < 6; k++) {
+              const th = (k / 6) * Math.PI * 2;
+              minarets.push([mx + rad * Math.cos(th), my + rad * Math.sin(th), z, isBalcony ? "#FFD700" : "#FFFFFF"]);
+            }
+          }
+        });
+
+        return allocateParts([
+          { pts: mainDome, col: "#FFFFFF", w: 0.36 },
+          { pts: chhatris, col: "#FFD700", w: 0.12 },
+          { pts: facade, col: "#38BDF8", w: 0.28 },
+          { pts: minarets, col: "#FFFFFF", w: 0.24 }
         ], nDrones);
       }
 
-      // 2. DANCING PEACOCK (3D Volumetric Fan Feathers + Eye Spots + Neck & Crest)
-      if (key === "peacock") {
-        const fan = [], eyes = [], body = [];
-        for (let layer = 1; layer <= 4; layer++) {
-          const r = 16 + layer * 7.5;
-          const n = 35 + layer * 16;
-          for (let k = 0; k <= n; k++) {
-            const th = -0.15 * Math.PI + (k / n) * 1.3 * Math.PI;
-            fan.push([r * Math.cos(th) * 1.15, -4 - layer * 2.5, 56 + r * Math.sin(th)]);
-            if (layer >= 3 && k % 6 === 0) {
-              eyes.push([r * Math.cos(th) * 1.15, -3 - layer * 2.5, 56 + r * Math.sin(th)]);
-            }
+      // 2. DANCING PEACOCK — Graceful S-Curved Neck, Crest Plumes & Radiating Feather Quills + Ocelli Eyes
+      if (id === "peacock") {
+        const quills = [], eyes = [], body = [];
+        // 19 Radiating Tail Feather Quills with Golden-Emerald Ocelli Eye Spots
+        const numQuills = 19;
+        for (let q = 0; q < numQuills; q++) {
+          const ang = -0.14 * Math.PI + (q / (numQuills - 1)) * 1.28 * Math.PI;
+          const maxR = 42 + 4 * Math.sin((q / (numQuills - 1)) * Math.PI);
+          for (let r = 10; r <= maxR; r += 2.2) {
+            const depthZ = -5 - (r / maxR) * 6;
+            quills.push([r * Math.cos(ang) * 1.18, depthZ, 52 + r * Math.sin(ang), r > maxR - 5 ? "#10B981" : "#00E5FF"]);
+          }
+          // Glowing Ocellus Eye Ring at tip of each feather
+          const er = maxR - 4;
+          const ex = er * Math.cos(ang) * 1.18, ez = 52 + er * Math.sin(ang);
+          for (let k = 0; k < 8; k++) {
+            const th = (k / 8) * Math.PI * 2;
+            eyes.push([ex + 2.2 * Math.cos(th), -4, ez + 2.2 * Math.sin(th), "#FFD700"]);
+          }
+          eyes.push([ex, -3.5, ez, "#FF2A85"]);
+        }
+
+        // Graceful S-Curve Neck, Sculpted Torso, Beak & 3-Feather Crown
+        for (let u = 0; u <= 1; u += 0.015) {
+          const nx = Math.sin(u * Math.PI * 1.1) * 5.2;
+          const nz = 44 + u * 35;
+          const thick = 4.2 * Math.sin(u * Math.PI * 0.75) + 1.4;
+          for (let k = 0; k < 8; k++) {
+            const th = (k / 8) * Math.PI * 2;
+            body.push([nx + thick * Math.cos(th), 6 + thick * 0.7 * Math.sin(th), nz, u > 0.7 ? "#38BDF8" : "#10B981"]);
           }
         }
-        // Peacock neck, head & crown plumes
-        for (let u = 0; u <= 1; u += 0.025) {
-          const nx = Math.sin(u * Math.PI * 0.85) * 4.5;
-          const nz = 46 + u * 30;
-          body.push([nx, 6, nz], [nx - 1.6, 5, nz], [nx + 1.6, 5, nz]);
-        }
-        [-3, 0, 3].forEach(dx => body.push([3 + dx, 6, 80]));
-        return sampleWeighted([
-          { pts: fan, col: "#00E5FF", w: 0.52 },
-          { pts: eyes, col: "#FFD700", w: 0.24 },
+        // Beak & Crown Plumes
+        for (let b = 0; b <= 5; b += 1) body.push([4 + b * 1.1, 7, 78 - b * 0.3, "#FFD700"]);
+        [-3, 0, 3].forEach(dx => {
+          body.push([2 + dx * 0.6, 6, 82, "#FFD700"], [2 + dx, 6, 85, "#FF2A85"]);
+        });
+
+        return allocateParts([
+          { pts: quills, col: "#00E5FF", w: 0.48 },
+          { pts: eyes, col: "#FFD700", w: 0.28 },
           { pts: body, col: "#10B981", w: 0.24 }
         ], nDrones);
       }
 
-      // 3. DIWALI DIYA LAMP (3D Terracotta Bowl + Golden Flame)
-      if (key === "diya") {
-        const bowl = [], rim = [], flame = [];
-        for (let v = 0; v <= 1; v += 0.06) {
-          const rx = 14 + v * 22;
-          const ry = 8 + v * 12;
-          const z = 42 + v * 16;
-          for (let k = 0; k < 48; k++) {
-            const th = (k / 48) * Math.PI * 2;
-            const pt = [rx * Math.cos(th), ry * Math.sin(th), z];
-            if (v > 0.9) rim.push(pt);
-            else bowl.push(pt);
+      // 3. MARIGOLD BLOOM — Multi-Tiered Ruffled Spherical Petals + Emerald Stem & Leaves
+      if (id === "marigold") {
+        const petals = [], stemLeaves = [];
+        for (let tier = 1; tier <= 7; tier++) {
+          const phi = (tier / 8) * (Math.PI * 0.62);
+          const baseR = 30 * Math.sin(phi);
+          const depth = 16 * Math.cos(phi);
+          const lobes = 12 + tier * 3;
+          const ptsInRing = 48 + tier * 16;
+          const col = tier <= 2 ? "#FF4500" : (tier <= 5 ? "#FF9E00" : "#FFD60A");
+          for (let k = 0; k < ptsInRing; k++) {
+            const th = (k / ptsInRing) * Math.PI * 2;
+            const wave = 1 + 0.18 * Math.sin(lobes * th + tier * 0.6);
+            petals.push([baseR * wave * Math.cos(th), depth + 2.4 * Math.cos(lobes * th), 73 + baseR * wave * Math.sin(th), col]);
           }
         }
-        // Teardrop 3D Flame above Diya wick
-        for (let u = 0; u <= 1; u += 0.03) {
-          const fr = 8.5 * Math.sin(u * Math.PI) * (1 - u * 0.45);
-          const fz = 62 + u * 28;
-          for (let k = 0; k < 18; k++) {
-            const th = (k / 18) * Math.PI * 2;
-            flame.push([fr * Math.cos(th), fr * Math.sin(th), fz]);
+        for (let z = 34; z <= 54; z += 0.6) stemLeaves.push([Math.sin((z - 34) * 0.14) * 1.6, -2, z, "#10B981"]);
+        for (let u = 0; u <= 1; u += 0.035) {
+          const lx = u * 20, lz = 44 + Math.sin(u * Math.PI) * 5.5;
+          stemLeaves.push([-lx, 0, lz + 2.8 * Math.sin(u * Math.PI), "#10B981"], [-lx, 0, lz - 2.8 * Math.sin(u * Math.PI), "#34D399"]);
+          stemLeaves.push([lx, 0, lz - 2 + 2.8 * Math.sin(u * Math.PI), "#10B981"], [lx, 0, lz - 2 - 2.8 * Math.sin(u * Math.PI), "#34D399"]);
+        }
+        return allocateParts([{ pts: petals, col: "#FF9E00", w: 0.86 }, { pts: stemLeaves, col: "#10B981", w: 0.14 }], nDrones);
+      }
+
+      // 4. LORD GANESHA — Ornate Mukut Crown, Elephant Forehead, Large Ears, Curved Trunk & Glowing Aura
+      if (id === "ganesha") {
+        const aura = [], crown = [], headEars = [], trunk = [];
+        // Radiating Prabhavali Halo
+        for (let k = 0; k <= 150; k++) {
+          const th = -0.25 * Math.PI + (k / 150) * 1.5 * Math.PI;
+          const r = 38 + 2.8 * Math.cos(16 * th);
+          aura.push([r * Math.cos(th), -7, 72 + r * Math.sin(th), k % 2 === 0 ? "#FFD700" : "#FF6D00"]);
+        }
+        // Tiered Temple Mukut Crown
+        for (let tier = 0; tier < 5; tier++) {
+          const w = 13 - tier * 2.3, z = 84 + tier * 3.8;
+          for (let x = -w; x <= w; x += 1.1) crown.push([x, 5, z, tier === 4 ? "#FFFFFF" : "#FFD700"]);
+        }
+        // Sculpted Forehead, Tilak & Twin Elephant Ears
+        for (let k = 0; k < 110; k++) {
+          const th = (k / 110) * Math.PI * 2;
+          headEars.push([13 * Math.cos(th), 6, 71 + 13 * Math.sin(th), "#FF9E00"]);
+          headEars.push([-18 + 9 * Math.cos(th), 1, 71 + 14 * Math.sin(th), "#FFD700"]);
+          headEars.push([18 + 9 * Math.cos(th), 1, 71 + 14 * Math.sin(th), "#FFD700"]);
+        }
+        for (let z = 75; z <= 81; z += 0.8) headEars.push([0, 8, z, "#FFFFFF"]);
+        // Graceful Left-Curving Trunk with Modak Tip
+        for (let u = 0; u <= 1; u += 0.015) {
+          const tx = Math.pow(u, 1.7) * 14 - Math.sin(u * Math.PI) * 3;
+          const tz = 68 - u * 26;
+          const rad = 3.6 * (1 - u * 0.55);
+          for (let k = 0; k < 8; k++) {
+            const th = (k / 8) * Math.PI * 2;
+            trunk.push([tx + rad * Math.cos(th), 9 + rad * Math.sin(th), tz, "#FF2A85"]);
           }
         }
-        return sampleWeighted([
-          { pts: bowl, col: "#FF5500", w: 0.44 },
-          { pts: rim, col: "#FFD700", w: 0.18 },
-          { pts: flame, col: "#FFF3B0", w: 0.38 }
+        return allocateParts([
+          { pts: aura, col: "#FFD700", w: 0.28 }, { pts: crown, col: "#FFD700", w: 0.18 },
+          { pts: headEars, col: "#FF9E00", w: 0.32 }, { pts: trunk, col: "#FF2A85", w: 0.22 }
         ], nDrones);
       }
 
-      // 4. TAJ MAHAL
-      if (key === "taj") {
-        const dome = [], facade = [], minarets = [];
-        for (let v = 0.05; v <= 0.98; v += 0.04) {
-          const r = 19 * Math.sin(v * Math.PI) * (1 + 0.25 * Math.sin(v * Math.PI * 2));
-          const z = 66 + v * 29;
+      // 5. SHIVA TRISHUL — Ornate Trident Prongs, Crescent Moon, Damru Drum & Rudraksha Aura
+      if (id === "trishul") {
+        const shaft = [], prongs = [], damru = [], moon = [];
+        for (let z = 34; z <= 105; z += 0.65) shaft.push([0, 0, z, z > 88 ? "#FFFFFF" : "#FFD700"]);
+        // Outer curved trident blades
+        for (let k = 0; k <= 100; k++) {
+          const th = (k / 100) * Math.PI;
+          const px = 16 * Math.cos(th);
+          const pz = 88 - 13 * Math.sin(th);
+          prongs.push([px, 1.5, pz, "#FF9E00"], [px * 0.88, -1.5, pz + 1.5, "#FFD700"]);
+        }
+        for (let z = 88; z <= 100; z += 0.45) {
+          prongs.push([-16, 1.5, z, "#FFFFFF"], [16, 1.5, z, "#FFFFFF"]);
+        }
+        // Hourglass Damru with Knotted Cords
+        for (let dz = -7; dz <= 7; dz += 0.4) {
+          const w = 2.5 + Math.abs(dz) * 1.1;
+          for (let k = 0; k < 10; k++) {
+            const th = (k / 10) * Math.PI * 2;
+            damru.push([w * Math.cos(th), w * 0.6 * Math.sin(th) + 4, 59 + dz, "#00E5FF"]);
+          }
+        }
+        // Crescent Moon
+        for (let k = 0; k <= 90; k++) {
+          const th = 0.6 * Math.PI + (k / 90) * 1.25 * Math.PI;
+          moon.push([-18 + 19 * Math.cos(th), -5, 84 + 19 * Math.sin(th), "#FFFFFF"]);
+        }
+        return allocateParts([
+          { pts: shaft, col: "#FFD700", w: 0.30 }, { pts: prongs, col: "#FF9E00", w: 0.30 },
+          { pts: damru, col: "#00E5FF", w: 0.22 }, { pts: moon, col: "#FFFFFF", w: 0.18 }
+        ], nDrones);
+      }
+
+      // 6. DIWALI DIYA — Ornate Carved Earthen Lamp + Multi-Layered Teardrop Flame
+      if (id === "diya") {
+        const bowl = [], flame = [];
+        for (let v = 0; v <= 1; v += 0.04) {
+          const rx = 12 + Math.sin(v * Math.PI * 0.65) * 26;
+          const ry = 7 + Math.sin(v * Math.PI * 0.65) * 14;
+          const z = 42 + v * 17;
+          const n = 56;
+          for (let k = 0; k < n; k++) {
+            const th = (k / n) * Math.PI * 2;
+            const spout = th > -0.35 && th < 0.35 ? (1 + 0.28 * v) : 1.0;
+            const isRim = v > 0.88;
+            bowl.push([rx * spout * Math.cos(th), ry * Math.sin(th), z, isRim ? "#FFD700" : (k % 4 === 0 ? "#FF9E00" : "#E63946")]);
+          }
+        }
+        // Volumetric 3D Flame over right spout
+        for (let u = 0; u <= 1; u += 0.025) {
+          const fr = 9.5 * Math.sin(u * Math.PI) * (1 - u * 0.42);
+          const fz = 62 + u * 32;
+          const col = u < 0.38 ? "#FFFFFF" : (u < 0.72 ? "#FFD60A" : "#FF5500");
           for (let k = 0; k < 20; k++) {
             const th = (k / 20) * Math.PI * 2;
-            dome.push([r * Math.cos(th), r * Math.sin(th), z]);
+            flame.push([12 + fr * Math.cos(th), fr * Math.sin(th), fz, col]);
           }
         }
-        for (let z = 95; z <= 106; z += 0.5) dome.push([0, 0, z]);
-        for (let x = -32; x <= 32; x += 0.6) { facade.push([x, 12, 66], [x, 12, 42]); }
-        for (let k = 0; k <= 75; k++) {
-          const th = (k / 75) * Math.PI;
-          facade.push([12 * Math.cos(th), 13, 42 + 18 * Math.sin(th)]);
-        }
-        [[-44, -14], [44, -14], [-38, 14], [38, 14]].forEach(([mx, my]) => {
-          for (let z = 42; z <= 90; z += 0.9) minarets.push([mx + 2.0 * Math.cos(z), my + 2.0 * Math.sin(z), z]);
-        });
-        return sampleWeighted([{ pts: dome, col: "#FFD700", w: 0.42 }, { pts: facade, col: "#00E5FF", w: 0.31 }, { pts: minarets, col: "#FFFFFF", w: 0.27 }], nDrones);
+        return allocateParts([{ pts: bowl, col: "#FF5500", w: 0.58 }, { pts: flame, col: "#FFD60A", w: 0.42 }], nDrones);
       }
 
-      // 5. LORD GANESHA
-      if (key === "ganesha") {
-        const halo = [], crown = [], head = [], trunk = [];
-        for (let k = 0; k <= 140; k++) {
-          const th = -0.25 * Math.PI + (k / 140) * 1.5 * Math.PI;
-          const r = 35 + 2.5 * Math.cos(12 * th);
-          halo.push([r * Math.cos(th), -6, 72 + r * Math.sin(th)]);
-        }
-        for (let tier = 0; tier < 4; tier++) {
-          const w = 13 - tier * 2.6, z = 83 + tier * 4.2;
-          for (let x = -w; x <= w; x += 1.0) crown.push([x, 5, z]);
-        }
-        for (let k = 0; k < 95; k++) {
-          const th = (k / 95) * Math.PI * 2;
-          head.push([13 * Math.cos(th), 6, 70 + 13 * Math.sin(th)]);
-          head.push([-16 + 8 * Math.cos(th), 2, 70 + 12 * Math.sin(th)]);
-          head.push([16 + 8 * Math.cos(th), 2, 70 + 12 * Math.sin(th)]);
-        }
-        for (let z = 67; z >= 44; z -= 0.3) {
-          const u = (67 - z) / 23;
-          trunk.push([8.5 * Math.sin(u * Math.PI * 1.15), 9 + 3 * Math.sin(u * 2.8), z]);
-        }
-        return sampleWeighted([
-          { pts: halo, col: "#FFD700", w: 0.30 }, { pts: crown, col: "#FFFFFF", w: 0.18 },
-          { pts: head, col: "#00E5FF", w: 0.32 }, { pts: trunk, col: "#FF2A85", w: 0.20 }
-        ], nDrones);
-      }
-
-      // 6. SHIVA TRISHUL
-      if (key === "trishul") {
-        const trident = [], damru = [], moon = [];
-        for (let z = 36; z <= 102; z += 0.7) trident.push([0, 0, z]);
-        for (let k = 0; k <= 85; k++) {
-          const th = (k / 85) * Math.PI;
-          trident.push([14 * Math.cos(th), 2, 86 - 11 * Math.sin(th)]);
-        }
-        for (let z = 86; z <= 97; z += 0.4) { trident.push([-14, 2, z], [14, 2, z]); }
-        for (let dz = -6; dz <= 6; dz += 0.35) {
-          damru.push([-7 - Math.abs(dz) * 0.4, 4, 58 + dz], [7 + Math.abs(dz) * 0.4, 4, 58 + dz]);
-        }
-        for (let k = 0; k <= 90; k++) {
-          const th = 0.65 * Math.PI + (k / 90) * 1.2 * Math.PI;
-          moon.push([-16 + 18 * Math.cos(th), -5, 84 + 18 * Math.sin(th)]);
-        }
-        return sampleWeighted([{ pts: trident, col: "#FFD700", w: 0.55 }, { pts: damru, col: "#00E5FF", w: 0.20 }, { pts: moon, col: "#FFFFFF", w: 0.25 }], nDrones);
-      }
-
-      // 7. 3D HEART
-      if (key === "heart") {
-        const outer = [], inner = [], core = [];
-        for (let k = 0; k < 220; k++) {
-          const t = (k / 220) * Math.PI * 2;
-          for (let scaleLayer = 0.45; scaleLayer <= 1.0; scaleLayer += 0.13) {
-            const depth = Math.sqrt(Math.max(0, 1 - scaleLayer * scaleLayer)) * 14;
-            const hx = 16 * Math.pow(Math.sin(t), 3) * 1.95 * scaleLayer;
-            const hz = (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * 1.85 * scaleLayer + 70;
-            if (scaleLayer > 0.85) outer.push([hx, 0, hz]);
-            else if (scaleLayer > 0.65) inner.push([hx, depth, hz], [hx, -depth, hz]);
-            else core.push([hx, depth, hz], [hx, -depth, hz]);
+      // 7. BEATING 3D HEART — Multi-Shell Volumetric Heart Sculpture
+      if (id === "heart") {
+        const pts = [];
+        for (let shell = 0.35; shell <= 1.0; shell += 0.13) {
+          const depth = Math.sqrt(Math.max(0, 1 - shell * shell)) * 15;
+          const col = shell > 0.88 ? "#FF85B3" : (shell > 0.65 ? "#FF2A85" : "#FFD700");
+          for (let k = 0; k < 160; k++) {
+            const t = (k / 160) * Math.PI * 2;
+            const hx = 16 * Math.pow(Math.sin(t), 3) * 2.05 * shell;
+            const hz = (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * 1.9 * shell + 70;
+            pts.push([hx, depth, hz, col]);
+            if (depth > 0.5) pts.push([hx, -depth, hz, col]);
           }
         }
-        return sampleWeighted([{ pts: outer, col: "#FF2A85", w: 0.45 }, { pts: inner, col: "#FF75B5", w: 0.35 }, { pts: core, col: "#FFD700", w: 0.20 }], nDrones);
+        return allocateParts([{ pts, col: "#FF2A85", w: 1.0 }], nDrones);
       }
 
-      // 8. WEDDING RINGS
-      if (key === "rings") {
+      // 8. INTERLOCKING WEDDING RINGS + FACETED DIAMOND SOLITAIRE
+      if (id === "rings") {
         const r1 = [], r2 = [], diamond = [];
-        for (let k = 0; k < 220; k++) {
-          const t = (k / 220) * Math.PI * 2;
-          for (const tube of [-1.8, 0, 1.8]) {
-            r1.push([-14 + (18 + tube) * Math.cos(t), 12 * Math.sin(t), 66 + (18 + tube) * Math.sin(t)]);
-            r2.push([14 + (18 + tube) * Math.cos(t), -12 * Math.sin(t), 66 + (18 + tube) * Math.sin(t)]);
+        for (let k = 0; k < 200; k++) {
+          const t = (k / 200) * Math.PI * 2;
+          for (let a = 0; a < 8; a++) {
+            const phi = (a / 8) * Math.PI * 2;
+            const tubeR = 2.4;
+            const rad = 19 + tubeR * Math.cos(phi);
+            const off = tubeR * Math.sin(phi);
+            r1.push([-13 + rad * Math.cos(t), 11 * Math.sin(t) + off, 66 + rad * Math.sin(t), "#FFD700"]);
+            r2.push([13 + rad * Math.cos(t), -11 * Math.sin(t) + off, 66 + rad * Math.sin(t), "#38BDF8"]);
           }
         }
         for (let k = 0; k < 48; k++) {
           const th = (k / 48) * Math.PI * 2;
-          diamond.push([-14 + 5.5 * Math.cos(th), 5.5 * Math.sin(th), 88], [-14 + 2.5 * Math.cos(th), 2.5 * Math.sin(th), 92]);
+          diamond.push([-13 + 6 * Math.cos(th), 6 * Math.sin(th), 90, "#FFFFFF"], [-13 + 3 * Math.cos(th), 3 * Math.sin(th), 94, "#E0F2FE"]);
         }
-        diamond.push([-14, 0, 84]);
-        return sampleWeighted([{ pts: r1, col: "#FFD700", w: 0.43 }, { pts: r2, col: "#38BDF8", w: 0.43 }, { pts: diamond, col: "#FFFFFF", w: 0.14 }], nDrones);
+        diamond.push([-13, 0, 85, "#FFFFFF"]);
+        return allocateParts([{ pts: r1, col: "#FFD700", w: 0.43 }, { pts: r2, col: "#38BDF8", w: 0.43 }, { pts: diamond, col: "#FFFFFF", w: 0.14 }], nDrones);
       }
 
-      // 9. FORMULA 1 CAR
-      if (key === "f1car") {
-        const body = [], wings = [], wheels = [];
-        for (let x = -44; x <= 44; x += 0.9) {
-          const hw = 3.5 + 11 * Math.exp(-Math.pow(x - 5, 2) / 550);
-          const ht = 48 + 9 * Math.exp(-Math.pow(x - 2, 2) / 480);
-          [-1, 1].forEach(s => { body.push([x, s * hw, 46], [x, s * hw * 0.65, ht]); });
+      // 9. 3D EARTH GLOBE — Fibonacci Sphere with Continents, Oceans & Polar Ice Caps
+      if (id === "earth") {
+        const pts = [];
+        for (let i = 0; i < nDrones; i++) {
+          const phi = Math.acos(-1 + (2 * i + 1) / nDrones);
+          const th = Math.sqrt(nDrones * Math.PI) * phi;
+          const x = 29 * Math.cos(th) * Math.sin(phi);
+          const y = 29 * Math.sin(th) * Math.sin(phi);
+          const z = 68 + 29 * Math.cos(phi);
+          const lat = Math.cos(phi);
+          const land = Math.sin(th * 2.5 + lat * 2.0) + Math.cos(lat * 3.8 - th * 1.8);
+          const col = Math.abs(lat) > 0.85 ? "#FFFFFF" : (land > 0.15 ? "#10B981" : "#0284C7");
+          pts.push([x, y, z, col]);
         }
-        for (let y = -16; y <= 16; y += 0.6) { wings.push([-45, y, 46.5], [43, y * 0.9, 59]); }
-        [[-27, -14], [-27, 14], [27, -15], [27, 15]].forEach(([wx, wy]) => {
-          for (let k = 0; k < 36; k++) {
-            const th = (k / 36) * Math.PI * 2;
-            wheels.push([wx + 6.5 * Math.cos(th), wy, 48.5 + 6.5 * Math.sin(th)]);
+        return pts;
+      }
+
+      // 10. ISRO SPACE ROCKET — Aerodynamic Fuselage, Payload Fairing, 4 Swept Fins & Exhaust Plume
+      if (id === "rocket") {
+        const body = [], fins = [], plume = [];
+        for (let z = 52; z <= 104; z += 1.1) {
+          const u = (z - 52) / 52;
+          const r = u > 0.68 ? 7.2 * Math.cos(((u - 0.68) / 0.32) * Math.PI * 0.48) : 7.2;
+          const col = u > 0.68 ? "#FF6D00" : (Math.abs(z - 76) < 2 ? "#10B981" : "#FFFFFF");
+          for (let k = 0; k < 20; k++) {
+            const th = (k / 20) * Math.PI * 2;
+            body.push([r * Math.cos(th), r * Math.sin(th), z, col]);
+          }
+        }
+        // 4 Swept Delta Fins
+        [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5].forEach(ang => {
+          for (let f = 0; f <= 1; f += 0.08) {
+            const fr = 7.2 + f * 9.5;
+            const fz = 52 + (1 - f) * 14;
+            fins.push([fr * Math.cos(ang), fr * Math.sin(ang), fz, "#38BDF8"], [fr * Math.cos(ang), fr * Math.sin(ang), 52, "#38BDF8"]);
           }
         });
-        return sampleWeighted([{ pts: body, col: "#FF2A85", w: 0.48 }, { pts: wings, col: "#00E5FF", w: 0.20 }, { pts: wheels, col: "#FFD700", w: 0.32 }], nDrones);
+        // Thruster Fire Plume
+        for (let z = 30; z <= 51; z += 1.0) {
+          const u = (51 - z) / 21;
+          const r = 6.5 * Math.sin(u * Math.PI * 0.85);
+          for (let k = 0; k < 14; k++) {
+            const th = (k / 14) * Math.PI * 2;
+            plume.push([r * Math.cos(th), r * Math.sin(th), z, u < 0.45 ? "#FFD60A" : "#FF4500"]);
+          }
+        }
+        return allocateParts([{ pts: body, col: "#FFFFFF", w: 0.54 }, { pts: fins, col: "#38BDF8", w: 0.20 }, { pts: plume, col: "#FFD60A", w: 0.26 }], nDrones);
       }
 
-      // 10. SATURN PLANET
-      if (key === "saturn") {
-        const sphere = [], rings = [];
-        const nS = Math.floor(nDrones * 0.65);
-        for (let i = 0; i < nS; i++) {
-          const phi = Math.acos(-1 + (2 * i) / Math.max(1, nS));
-          const th = Math.sqrt(nS * Math.PI) * phi;
-          sphere.push([22 * Math.cos(th) * Math.sin(phi), 22 * Math.sin(th) * Math.sin(phi), 68 + 22 * Math.cos(phi)]);
+      // 11. WORLD CUP TROPHY — Sculpted Chalice, Twin Wing Handles & Pedestal
+      if (id === "trophy") {
+        const cup = [], handles = [], base = [];
+        for (let z = 54; z <= 98; z += 1.1) {
+          const u = (z - 54) / 44;
+          const r = u < 0.35 ? (3.5 + (0.35 - u) * 12) : (3.5 + Math.pow((u - 0.35) / 0.65, 1.3) * 16.5);
+          for (let k = 0; k < 28; k++) {
+            const th = (k / 28) * Math.PI * 2;
+            cup.push([r * Math.cos(th), r * 0.75 * Math.sin(th), z, u > 0.88 ? "#FFFFFF" : "#FFD700"]);
+          }
         }
-        for (let k = 0; k < 160; k++) {
-          const t = (k / 160) * Math.PI * 2;
-          rings.push([38 * Math.cos(t), 34 * Math.sin(t), 68 + 10 * Math.sin(t)], [43 * Math.cos(t), 39 * Math.sin(t), 68 + 11.5 * Math.sin(t)]);
+        [-1, 1].forEach(side => {
+          for (let k = 0; k <= 40; k++) {
+            const th = -0.4 * Math.PI + (k / 40) * 0.85 * Math.PI;
+            handles.push([side * (16 + 8 * Math.cos(th)), 0, 84 + 11 * Math.sin(th), "#FF9E00"]);
+          }
+        });
+        for (let z = 44; z <= 53; z += 1.5) {
+          for (let k = 0; k < 24; k++) {
+            const th = (k / 24) * Math.PI * 2;
+            base.push([13 * Math.cos(th), 9 * Math.sin(th), z, z > 50 ? "#FFD700" : "#38BDF8"]);
+          }
         }
-        return sampleWeighted([{ pts: sphere, col: "#38BDF8", w: 0.65 }, { pts: rings, col: "#FFD700", w: 0.35 }], nDrones);
+        return allocateParts([{ pts: cup, col: "#FFD700", w: 0.62 }, { pts: handles, col: "#FF9E00", w: 0.18 }, { pts: base, col: "#38BDF8", w: 0.20 }], nDrones);
       }
 
-      // 11. IMPERIAL CROWN
-      if (key === "crown") {
-        const base = [], spires = [], gems = [];
-        for (let k = 0; k < 120; k++) {
-          const th = (k / 120) * Math.PI * 2;
-          base.push([26 * Math.cos(th), 16 * Math.sin(th), 54], [28 * Math.cos(th), 18 * Math.sin(th), 62]);
-        }
-        for (let p = 0; p < 7; p++) {
-          const th = (p / 7) * Math.PI * 2;
-          const bx = 28 * Math.cos(th), by = 18 * Math.sin(th);
-          for (let u = 0; u <= 1; u += 0.08) spires.push([bx * (1 + u * 0.15), by * (1 + u * 0.15), 62 + u * 24]);
-          gems.push([bx * 1.15, by * 1.15, 88]);
-        }
-        return sampleWeighted([{ pts: base, col: "#FFD700", w: 0.45 }, { pts: spires, col: "#FF9E00", w: 0.35 }, { pts: gems, col: "#00E5FF", w: 0.20 }], nDrones);
+      // 12. FORMULA 1 CAR — Sleek Aerodynamic Monocoque, Halo Cockpit, Front/Rear Wings & 4 Slick Tires
+      const body = [], wings = [], wheels = [];
+      for (let x = -46; x <= 44; x += 1.1) {
+        const noseTaper = x < -8 ? Math.max(0.22, 1 - ((-8 - x) / 38) * 0.78) : 1.0;
+        const sidepod = x >= -8 && x <= 26 ? (11.5 * Math.sin(((x + 8) / 34) * Math.PI * 0.85) + 3.5) : (10 * noseTaper);
+        const roofZ = 47 + (x > -12 && x < 24 ? 8.5 * Math.sin(((x + 12) / 36) * Math.PI) : 1.5);
+        [-1, 1].forEach(s => {
+          body.push([x, s * sidepod, 46, "#FF2A85"], [x, s * sidepod * 0.55, roofZ, "#00E5FF"]);
+        });
+        body.push([x, 0, roofZ + 1.2, "#FFFFFF"]);
       }
-
-      // 12. SOARING EAGLE
-      const wings = [], feathers = [], body = [];
-      for (let k = 0; k <= 160; k++) {
-        const u = (k / 160) * 2 - 1;
-        const wx = u * 56;
-        const sweep = -Math.abs(u) * 14 + Math.sin(Math.abs(u) * Math.PI) * 18;
-        for (let layer = 0; layer < 4; layer++) {
-          const pt = [wx, Math.cos(u * Math.PI * 0.5) * 14 - layer * 2.5, 70 + sweep - layer * 4.2];
-          if (layer < 2) wings.push(pt);
-          else feathers.push(pt);
+      // Wide Front Wing & DRS Rear Wing
+      for (let y = -18; y <= 18; y += 1.0) {
+        wings.push([-46, y, 46.5, "#00E5FF"], [-43, y, 47.5, "#FFFFFF"], [42, y * 0.85, 59, "#00E5FF"], [44, y * 0.85, 61, "#FFFFFF"]);
+      }
+      // 4 Thick Racing Tires
+      [[-27, -14], [-27, 14], [27, -15], [27, 15]].forEach(([wx, wy]) => {
+        for (let k = 0; k < 36; k++) {
+          const th = (k / 36) * Math.PI * 2;
+          [-1.8, 1.8].forEach(ty => {
+            wheels.push([wx + 6.8 * Math.cos(th), wy + ty, 49.5 + 6.8 * Math.sin(th), "#FFD700"]);
+          });
         }
-      }
-      for (let z = 50; z <= 84; z += 0.4) {
-        const w = 3.2 * Math.sin(((z - 50) / 34) * Math.PI);
-        body.push([0, 9, z], [-w, 7, z], [w, 7, z]);
-      }
-      return sampleWeighted([{ pts: wings, col: "#FFD700", w: 0.45 }, { pts: feathers, col: "#FF2A85", w: 0.35 }, { pts: body, col: "#FFFFFF", w: 0.20 }], nDrones);
+      });
+      return allocateParts([{ pts: body, col: "#FF2A85", w: 0.48 }, { pts: wings, col: "#00E5FF", w: 0.20 }, { pts: wheels, col: "#FFD700", w: 0.32 }], nDrones);
     }
 
     // --------------------------------------------------------------------------
-    // 3. THREE.JS 3D ENGINE + SPIRAL / BURST / WAVE TRANSITIONS + VENUES
+    // 2. THREE.JS ENGINE + LIVE KINETIC MOTION + TRANSITIONS
     // --------------------------------------------------------------------------
     function createGlowSprite() {
       const c = document.createElement('canvas');
@@ -745,8 +855,8 @@
       const ctx = c.getContext('2d');
       const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
       grad.addColorStop(0.0, 'rgba(255,255,255,1)');
-      grad.addColorStop(0.24, 'rgba(255,255,255,0.88)');
-      grad.addColorStop(0.55, 'rgba(255,255,255,0.22)');
+      grad.addColorStop(0.28, 'rgba(255,255,255,0.92)');
+      grad.addColorStop(0.60, 'rgba(255,255,255,0.28)');
       grad.addColorStop(1.0, 'rgba(0,0,0,0)');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 64, 64);
@@ -756,11 +866,11 @@
     function initThreeJS() {
       const container = document.getElementById('threeContainer');
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x03060f);
-      scene.fog = new THREE.FogExp2(0x03060f, 0.0025);
+      scene.background = new THREE.Color(0x02040a);
+      scene.fog = new THREE.FogExp2(0x02040a, 0.0022);
 
       camera = new THREE.PerspectiveCamera(48, container.clientWidth / container.clientHeight, 0.1, 1000);
-      camera.position.set(0, 56, 136);
+      camera.position.set(0, 54, 136);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
       renderer.setSize(container.clientWidth, container.clientHeight);
@@ -777,7 +887,7 @@
 
       venueGroup = new THREE.Group();
       scene.add(venueGroup);
-      changeVenue("grid");
+      changeVenue("stadium");
 
       const starGeo = new THREE.BufferGeometry();
       const starVerts = [];
@@ -788,7 +898,7 @@
       scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x64748b, size: 0.9 })));
 
       populateSidebarUI();
-      setupDroneParticles(500);
+      setupDroneParticles(800);
       loadTemplate(0);
 
       window.addEventListener('resize', () => {
@@ -811,7 +921,7 @@
         turf.rotation.x = -Math.PI / 2;
         venueGroup.add(turf);
         const bowl = new THREE.Mesh(
-          new THREE.RingGeometry(58, 86, 48),
+          new THREE.RingGeometry(58, 88, 48),
           new THREE.MeshBasicMaterial({ color: 0x1e293b, wireframe: true, side: THREE.DoubleSide })
         );
         bowl.rotation.x = -Math.PI / 2;
@@ -847,8 +957,9 @@
       geo.setAttribute('position', new THREE.BufferAttribute(currentPositions, 3));
       geo.setAttribute('color', new THREE.BufferAttribute(droneColors, 3));
 
+      const spriteSize = count >= 700 ? 3.25 : 3.65;
       dronePoints = new THREE.Points(geo, new THREE.PointsMaterial({
-        size: 3.15, map: createGlowSprite(), vertexColors: true,
+        size: spriteSize, map: createGlowSprite(), vertexColors: true,
         transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
       }));
       scene.add(dronePoints);
@@ -857,7 +968,7 @@
       trailGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 2 * 3), 3));
       trailGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(count * 2 * 3), 3));
       trailLines = new THREE.LineSegments(trailGeo, new THREE.LineBasicMaterial({
-        vertexColors: true, transparent: true, opacity: 0.40, blending: THREE.AdditiveBlending
+        vertexColors: true, transparent: true, opacity: 0.36, blending: THREE.AdditiveBlending
       }));
       scene.add(trailLines);
     }
@@ -913,11 +1024,11 @@
 
     function animateThree() {
       requestAnimationFrame(animateThree);
-      const t = performance.now() * 0.0015;
+      const t = performance.now() * 0.0018;
 
       if (autoPlay && slides.length > 0) {
         autoTimer += 0.016;
-        const durSec = Math.max(3.5, (slides[activeSlideIdx]?.dur || 15) * 0.25);
+        const durSec = Math.max(3.8, (slides[activeSlideIdx]?.dur || 15) * 0.25);
         if (autoTimer > durSec) {
           autoTimer = 0;
           activateSlide((activeSlideIdx + 1) % slides.length, false);
@@ -927,9 +1038,10 @@
       if (currentPositions && targetPositions) {
         const count = currentPositions.length / 3;
         const tVerts = trailLines.geometry.attributes.position.array;
-        if (morphProgress < 1.0) morphProgress = Math.min(1.0, morphProgress + 0.022);
+        if (morphProgress < 1.0) morphProgress = Math.min(1.0, morphProgress + 0.024);
         const ease = 1 - Math.pow(1 - morphProgress, 3);
         const arc = Math.sin(morphProgress * Math.PI);
+        const activeId = slides[activeSlideIdx]?.id || "";
 
         for (let i = 0; i < count; i++) {
           const ix = i * 3, iy = i * 3 + 1, iz = i * 3 + 2;
@@ -937,9 +1049,29 @@
           prevPositions[iy] += (currentPositions[iy] - prevPositions[iy]) * 0.28;
           prevPositions[iz] += (currentPositions[iz] - prevPositions[iz]) * 0.28;
 
-          let bx = startPositions[ix] + (targetPositions[ix] - startPositions[ix]) * ease;
-          let by = startPositions[iy] + (targetPositions[iy] - startPositions[iy]) * ease;
-          let bz = startPositions[iz] + (targetPositions[iz] - startPositions[iz]) * ease;
+          let tx = targetPositions[ix];
+          let ty = targetPositions[iy];
+          let tz = targetPositions[iz];
+
+          if (morphProgress > 0.92) {
+            if (activeId === "heart") {
+              const beat = 1.0 + 0.08 * Math.pow(Math.sin(t * 2.4), 4);
+              tx *= beat; ty = 70 + (ty - 70) * beat; tz *= beat;
+            } else if (activeId === "earth" || activeId === "trophy" || activeId === "rings") {
+              const ang = t * 0.45;
+              const rx = tx * Math.cos(ang) - tz * Math.sin(ang);
+              const rz = tx * Math.sin(ang) + tz * Math.cos(ang);
+              tx = rx; tz = rz;
+            } else if (activeId === "peacock") {
+              tz += Math.sin(t * 2.0 + tx * 0.12) * 1.4;
+            } else if (activeId === "diya" && ty > 62) {
+              tx += Math.sin(t * 4.5 + ty * 0.2) * 1.1;
+            }
+          }
+
+          let bx = startPositions[ix] + (tx - startPositions[ix]) * ease;
+          let by = startPositions[iy] + (ty - startPositions[iy]) * ease;
+          let bz = startPositions[iz] + (tz - startPositions[iz]) * ease;
 
           if (arc > 0.001) {
             if (currentTransition === "spiral") {
@@ -948,16 +1080,16 @@
               bx += Math.cos(ang) * rad;
               bz += Math.sin(ang) * rad;
             } else if (currentTransition === "burst") {
-              bx += (targetPositions[ix] * 0.45) * arc;
-              by += ((targetPositions[iy] - 66) * 0.45) * arc;
-              bz += (targetPositions[iz] * 0.45) * arc;
+              bx += (tx * 0.45) * arc;
+              by += ((ty - 66) * 0.45) * arc;
+              bz += (tz * 0.45) * arc;
             } else if (currentTransition === "wave") {
-              by += Math.sin(targetPositions[ix] * 0.12 + morphProgress * 6.0) * 14 * arc;
+              by += Math.sin(tx * 0.12 + morphProgress * 6.0) * 14 * arc;
             }
           }
 
-          const hx = Math.sin(t + i * 0.37) * 0.15;
-          const hy = Math.cos(t * 1.1 + i * 0.53) * 0.15;
+          const hx = Math.sin(t + i * 0.37) * 0.14;
+          const hy = Math.cos(t * 1.1 + i * 0.53) * 0.14;
           currentPositions[ix] = bx + hx;
           currentPositions[iy] = by + hy;
           currentPositions[iz] = bz;
@@ -977,11 +1109,11 @@
     }
 
     // --------------------------------------------------------------------------
-    // 4. CANVA UI INTERACTIONS (SIDEBAR, STORYBOARD, MAGIC PROMPT)
+    // 3. SIDEBAR, TEMPLATES & STORYBOARD CONTROLS
     // --------------------------------------------------------------------------
     function populateSidebarUI() {
       document.getElementById('templateList').innerHTML = SHOW_TEMPLATES.map((tpl, idx) => `
-        <div onclick="loadTemplate(${idx})" class="elem-card p-3 rounded-xl bg-[#070B16] border border-slate-800">
+        <div onclick="loadTemplate(${idx})" class="elem-card p-3 rounded-xl bg-[#050914] border border-slate-800">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-white">${tpl.title}</span>
             <span class="text-[10px] font-mono text-sky-400">3 Slides</span>
@@ -992,7 +1124,7 @@
 
       document.getElementById('elementGrid').innerHTML = ELEMENT_CATALOG.map(el => `
         <div onclick="applyElementToActiveSlide('${el.id}', '${el.name}')"
-          class="elem-card p-3 rounded-xl bg-[#070B16] border border-slate-800 flex flex-col items-center text-center gap-1">
+          class="elem-card p-3 rounded-xl bg-[#050914] border border-slate-800 flex flex-col items-center text-center gap-1">
           <span class="text-2xl">${el.icon}</span>
           <span class="text-[11px] font-semibold text-slate-200 leading-tight">${el.name}</span>
           <span class="text-[9px] font-mono text-slate-500 uppercase">${el.cat}</span>
@@ -1001,7 +1133,7 @@
     }
 
     function switchSidebarTab(tabName) {
-      ['templates', 'elements', 'text', 'uploads'].forEach(t => {
+      ['elements', 'templates', 'text', 'uploads'].forEach(t => {
         document.getElementById('panel-' + t).classList.toggle('hidden', t !== tabName);
         document.getElementById('tabBtn-' + t).classList.toggle('active', t === tabName);
       });
@@ -1012,37 +1144,34 @@
         return build3DTextCloud(item.text, nDrones, item.color || "tricolour", item.font || "900 Arial, sans-serif");
       }
       if (item.type === "custom" && item.cloud) return item.cloud;
-      return buildElementCloud(item.key || "marigold", nDrones);
+      return buildElementCloud(item.id || "taj", nDrones);
     }
 
     function loadTemplate(tplIdx) {
-      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 500;
+      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 800;
       const tpl = SHOW_TEMPLATES[tplIdx];
-      slides = tpl.items.map(it => ({
-        ...it,
-        cloud: buildSlideCloud(it, drones)
-      }));
+      slides = tpl.items.map(it => ({ ...it, cloud: buildSlideCloud(it, drones) }));
       document.getElementById('magicPrompt').value = tpl.desc;
       activateSlide(0, true);
-      showToast(`✓ Loaded Template: ${tpl.title}`);
+      showToast(`✓ Loaded Show: ${tpl.title}`);
     }
 
-    function applyElementToActiveSlide(key, name) {
-      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 500;
+    function applyElementToActiveSlide(id, name) {
+      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 800;
       if (!slides[activeSlideIdx]) return;
       slides[activeSlideIdx] = {
         ...slides[activeSlideIdx],
         type: "element",
-        key,
+        id,
         label: name,
-        cloud: buildElementCloud(key, drones)
+        cloud: buildElementCloud(id, drones)
       };
       activateSlide(activeSlideIdx, false);
-      showToast(`✓ Slide ${activeSlideIdx + 1} updated to ${name}`);
+      showToast(`✓ Slide ${activeSlideIdx + 1}: ${name}`);
     }
 
     function applyCustomTextToSlide() {
-      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 500;
+      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 800;
       const txt = document.getElementById('customTextInput').value.trim() || "INDIA 2026";
       const color = document.getElementById('textColorSelect').value;
       const font = document.getElementById('textFontSelect').value;
@@ -1062,7 +1191,7 @@
     function applyMagicPrompt() {
       const raw = document.getElementById('magicPrompt').value.trim();
       if (!raw) return;
-      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 500;
+      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 800;
       let parts = raw.split(/->|→/).map(s => s.trim()).filter(Boolean);
       if (parts.length === 1) parts = [parts[0], parts[0], parts[0]];
 
@@ -1074,15 +1203,16 @@
         let matched = null;
         if (!isExplicitQuote) {
           matched = ELEMENT_CATALOG.find(e =>
-            low.includes(e.key) ||
-            (e.key === "f1car" && (low.includes("car") || low.includes("f1"))) ||
-            (e.key === "rings" && low.includes("ring"))
+            low.includes(e.id) ||
+            (e.id === "f1car" && (low.includes("car") || low.includes("f1"))) ||
+            (e.id === "rings" && low.includes("ring")) ||
+            (e.id === "earth" && (low.includes("globe") || low.includes("world") || low.includes("planet")))
           );
         }
         if (matched) {
           return {
-            type: "element", key: matched.key, label: matched.name,
-            dur: 15, trans: transCycle[i % 3], cloud: buildElementCloud(matched.key, drones)
+            type: "element", id: matched.id, label: matched.name,
+            dur: 15, trans: transCycle[i % 3], cloud: buildElementCloud(matched.id, drones)
           };
         }
         const col = low.includes("india") ? "tricolour" : (i === 0 ? "gold" : "cyan");
@@ -1093,7 +1223,7 @@
         };
       });
       activateSlide(0, true);
-      showToast(`✓ Magic Prompt compiled ${slides.length} slides`);
+      showToast(`✓ Compiled ${slides.length} broadcast slides`);
     }
 
     function renderStoryboard() {
@@ -1103,7 +1233,7 @@
         totalSec += (s.dur || 15);
         return `
           <div onclick="selectSlide(${idx})"
-            class="slide-card ${idx === activeSlideIdx ? 'active' : ''} h-20 w-44 rounded-xl bg-[#0D1526] border border-slate-800 p-2.5 flex flex-col justify-between shrink-0 relative">
+            class="slide-card ${idx === activeSlideIdx ? 'active' : ''} h-20 w-44 rounded-xl bg-[#0C1425] border border-slate-800 p-2.5 flex flex-col justify-between shrink-0 relative">
             <div class="flex items-center justify-between text-[10px] font-mono">
               <span class="text-sky-400 font-bold">SLIDE 0${idx + 1}</span>
               <span class="text-slate-400">${s.dur || 15}s</span>
@@ -1126,10 +1256,10 @@
 
     function addNewSlide() {
       if (slides.length >= 6) { showToast("⚠️ Max 6 slides in storyboard"); return; }
-      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 500;
+      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 800;
       slides.push({
-        type: "element", key: "crown", label: "Imperial Crown", dur: 15, trans: "spiral",
-        cloud: buildElementCloud("crown", drones)
+        type: "element", id: "earth", label: "3D Earth Globe", dur: 15, trans: "spiral",
+        cloud: buildElementCloud("earth", drones)
       });
       activateSlide(slides.length - 1, false);
     }
@@ -1156,7 +1286,7 @@
     }
 
     function changeFleetCount(val) {
-      const n = Math.max(100, Math.min(1000, parseInt(val, 10) || 500));
+      const n = Math.max(100, Math.min(1000, parseInt(val, 10) || 800));
       document.getElementById('droneManualInput').value = n;
       document.getElementById('modalDroneInput').value = n;
       document.getElementById('hudFleet').textContent = `${n} UAVs`;
@@ -1169,8 +1299,8 @@
     function setCamPreset(mode) {
       controls.autoRotate = false;
       document.getElementById('orbitBtn').classList.remove('bg-amber-400', 'text-slate-950');
-      if (mode === 'audience') camera.position.set(0, 42, 138);
-      else if (mode === 'side') camera.position.set(118, 68, 52);
+      if (mode === 'audience') camera.position.set(0, 42, 136);
+      else if (mode === 'side') camera.position.set(116, 68, 52);
       else if (mode === 'top') camera.position.set(0, 175, 25);
       controls.target.set(0, 66, 0);
       controls.update();
@@ -1219,10 +1349,9 @@
       }, 10000);
     }
 
-    // 2D Image & 3D .GLB/.OBJ Uploaders mapped directly to active slide
     function uploadReferenceImage(input) {
       if (!input.files || !input.files[0]) return;
-      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 500;
+      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 800;
       const file = input.files[0];
       const reader = new FileReader();
       reader.onload = (ev) => {
@@ -1270,7 +1399,7 @@
       if (!input.files || !input.files[0]) return;
       const file = input.files[0];
       const ext = file.name.split('.').pop().toLowerCase();
-      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 500;
+      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 800;
       const reader = new FileReader();
       reader.onload = (ev) => {
         const rawVerts = [];
@@ -1323,13 +1452,12 @@
     }
 
     // --------------------------------------------------------------------------
-    // 5. EXPORT MODAL, .SKYC/.CSV & KTC GST INVOICE ENGINE
+    // 4. EXPORT & KTC GST INVOICE ENGINE
     // --------------------------------------------------------------------------
     function toggleExportModal(open) {
       document.getElementById('exportModal').classList.toggle('hidden', !open);
       if (open) updateQuote();
     }
-
     function getSelectedAddons() {
       const list = [];
       document.querySelectorAll('.addon-chk:checked').forEach(chk => {
@@ -1337,15 +1465,13 @@
       });
       return list;
     }
-
     function updateQuote() {
-      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 500;
+      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 800;
       const mins = parseInt(document.getElementById('durSelect').value, 10);
       const addonsTotal = getSelectedAddons().reduce((acc, a) => acc + a.price, 0);
       const total = (drones * 180) + (mins * 2000) + addonsTotal;
       document.getElementById('priceLabel').textContent = `₹${total.toLocaleString('en-IN')}`;
     }
-
     function autoDetectState(gstin) {
       if (gstin && gstin.length >= 2) {
         const code = gstin.substring(0, 2);
@@ -1355,9 +1481,8 @@
         }
       }
     }
-
     function compileAndExport() {
-      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 500;
+      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 800;
       const mins = parseInt(document.getElementById('durSelect').value, 10);
       const addons = getSelectedAddons();
       const basePrice = (drones * 180) + (mins * 2000);
@@ -1366,7 +1491,7 @@
       lastJobId = `AG_${new Date().toTimeString().slice(0,8).replace(/:/g,'')}`;
       const lines = ["drone_id,time_sec,x_m,y_m,z_alt_m,led_hex"];
       for (let d = 0; d < drones; d++) {
-        const gx = ((d % 20) - 10) * 2.5, gy = (Math.floor(d / 20) - 10) * 2.5;
+        const gx = ((d % 25) - 12.5) * 2.4, gy = (Math.floor(d / 25) - 15) * 2.4;
         lines.push(`UAV_${String(d+1).padStart(4,'0')},0.0,${gx.toFixed(2)},${gy.toFixed(2)},0.00,#000000`);
         let tAcc = 30.0;
         slides.forEach(s => {
@@ -1440,7 +1565,6 @@
         invBox.classList.add('hidden');
       }
     }
-
     function triggerDownload(blob, filename) {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
