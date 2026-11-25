@@ -58,7 +58,7 @@
     <div class="flex items-center gap-2">
       <div class="hidden sm:flex items-center gap-1.5 bg-[#0C1425] border border-slate-700/80 rounded-xl px-2.5 py-1 text-xs font-mono">
         <span class="text-slate-400">UAVs:</span>
-        <input id="droneManualInput" type="number" min="100" max="1000" step="10" value="800"
+        <input id="droneManualInput" type="number" min="100" max="3000" step="10" value="2200"
           onchange="changeFleetCount(this.value)"
           onkeydown="if(event.key==='Enter') changeFleetCount(this.value)"
           class="w-14 bg-transparent text-sky-400 font-bold text-right focus:outline-none" />
@@ -504,93 +504,90 @@
 
     // 12 BROADCAST-GRADE PARAMETRIC 3D DRONE FORMATIONS
     function buildElementCloud(id, nDrones) {
-      // 1. TAJ MAHAL — 16 Vertical Dome Ribs, Lotus Spire, Wide Marble Plinth, Double-Story Arches & 4 Minarets
+      // 1. TAJ MAHAL — Exact Riverfront Show Architecture (Banded Onion Dome, 4 Minarets, Double Arches)
       if (id === "taj") {
-        const domeRibs = [], plinthFacade = [], iwanArch = [], minarets = [];
-
-        // 16 Crisp Continuous Meridional Dome Ribs + Horizontal Crown & Drum Rings + Lotus Finial
-        const numRibs = 16;
-        for (let rIdx = 0; rIdx < numRibs; rIdx++) {
-          const th = (rIdx / numRibs) * Math.PI * 2;
-          for (let s = 0; s <= 24; s++) {
-            const u = s / 24;
-            const rad = u < 0.72
-              ? 20.5 * Math.sin((u / 0.72) * Math.PI * 0.84) * 1.12
-              : 20.5 * Math.sin(0.84 * Math.PI) * 1.12 * Math.pow(1 - (u - 0.72) / 0.28, 1.85);
-            const z = 67 + u * 31;
-            domeRibs.push([rad * Math.cos(th), rad * Math.sin(th), z, u > 0.82 ? "#FFD700" : "#FFFFFF"]);
-          }
-        }
-        // Equatorial & Neck Drum Rings for Dome Structural Clarity
-        [0.04, 0.38, 0.72].forEach(u => {
+        const dome = [], facade = [], minarets = [];
+        // Horizontal Latitude LED Bands on Bulbous Dome (Gold Top -> White Mid -> Cyan Base)
+        for (let u = 0.0; u <= 1.0; u += 0.032) {
           const rad = u < 0.72
-            ? 20.5 * Math.sin((u / 0.72) * Math.PI * 0.84) * 1.12
-            : 20.5 * Math.sin(0.84 * Math.PI) * 1.12;
-          const z = 67 + u * 31;
-          for (let k = 0; k <= 36; k++) {
-            const th = (k / 36) * Math.PI * 2;
-            domeRibs.push([rad * Math.cos(th), rad * Math.sin(th), z, u === 0.04 ? "#FFD700" : "#E0F2FE"]);
+            ? 19 * Math.sin((u / 0.72) * Math.PI * 0.85) * 1.12
+            : 19 * Math.sin(0.85 * Math.PI) * 1.12 * Math.pow(1 - (u - 0.72) / 0.28, 1.8);
+          const z = 66 + u * 28;
+          const col = u > 0.42 ? "#FFB703" : (u > 0.22 ? "#FFFFFF" : "#38BDF8");
+          const steps = Math.max(10, Math.round(rad * 2.2));
+          for (let k = 0; k <= steps; k++) {
+            const th = (k / steps) * Math.PI; // Front hemisphere for crisp stadium readability
+            dome.push([rad * Math.cos(th), rad * Math.sin(th) * 0.5, z, col]);
           }
-        });
-        // Tall Golden Lotus Kalash Spire
-        for (let z = 98; z <= 109; z += 0.7) domeRibs.push([0, 0, z, "#FFD700"]);
-
-        // Wide Marble Terrace Plinth + Double-Story Side Arches
-        for (let x = -50; x <= 50; x += 1.4) {
-          plinthFacade.push([x, 12, 34, "#38BDF8"], [x, -12, 34, "#38BDF8"], [x, 12, 39, "#FFFFFF"]);
         }
-        for (let x = -35; x <= 35; x += 1.4) {
-          plinthFacade.push([x, 11, 66, "#FFFFFF"], [x, 11, 53, "#38BDF8"]);
-        }
-        // Double-story flanking arched niches
-        [-24, 24].forEach(cx => {
-          [40, 54].forEach(baseZ => {
-            for (let t = 0; t <= 16; t++) {
-              const ang = (t / 16) * Math.PI;
-              plinthFacade.push([cx + 6.5 * Math.cos(ang), 11.5, baseZ + 10 * Math.sin(ang), "#E0F2FE"]);
+        // Tall White-Gold Kalash Spire + Flanking Chhatri Domes
+        for (let z = 94; z <= 105; z += 0.6) dome.push([0, 2, z, "#FFFFFF"]);
+        [-19, 19].forEach(cx => {
+          for (let u = 0; u <= 1; u += 0.12) {
+            const r = 5.8 * Math.sin(u * Math.PI);
+            for (let k = 0; k <= 12; k++) {
+              const th = (k / 12) * Math.PI;
+              dome.push([cx + r * Math.cos(th), 4, 66 + u * 9, "#FFB703"]);
             }
-          });
-        });
-        // Corner Chhatri Cupolas flanking main dome
-        [-21, 21].forEach(cx => {
-          for (let k = 0; k <= 16; k++) {
-            const ang = (k / 16) * Math.PI;
-            plinthFacade.push([cx + 6.2 * Math.cos(ang), 8, 67 + 9.5 * Math.sin(ang), "#FFD700"]);
           }
+          for (let z = 75; z <= 79; z += 0.8) dome.push([cx, 4, z, "#FFFFFF"]);
         });
 
-        // Glowing Central Mughal Pishtaq Frame & Pointed Iwan Archway
-        for (let z = 39; z <= 72; z += 1.1) {
-          iwanArch.push([-13, 12.5, z, "#FFD700"], [13, 12.5, z, "#FFD700"]);
+        // Wide Marble Terrace Base + Central Pishtaq Arch + Double-Tier Side Arches
+        for (let x = -54; x <= 54; x += 1.1) {
+          facade.push([x, 8, 34, "#FFFFFF"], [x, 8, 35.5, "#38BDF8"]);
         }
-        for (let x = -13; x <= 13; x += 1.1) iwanArch.push([x, 12.5, 72, "#FFD700"]);
+        for (let x = -34; x <= 34; x += 1.1) {
+          facade.push([x, 8, 65, "#FFFFFF"], [x, 8, 51, "#38BDF8"]);
+        }
+        // Central Grand Iwan Frame & Double Archway
+        for (let z = 35.5; z <= 70; z += 1.0) {
+          facade.push([-12, 9, z, "#FFFFFF"], [12, 9, z, "#FFFFFF"]);
+        }
+        for (let x = -12; x <= 12; x += 1.0) facade.push([x, 9, 70, "#FFB703"]);
         for (let t = 0; t <= 48; t++) {
           const ang = (t / 48) * Math.PI;
-          const ax = 10.5 * Math.cos(ang);
-          const az = 39 + 23 * Math.pow(Math.sin(ang), 0.72);
-          iwanArch.push([ax, 12.5, az, "#FFD700"], [ax * 0.84, 12.5, az - 1.6, "#00E5FF"]);
+          const ax = 9.5 * Math.cos(ang), az = 35.5 + 24 * Math.pow(Math.sin(ang), 0.75);
+          facade.push([ax, 9, az, "#FFB703"], [ax * 0.72, 9, az - 3, "#38BDF8"]);
         }
-
-        // All 4 Tapered Minarets with 3 Golden Balconies each
-        [[-46, -11], [46, -11], [-42, 11], [42, 11]].forEach(([mx, my]) => {
-          for (let z = 35; z <= 91; z += 1.8) {
-            const taper = 2.6 - ((z - 35) / 56) * 1.1;
-            minarets.push([mx - taper, my, z, "#FFFFFF"], [mx + taper, my, z, "#FFFFFF"]);
-          }
-          [52, 68, 84].forEach(bz => {
-            for (let k = 0; k <= 10; k++) {
-              const th = (k / 10) * Math.PI * 2;
-              minarets.push([mx + 3.6 * Math.cos(th), my + 3.6 * Math.sin(th), bz, "#FFD700"]);
+        // Double-Decker Arched Windows on Left & Right Wings
+        [-27, -18, 18, 27].forEach(wx => {
+          [37, 52].forEach(wz => {
+            for (let z = wz; z <= wz + 9; z += 1.2) facade.push([wx - 3.2, 8.5, z, "#38BDF8"], [wx + 3.2, 8.5, z, "#38BDF8"]);
+            for (let t = 0; t <= 12; t++) {
+              const ang = (t / 12) * Math.PI;
+              facade.push([wx + 3.2 * Math.cos(ang), 8.5, wz + 9 + 3.2 * Math.sin(ang), "#FFB703"]);
             }
           });
-          minarets.push([mx, my, 94.5, "#FFD700"]);
+        });
+
+        // 4 Minarets (Outer Tall at ±48, Inner Medium at ±36) with Golden Balconies & Cupolas
+        [
+          { x: -48, y: 4, topZ: 88, balc: [48, 62, 76] },
+          { x: 48, y: 4, topZ: 88, balc: [48, 62, 76] },
+          { x: -36, y: 7, topZ: 74, balc: [46, 58, 68] },
+          { x: 36, y: 7, topZ: 74, balc: [46, 58, 68] }
+        ].forEach(m => {
+          for (let z = 35.5; z <= m.topZ; z += 1.2) {
+            const w = 2.4 - ((z - 35.5) / (m.topZ - 35.5)) * 0.7;
+            const col = z > m.topZ - 14 ? "#FFB703" : "#38BDF8";
+            minarets.push([m.x - w, m.y, z, col], [m.x, m.y + 1, z, "#FFFFFF"], [m.x + w, m.y, z, col]);
+          }
+          m.balc.forEach(bz => {
+            for (let dx = -3.4; dx <= 3.4; dx += 0.85) minarets.push([m.x + dx, m.y + 1.2, bz, "#FFB703"]);
+          });
+          // Minaret Chhatri Top
+          for (let t = 0; t <= 12; t++) {
+            const ang = (t / 12) * Math.PI;
+            minarets.push([m.x + 2.5 * Math.cos(ang), m.y + 1, m.topZ + 4 * Math.sin(ang), "#FFFFFF"]);
+          }
+          minarets.push([m.x, m.y + 1, m.topZ + 6.5, "#FFB703"]);
         });
 
         return allocateParts([
-          { pts: domeRibs, col: "#FFFFFF", w: 0.34 },
-          { pts: plinthFacade, col: "#38BDF8", w: 0.24 },
-          { pts: iwanArch, col: "#FFD700", w: 0.18 },
-          { pts: minarets, col: "#FFFFFF", w: 0.24 }
+          { pts: dome, col: "#FFB703", w: 0.34 },
+          { pts: facade, col: "#38BDF8", w: 0.38 },
+          { pts: minarets, col: "#FFFFFF", w: 0.28 }
         ], nDrones);
       }
 
@@ -669,150 +666,170 @@
         return allocateParts([{ pts: petals, col: "#FF9E00", w: 0.86 }, { pts: stemLeaves, col: "#10B981", w: 0.14 }], nDrones);
       }
 
-      // 4. LORD GANESHA — Bold Double-Strand Calligraphic Crown, Tilak, Open C-Ears, S-Trunk & Lotus Base
+      // 4. LORD GANESHA — Ornate Seated Ganesha Silhouette (Crown, Parashu Axe, Lotus, Trunk & Mushak)
       if (id === "ganesha") {
-        const crown = [], browTilak = [], trunk = [], ears = [], lotus = [];
-
-        // 3-Tiered Bold Double-Strand Sacred Mukut Crown + Golden Kalash Spire
+        const crownHead = [], bodyDhoti = [], armsSymbols = [];
+        // Multi-Tiered Ornate Mukut Crown + Halo
         [
-          { w: 15.5, z: 83, col: "#FFD700" },
-          { w: 11.2, z: 89, col: "#FF9E00" },
-          { w: 6.8, z: 95, col: "#FFD700" }
-        ].forEach(tier => {
-          for (let t = 0; t <= 36; t++) {
-            const ang = (t / 36) * Math.PI;
-            const x = tier.w * Math.cos(ang);
-            const z = tier.z + 3.4 * Math.sin(ang);
-            crown.push([x, 5, z, tier.col], [x * 0.92, 5.5, z + 1.1, "#FFFFFF"]);
+          { w: 12, z: 86, h: 4.5, col: "#FFB703" },
+          { w: 9, z: 91, h: 4.0, col: "#FFFFFF" },
+          { w: 5.5, z: 96, h: 3.5, col: "#FFB703" }
+        ].forEach(t => {
+          for (let k = 0; k <= 30; k++) {
+            const a = (k / 30) * Math.PI;
+            crownHead.push([t.w * Math.cos(a), 5, t.z + t.h * Math.sin(a), t.col]);
           }
         });
-        for (let z = 99; z <= 105; z += 0.8) crown.push([0, 5.5, z, "#FFD700"]);
+        crownHead.push([0, 5, 102, "#FFFFFF"]);
 
-        // Bold Double-Strand Forehead Brow + Glowing Tripundra Tilak
-        for (let t = 0; t <= 44; t++) {
-          const ang = 0.14 * Math.PI + (t / 44) * 0.72 * Math.PI;
-          const x = 16 * Math.cos(ang);
-          const z = 73 + 8.5 * Math.sin(ang);
-          browTilak.push([x, 6.5, z, "#FF9E00"], [x * 0.94, 7.0, z + 1.2, "#FFD700"]);
+        // Forehead, Tilak, Open Elephant Ears & Curved Trunk
+        for (let k = 0; k <= 36; k++) {
+          const a = 0.15 * Math.PI + (k / 36) * 0.7 * Math.PI;
+          crownHead.push([11 * Math.cos(a), 6, 78 + 7 * Math.sin(a), "#FFB703"]);
         }
-        for (let z = 74; z <= 81; z += 0.6) {
-          browTilak.push([-0.7, 8, z, "#FFFFFF"], [0.7, 8, z, "#FFFFFF"]);
-        }
-        browTilak.push([0, 8.5, 77.5, "#FF2A85"]);
-
-        // Continuous Bold Double-Strand S-Curved Trunk with Modak Curl
-        for (let s = 0; s <= 90; s++) {
-          const u = s / 90;
-          const tx = u < 0.72
-            ? Math.sin((u / 0.72) * Math.PI * 0.5) * 14.5
-            : 14.5 - Math.sin(((u - 0.72) / 0.28) * Math.PI) * 5.5;
-          const tz = 72 - u * 27 + (u > 0.74 ? (u - 0.74) * 17 : 0);
-          trunk.push(
-            [tx, 7.5, tz, "#FF6D00"],
-            [tx - 1.8, 7.0, tz + 0.6, "#FFD700"],
-            [tx + 1.2, 7.0, tz - 0.4, "#FF2A85"]
-          );
-        }
-
-        // Open Double-Strand C-Curved Elephant Ears (Left & Right)
-        [-1, 1].forEach(side => {
-          for (let t = 0; t <= 44; t++) {
-            const ang = -0.44 * Math.PI + (t / 44) * 0.88 * Math.PI;
-            const ex1 = side * (14.5 + 14.0 * Math.cos(ang));
-            const ez1 = 69 + 14.5 * Math.sin(ang);
-            const ex2 = side * (13.0 + 11.5 * Math.cos(ang));
-            const ez2 = 69 + 12.2 * Math.sin(ang);
-            ears.push([ex1, 3, ez1, "#FFD700"], [ex2, 2.5, ez2, "#FF9E00"]);
+        for (let z = 79; z <= 84; z += 0.6) crownHead.push([0, 7, z, "#FF2A85"]);
+        [-1, 1].forEach(s => {
+          for (let k = 0; k <= 36; k++) {
+            const a = -0.45 * Math.PI + (k / 36) * 0.9 * Math.PI;
+            crownHead.push([s * (10 + 10 * Math.cos(a)), 3, 75 + 10 * Math.sin(a), "#FFB703"]);
+            crownHead.push([s * (9 + 7.5 * Math.cos(a)), 2.5, 75 + 7.5 * Math.sin(a), "#FF6D00"]);
           }
         });
+        // Flowing S-Curved Trunk
+        for (let s = 0; s <= 60; s++) {
+          const u = s / 60;
+          const tx = u < 0.7 ? Math.sin((u / 0.7) * Math.PI * 0.5) * 9 : 9 - Math.sin(((u - 0.7) / 0.3) * Math.PI) * 4;
+          const tz = 77 - u * 18 + (u > 0.72 ? (u - 0.72) * 10 : 0);
+          crownHead.push([tx, 7, tz, "#FFFFFF"], [tx - 1.4, 6.5, tz, "#FFB703"]);
+        }
 
-        // Sacred 5-Petal Lotus Pedestal Base
-        [-18, -9, 0, 9, 18].forEach((px, idx) => {
-          const h = idx === 2 ? 6.5 : (Math.abs(idx - 2) === 1 ? 5.5 : 4.5);
-          for (let t = 0; t <= 20; t++) {
-            const ang = (t / 20) * Math.PI;
-            lotus.push([px + 7.5 * Math.cos(ang), 4, 35 + h * Math.sin(ang), idx % 2 === 0 ? "#FF2A85" : "#FFD700"]);
+        // Seated Torso, Sacred Thread, Crossed Legs & Throne Pedestal
+        for (let k = 0; k <= 50; k++) {
+          const a = (k / 50) * Math.PI * 2;
+          bodyDhoti.push([14 * Math.cos(a), 5, 56 + 11 * Math.sin(a), "#FFB703"]);
+          bodyDhoti.push([11 * Math.cos(a), 5.5, 56 + 8.5 * Math.sin(a), "#FF6D00"]);
+        }
+        // Crossed Legs & Draped Dhoti Folds
+        for (let row = 0; row < 4; row++) {
+          const zBase = 41 + row * 2.2;
+          for (let x = -20 + row; x <= 20 - row; x += 1.2) {
+            bodyDhoti.push([x, 6, zBase + Math.sin(x * 0.25) * 1.4, row % 2 === 0 ? "#FFB703" : "#FFFFFF"]);
           }
-        });
+        }
+        // Throne Base + Mushak (Mouse) on Bottom Right
+        for (let x = -24; x <= 24; x += 1.2) bodyDhoti.push([x, 4, 34, "#FFFFFF"], [x, 4, 37, "#FFB703"]);
+        for (let k = 0; k <= 16; k++) {
+          const a = (k / 16) * Math.PI;
+          bodyDhoti.push([17 + 4 * Math.cos(a), 6, 37.5 + 2.5 * Math.sin(a), "#FFFFFF"]);
+        }
+
+        // 4 Arms: Upper Left Parashu (Axe), Upper Right Lotus, Lower Blessing & Modak Bowl
+        // Upper Left Parashu Axe
+        for (let z = 64; z <= 86; z += 1.0) armsSymbols.push([-22, 5, z, "#FFB703"]);
+        for (let k = 0; k <= 20; k++) {
+          const a = -0.4 * Math.PI + (k / 20) * 0.8 * Math.PI;
+          armsSymbols.push([-22 - 6 * Math.cos(a), 5, 81 + 6 * Math.sin(a), "#FFFFFF"]);
+        }
+        // Upper Right Blooming Pink/Gold Lotus
+        for (let p = -2; p <= 2; p++) {
+          for (let k = 0; k <= 14; k++) {
+            const a = (k / 14) * Math.PI;
+            armsSymbols.push([22 + p * 2.2 + 3 * Math.cos(a), 5, 79 + 5 * Math.sin(a), "#FF2A85"]);
+          }
+        }
+        // Lower Arms & Modak
+        for (let u = 0; u <= 1; u += 0.05) {
+          armsSymbols.push([-14 - u * 12, 6, 63 - u * 8, "#FFB703"], [14 + u * 12, 6, 63 - u * 8, "#10B981"]);
+        }
 
         return allocateParts([
-          { pts: crown, col: "#FFD700", w: 0.20 },
-          { pts: browTilak, col: "#FF9E00", w: 0.16 },
-          { pts: trunk, col: "#FF6D00", w: 0.24 },
-          { pts: ears, col: "#FFD700", w: 0.24 },
-          { pts: lotus, col: "#FF2A85", w: 0.16 }
+          { pts: crownHead, col: "#FFB703", w: 0.34 },
+          { pts: bodyDhoti, col: "#FFB703", w: 0.42 },
+          { pts: armsSymbols, col: "#FF2A85", w: 0.24 }
         ], nDrones);
       }
 
-      // 5. SHIVA TRISHUL — Majestic Spearhead Trident, Tripundra Tilak & Glowing Damru
+      // 5. SHIVA TRISHUL — Exact Double-Contour Gold/Cyan Trident, Tripundra Tilak & Tilted Damru
       if (id === "trishul") {
-        const shaft = [], blades = [], damru = [], tilak = [];
-        for (let z = 32; z <= 105; z += 0.55) {
-          shaft.push([0, 0, z, z > 89 ? "#FFFFFF" : "#FFD700"]);
-          if (z > 89 && z < 102) {
-            const w = 3.8 * Math.sin(((z - 89) / 13) * Math.PI);
-            shaft.push([-w, 1, z, "#FFFFFF"], [w, 1, z, "#FFFFFF"]);
+        const centralBlade = [], outerProngs = [], tilak = [], damru = [];
+
+        // Central Tall Spearhead Blade (Double-Line White/Cyan Contour + Twin Shaft)
+        for (let s = 0; s <= 70; s++) {
+          const u = s / 70;
+          const z = 82 + u * 26; // 82 to 108 tip
+          const halfW = u < 0.25 ? (u / 0.25) * 4.5 : 4.5 * (1 - (u - 0.25) / 0.75);
+          centralBlade.push([-halfW, 1, z, "#FFFFFF"], [halfW, 1, z, "#FFFFFF"]);
+          if (halfW > 1.2) {
+            centralBlade.push([-halfW * 0.5, 1.5, z, "#38BDF8"], [halfW * 0.5, 1.5, z, "#38BDF8"]);
           }
         }
-        for (let t = 0; t <= 80; t++) {
-          const ang = (t / 80) * Math.PI;
-          const px = 16.5 * Math.cos(ang);
-          const pz = 88 - 12 * Math.sin(ang);
-          blades.push([px, 1.5, pz, "#FF9E00"], [px * 0.92, -1, pz + 1.2, "#FFD700"]);
+        // Twin Vertical Shaft Columns from z=32 to z=82
+        for (let z = 32; z <= 82; z += 1.0) {
+          centralBlade.push([-1.3, 0, z, "#FFFFFF"], [1.3, 0, z, "#FFFFFF"]);
         }
-        [-16.5, 16.5].forEach(bx => {
-          for (let z = 88; z <= 100; z += 0.45) {
-            const flare = z > 95 ? (100 - z) * 0.45 : 0;
-            blades.push([bx, 1.5, z, "#FFFFFF"]);
-            if (flare > 0) blades.push([bx - flare, 1.5, z, "#FFD700"], [bx + flare, 1.5, z, "#FFD700"]);
+
+        // Double-Layered Lyre-Shaped Outer Trident Prongs (Outer Gold + Inner Cyan)
+        [-1, 1].forEach(side => {
+          for (let s = 0; s <= 85; s++) {
+            const u = s / 85;
+            // S-curved lyre profile rising from base (z=75) to sharp tip (z=102)
+            const x = side * (3.5 + Math.sin(u * Math.PI * 0.85) * 16.5 - (u > 0.75 ? (u - 0.75) * 12 : 0));
+            const z = 75 + u * 27 - Math.sin(u * Math.PI) * 4.5;
+            outerProngs.push([x, 1, z, "#FFB703"]); // Outer Gold Border
+            outerProngs.push([x - side * 2.2, 1.5, z + 0.8, "#00E5FF"]); // Inner Cyan Border
           }
         });
-        for (let dz = -7; dz <= 7; dz += 0.45) {
-          const w = 2.0 + Math.abs(dz) * 1.15;
-          const isRim = Math.abs(Math.abs(dz) - 7) < 0.6;
-          for (let k = 0; k <= 12; k++) {
-            const th = (k / 12) * Math.PI * 2;
-            damru.push([w * Math.cos(th), w * 0.65 * Math.sin(th) + 4, 59 + dz, isRim ? "#FFD700" : "#00E5FF"]);
-          }
-        }
-        [-5, -2.5, 0].forEach(oz => {
-          for (let x = -11; x <= 11; x += 1.0) tilak.push([x, 5, 46 + oz, "#FFFFFF"]);
+        // Ornate Collar Rings at Trident Neck (z=73..76)
+        [73.5, 75.5].forEach(cz => {
+          for (let x = -5; x <= 5; x += 0.8) outerProngs.push([x, 2, cz, "#FFB703"]);
         });
-        tilak.push([0, 6, 43.5, "#FF2A85"]);
+
+        // Sacred 3-Bar White Tripundra Tilak + Red Bindi across Central Blade (z=86..91)
+        [86.5, 88.8, 91.1].forEach(tz => {
+          for (let x = -7.5; x <= 7.5; x += 0.85) {
+            tilak.push([x, 3, tz, "#FFFFFF"]);
+          }
+        });
+        tilak.push([0, 3.8, 88.8, "#FF2A85"], [-0.8, 3.8, 88.8, "#FF2A85"], [0.8, 3.8, 88.8, "#FF2A85"]);
+
+        // Tilted Hourglass Damru Drum with Gold Rims & Diagonal Tension Strings (z=52..68)
+        const tilt = -0.32; // ~18 deg tilt like reference image
+        const rotD = (dx, dz) => [
+          dx * Math.cos(tilt) - dz * Math.sin(tilt),
+          dx * Math.sin(tilt) + dz * Math.cos(tilt) + 60
+        ];
+        // Left & Right Drum Heads + Cross-Laced Strings
+        for (let s = -10; s <= 10; s += 0.7) {
+          const r = 2.6 + Math.abs(s) * 0.65;
+          const [xTop, zTop] = rotD(s, r);
+          const [xBot, zBot] = rotD(s, -r);
+          damru.push([xTop, 3, zTop, "#FFB703"], [xBot, 3, zBot, "#FFB703"]);
+          // Diagonal zig-zag tension cords
+          const zig = Math.sin(s * 0.9) * r * 0.85;
+          const [xZig, zZig] = rotD(s, zig);
+          damru.push([xZig, 3.5, zZig, "#FFFFFF"]);
+        }
+        // Left & Right Oval Drum Faces
+        [-10, 10].forEach(endX => {
+          const rEnd = 2.6 + 10 * 0.65;
+          for (let k = 0; k <= 24; k++) {
+            const a = (k / 24) * Math.PI * 2;
+            const [rx, rz] = rotD(endX + 1.8 * Math.cos(a), rEnd * Math.sin(a));
+            damru.push([rx, 3.5, rz, "#FFFFFF"]);
+          }
+        });
+        // Red Center Waist Knot on Damru
+        for (let zOff = -2.8; zOff <= 2.8; zOff += 0.7) {
+          const [kx, kz] = rotD(0, zOff);
+          damru.push([kx, 4, kz, "#FF2A85"]);
+        }
 
         return allocateParts([
-          { pts: shaft, col: "#FFD700", w: 0.32 },
-          { pts: blades, col: "#FF9E00", w: 0.32 },
-          { pts: damru, col: "#00E5FF", w: 0.22 },
-          { pts: tilak, col: "#FFFFFF", w: 0.14 }
+          { pts: centralBlade, col: "#FFFFFF", w: 0.28 },
+          { pts: outerProngs, col: "#FFB703", w: 0.34 },
+          { pts: tilak, col: "#FFFFFF", w: 0.14 },
+          { pts: damru, col: "#FFB703", w: 0.24 }
         ], nDrones);
-      }
-
-      // 6. DIWALI DIYA — Ornate Carved Earthen Lamp + Multi-Layered Teardrop Flame
-      if (id === "diya") {
-        const bowl = [], flame = [];
-        for (let v = 0; v <= 1; v += 0.04) {
-          const rx = 12 + Math.sin(v * Math.PI * 0.65) * 26;
-          const ry = 7 + Math.sin(v * Math.PI * 0.65) * 14;
-          const z = 39 + v * 17;
-          const n = 56;
-          for (let k = 0; k <= n; k++) {
-            const th = (k / n) * Math.PI * 2;
-            const spout = th > -0.35 && th < 0.35 ? (1 + 0.28 * v) : 1.0;
-            const isRim = v > 0.88;
-            bowl.push([rx * spout * Math.cos(th), ry * Math.sin(th), z, isRim ? "#FFD700" : (k % 4 === 0 ? "#FF9E00" : "#E63946")]);
-          }
-        }
-        for (let u = 0; u <= 1; u += 0.025) {
-          const fr = 9.5 * Math.sin(u * Math.PI) * (1 - u * 0.42);
-          const fz = 59 + u * 32;
-          const col = u < 0.38 ? "#FFFFFF" : (u < 0.72 ? "#FFD60A" : "#FF5500");
-          for (let k = 0; k <= 20; k++) {
-            const th = (k / 20) * Math.PI * 2;
-            flame.push([12 + fr * Math.cos(th), fr * Math.sin(th), fz, col]);
-          }
-        }
-        return allocateParts([{ pts: bowl, col: "#FF5500", w: 0.58 }, { pts: flame, col: "#FFD60A", w: 0.42 }], nDrones);
       }
 
       // 7. BEATING 3D HEART — Multi-Shell Volumetric Heart Sculpture
@@ -1045,7 +1062,7 @@
       scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x64748b, size: 0.9 })));
 
       populateSidebarUI();
-      setupDroneParticles(800);
+      setupDroneParticles(2200);
       loadTemplate(0);
 
       window.addEventListener('resize', handleResize);
@@ -1158,7 +1175,7 @@
         map: spriteTex,
         vertexColors: true,
         transparent: true,
-        opacity: 0.28,
+        opacity: 0.52,
         blending: THREE.AdditiveBlending,
         depthWrite: false
       }));
@@ -1222,7 +1239,7 @@
           prevPositions[i * 3 + 2] = pt[1];
 
           reflectionPositions[i * 3] = pt[0];
-          reflectionPositions[i * 3 + 1] = -pt[2] * 0.65;
+          reflectionPositions[i * 3 + 1] = -pt[2] * 0.95;
           reflectionPositions[i * 3 + 2] = pt[1];
         }
         colObj.set(pt[3] || '#00E5FF');
@@ -1326,7 +1343,7 @@
           // Real-Time Mirror Water Reflection with Subtle Ripple Wave
           const ripple = Math.sin(t * 3.0 + finalY * 0.15) * 0.45;
           reflectionPositions[ix] = finalX + ripple;
-          reflectionPositions[iy] = -finalY * 0.65;
+          reflectionPositions[iy] = -finalY * 0.95;
           reflectionPositions[iz] = finalZ + ripple * 0.5;
 
           tVerts[i * 6] = finalX;
@@ -1546,7 +1563,7 @@
     }
 
     function changeFleetCount(val) {
-      const n = Math.max(100, Math.min(1000, parseInt(val, 10) || 800));
+      const n = Math.max(100, Math.min(3000, parseInt(val, 10) || 800));
       document.getElementById('droneManualInput').value = n;
       document.getElementById('modalDroneInput').value = n;
       slides = slides.map(s => ({ ...s, cloud: buildSlideCloud(s, n) }));
