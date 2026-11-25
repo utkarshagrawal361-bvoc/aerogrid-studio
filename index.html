@@ -666,194 +666,106 @@
         return allocateParts([{ pts: petals, col: "#FF9E00", w: 0.86 }, { pts: stemLeaves, col: "#10B981", w: 0.14 }], nDrones);
       }
 
-      // 4. LORD GANESHA — High-Res Shaded Devotional Artwork with 3D Relief Depth
+      // 4. LORD GANESHA — Crisp High-Contrast Devotional Silhouette
       if (id === "ganesha") {
         const c = document.createElement('canvas');
-        c.width = 420; c.height = 460;
+        c.width = 440; c.height = 480;
         const ctx = c.getContext('2d');
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, c.width, c.height);
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
+        const cx = 220;
 
-        const cx = 210;
-
-        // 1. Radiating Golden Prabhavali Halo
+        // 1. Radiating Golden Aura Arch
         ctx.strokeStyle = '#FFB703';
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
-        for (let a = -Math.PI * 1.15; a <= Math.PI * 0.15; a += 0.05) {
-          const r = 148 + Math.sin(a * 18) * 6;
-          const x = cx + r * Math.cos(a), y = 185 + r * Math.sin(a);
-          a === -Math.PI * 1.15 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-        }
+        ctx.arc(cx, 195, 152, Math.PI * 0.88, Math.PI * 2.12);
         ctx.stroke();
 
-        // 2. Ornate 3-Tier Temple Mukut Crown
+        // 2. 3-Tiered Mukut Crown + Kalash
         [
-          { y: 88, rx: 44, ry: 18, col: '#FFD700', lw: 6 },
-          { y: 66, rx: 32, ry: 15, col: '#FF9E00', lw: 5 },
-          { y: 46, rx: 20, ry: 12, col: '#FFFFFF', lw: 4 }
+          { y: 92, rx: 42, ry: 16, col: '#FFD700', lw: 3.5 },
+          { y: 72, rx: 30, ry: 13, col: '#FF9E00', lw: 3 },
+          { y: 54, rx: 18, ry: 10, col: '#FFFFFF', lw: 2.5 }
         ].forEach(t => {
-          ctx.strokeStyle = t.col;
-          ctx.lineWidth = t.lw;
-          ctx.beginPath();
-          ctx.ellipse(cx, t.y, t.rx, t.ry, 0, Math.PI, 0);
-          ctx.stroke();
+          ctx.strokeStyle = t.col; ctx.lineWidth = t.lw;
+          ctx.beginPath(); ctx.ellipse(cx, t.y, t.rx, t.ry, 0, Math.PI, 0); ctx.stroke();
         });
-        // Kalash Spire
-        ctx.fillStyle = '#FFD700';
-        ctx.beginPath();
-        ctx.arc(cx, 26, 5, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = '#FFD700'; ctx.beginPath(); ctx.arc(cx, 36, 4, 0, Math.PI * 2); ctx.fill();
 
-        // 3. Large Sculpted Elephant Ears (Double Contour)
+        // 3. Open C-Curved Elephant Ears
         [-1, 1].forEach(s => {
-          ctx.strokeStyle = '#FFB703';
-          ctx.lineWidth = 5;
-          ctx.beginPath();
-          ctx.ellipse(cx + s * 62, 138, 34, 46, s * 0.25, -Math.PI * 0.55, Math.PI * 0.55, s < 0);
-          ctx.stroke();
-
-          ctx.strokeStyle = '#FF6D00';
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.ellipse(cx + s * 56, 138, 22, 32, s * 0.25, -Math.PI * 0.5, Math.PI * 0.5, s < 0);
-          ctx.stroke();
+          ctx.strokeStyle = '#FFB703'; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.ellipse(cx + s * 62, 142, 32, 42, s * 0.2, -Math.PI * 0.52, Math.PI * 0.52, s < 0); ctx.stroke();
+          ctx.strokeStyle = '#FF6D00'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.ellipse(cx + s * 56, 142, 20, 28, s * 0.2, -Math.PI * 0.48, Math.PI * 0.48, s < 0); ctx.stroke();
         });
 
-        // 4. Sculpted Head, Eyes, Tilak & S-Curved Trunk
-        ctx.strokeStyle = '#FFB703';
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.arc(cx, 132, 42, Math.PI * 1.12, Math.PI * 1.88);
-        ctx.stroke();
+        // 4. Forehead, Tilak, Eyes & S-Curved Trunk
+        ctx.strokeStyle = '#FFB703'; ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.arc(cx, 136, 40, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
 
-        // Tripundra Tilak & Bindi
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(cx - 5, 102); ctx.lineTo(cx - 5, 122);
-        ctx.moveTo(cx + 5, 102); ctx.lineTo(cx + 5, 122);
-        ctx.stroke();
-        ctx.fillStyle = '#FF2A85';
-        ctx.beginPath(); ctx.arc(cx, 113, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(cx - 4, 108); ctx.lineTo(cx - 4, 126); ctx.moveTo(cx + 4, 108); ctx.lineTo(cx + 4, 126); ctx.stroke();
+        ctx.fillStyle = '#FF2A85'; ctx.beginPath(); ctx.arc(cx, 117, 3.5, 0, Math.PI * 2); ctx.fill();
 
-        // Expressive Eyes
-        [-18, 18].forEach(ex => {
-          ctx.strokeStyle = '#FFFFFF';
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.ellipse(cx + ex, 130, 8, 4, 0, 0, Math.PI * 2);
-          ctx.stroke();
+        [-16, 16].forEach(ex => {
+          ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.ellipse(cx + ex, 134, 7, 3.5, 0, 0, Math.PI * 2); ctx.stroke();
         });
 
-        // Graceful S-Curved Trunk with Modak Curl
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 7;
+        // Double-line S-Curved Trunk
+        ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(cx - 10, 146);
-        ctx.bezierCurveTo(cx - 12, 185, cx + 38, 185, cx + 34, 215);
-        ctx.bezierCurveTo(cx + 32, 232, cx + 12, 228, cx + 16, 214);
+        ctx.moveTo(cx - 8, 150);
+        ctx.bezierCurveTo(cx - 10, 186, cx + 34, 186, cx + 30, 214);
+        ctx.bezierCurveTo(cx + 28, 228, cx + 12, 224, cx + 15, 212);
         ctx.stroke();
 
-        ctx.strokeStyle = '#FF9E00';
-        ctx.lineWidth = 4;
+        // 5. Four Arms + Parashu Axe + Pink Lotus
+        ctx.strokeStyle = '#FFB703'; ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(cx + 10, 146);
-        ctx.bezierCurveTo(cx + 8, 178, cx + 44, 180, cx + 38, 216);
+        ctx.moveTo(cx - 40, 208); ctx.quadraticCurveTo(cx - 92, 198, cx - 106, 158);
+        ctx.moveTo(cx + 40, 208); ctx.quadraticCurveTo(cx + 92, 198, cx + 106, 158);
+        ctx.moveTo(cx - 46, 225); ctx.quadraticCurveTo(cx - 88, 248, cx - 80, 275);
+        ctx.moveTo(cx + 46, 225); ctx.quadraticCurveTo(cx + 88, 248, cx + 80, 275);
         ctx.stroke();
 
-        // 5. Four Connected Arms + Parashu Axe + Pink Lotus + Modak Bowl
-        // Upper Left Arm & Parashu Axe
-        ctx.strokeStyle = '#FFB703';
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.moveTo(cx - 42, 205);
-        ctx.quadraticCurveTo(cx - 95, 195, cx - 108, 155);
-        ctx.stroke();
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(cx - 108, 120); ctx.lineTo(cx - 108, 185);
-        ctx.stroke();
-        ctx.strokeStyle = '#38BDF8';
-        ctx.beginPath();
-        ctx.arc(cx - 108, 136, 18, Math.PI * 0.6, Math.PI * 1.4);
-        ctx.stroke();
+        // Parashu Axe (Left)
+        ctx.strokeStyle = '#38BDF8'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(cx - 106, 122); ctx.lineTo(cx - 106, 185); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx - 106, 138, 16, Math.PI * 0.6, Math.PI * 1.4); ctx.stroke();
 
-        // Upper Right Arm & Blooming Lotus
-        ctx.strokeStyle = '#FFB703';
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.moveTo(cx + 42, 205);
-        ctx.quadraticCurveTo(cx + 95, 195, cx + 108, 155);
-        ctx.stroke();
-        [-14, -7, 0, 7, 14].forEach(dx => {
-          ctx.strokeStyle = '#FF2A85';
-          ctx.lineWidth = 3.5;
-          ctx.beginPath();
-          ctx.ellipse(cx + 108 + dx * 0.7, 138, 6, 16, dx * 0.04, 0, Math.PI * 2);
-          ctx.stroke();
+        // Lotus (Right)
+        [-12, -6, 0, 6, 12].forEach(dx => {
+          ctx.strokeStyle = '#FF2A85'; ctx.lineWidth = 2.5;
+          ctx.beginPath(); ctx.ellipse(cx + 106 + dx * 0.7, 142, 5, 14, dx * 0.04, 0, Math.PI * 2); ctx.stroke();
         });
 
-        // Lower Left & Right Arms
-        ctx.strokeStyle = '#FF9E00';
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.moveTo(cx - 48, 222); ctx.quadraticCurveTo(cx - 92, 245, cx - 84, 275);
-        ctx.moveTo(cx + 48, 222); ctx.quadraticCurveTo(cx + 92, 245, cx + 84, 275);
-        ctx.stroke();
+        // 6. Torso, Janeu, Crossed Legs & Throne Pedestal
+        ctx.strokeStyle = '#FFB703'; ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.ellipse(cx, 258, 52, 44, 0, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(cx - 32, 220); ctx.quadraticCurveTo(cx - 4, 255, cx + 36, 284); ctx.stroke();
 
-        // 6. Torso, Sacred Janeu & Crossed Dhoti Legs
-        ctx.strokeStyle = '#FFB703';
-        ctx.lineWidth = 6;
-        ctx.beginPath();
-        ctx.ellipse(cx, 255, 56, 48, 0, 0, Math.PI * 2);
-        ctx.stroke();
+        ctx.strokeStyle = '#FF6D00'; ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.ellipse(cx, 326, 82, 22, 0, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 3.5;
+        ctx.strokeRect(cx - 98, 356, 196, 16);
 
-        // Sacred Janeu Thread across chest
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 3.5;
-        ctx.beginPath();
-        ctx.moveTo(cx - 34, 216);
-        ctx.quadraticCurveTo(cx - 5, 252, cx + 38, 282);
-        ctx.stroke();
-
-        // Crossed Legs & Dhoti Folds
-        ctx.strokeStyle = '#FF6D00';
-        ctx.lineWidth = 5;
-        ctx.beginPath();
-        ctx.ellipse(cx, 326, 86, 24, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.strokeStyle = '#FFD700';
-        ctx.lineWidth = 3.5;
-        ctx.beginPath();
-        ctx.ellipse(cx, 326, 62, 14, 0, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // 7. Royal Throne Base + Mushak (Mouse)
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 5;
-        ctx.strokeRect(cx - 102, 356, 204, 18);
-        ctx.strokeStyle = '#10B981';
-        ctx.lineWidth = 3.5;
-        ctx.beginPath();
-        ctx.arc(cx + 76, 348, 11, Math.PI, 0);
-        ctx.stroke();
-
-        // Sample lit pixels into 3D Drone Cloud with Depth Relief
         const imgData = ctx.getImageData(0, 0, c.width, c.height).data;
         const sampled = [];
         for (let y = 4; y < c.height - 4; y += 3) {
           for (let x = 4; x < c.width - 4; x += 3) {
             const idx = (y * c.width + x) * 4;
             const r = imgData[idx], g = imgData[idx + 1], b = imgData[idx + 2];
-            if (r + g + b > 90) {
+            if (r + g + b > 100) {
               const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-              const nx = ((x - cx) / 165) * 44;
-              const nz = 104 - ((y - 20) / 380) * 72;
-              const ny = Math.cos(((x - cx) / 165) * Math.PI * 0.5) * 8;
+              const nx = ((x - cx) / 165) * 42;
+              const nz = 104 - ((y - 25) / 370) * 70;
+              const ny = Math.cos(((x - cx) / 165) * Math.PI * 0.5) * 6;
               sampled.push([+nx.toFixed(2), +ny.toFixed(2), +nz.toFixed(2), hex]);
             }
           }
@@ -861,21 +773,101 @@
         return allocateParts([{ pts: sampled, col: "#FFB703", w: 1.0 }], nDrones);
       }
 
-      // 7. BEATING 3D HEART — Multi-Shell Volumetric Heart Sculpture
-      if (id === "heart") {
-        const pts = [];
-        for (let shell = 0.35; shell <= 1.0; shell += 0.13) {
-          const depth = Math.sqrt(Math.max(0, 1 - shell * shell)) * 15;
-          const col = shell > 0.88 ? "#FF85B3" : (shell > 0.65 ? "#FF2A85" : "#FFD700");
-          for (let k = 0; k <= 160; k++) {
-            const t = (k / 160) * Math.PI * 2;
-            const hx = 16 * Math.pow(Math.sin(t), 3) * 2.05 * shell;
-            const hz = (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * 1.9 * shell + 68;
-            pts.push([hx, depth, hz, col]);
-            if (depth > 0.5) pts.push([hx, -depth, hz, col]);
+      // 5. SHIVA TRISHUL — Restored Double-Contour Gold/Cyan Trident, Tripundra Tilak & Tilted Damru
+      if (id === "trishul") {
+        const centralBlade = [], outerProngs = [], tilak = [], damru = [];
+
+        for (let s = 0; s <= 70; s++) {
+          const u = s / 70;
+          const z = 82 + u * 26;
+          const halfW = u < 0.25 ? (u / 0.25) * 4.5 : 4.5 * (1 - (u - 0.25) / 0.75);
+          centralBlade.push([-halfW, 1, z, "#FFFFFF"], [halfW, 1, z, "#FFFFFF"]);
+          if (halfW > 1.2) {
+            centralBlade.push([-halfW * 0.5, 1.5, z, "#38BDF8"], [halfW * 0.5, 1.5, z, "#38BDF8"]);
           }
         }
-        return allocateParts([{ pts, col: "#FF2A85", w: 1.0 }], nDrones);
+        for (let z = 32; z <= 82; z += 1.0) {
+          centralBlade.push([-1.3, 0, z, "#FFFFFF"], [1.3, 0, z, "#FFFFFF"]);
+        }
+
+        [-1, 1].forEach(side => {
+          for (let s = 0; s <= 85; s++) {
+            const u = s / 85;
+            const x = side * (3.5 + Math.sin(u * Math.PI * 0.85) * 16.5 - (u > 0.75 ? (u - 0.75) * 12 : 0));
+            const z = 75 + u * 27 - Math.sin(u * Math.PI) * 4.5;
+            outerProngs.push([x, 1, z, "#FFB703"]);
+            outerProngs.push([x - side * 2.2, 1.5, z + 0.8, "#00E5FF"]);
+          }
+        });
+        [73.5, 75.5].forEach(cz => {
+          for (let x = -5; x <= 5; x += 0.8) outerProngs.push([x, 2, cz, "#FFB703"]);
+        });
+
+        [86.5, 88.8, 91.1].forEach(tz => {
+          for (let x = -7.5; x <= 7.5; x += 0.85) tilak.push([x, 3, tz, "#FFFFFF"]);
+        });
+        tilak.push([0, 3.8, 88.8, "#FF2A85"], [-0.8, 3.8, 88.8, "#FF2A85"], [0.8, 3.8, 88.8, "#FF2A85"]);
+
+        const tilt = -0.32;
+        const rotD = (dx, dz) => [
+          dx * Math.cos(tilt) - dz * Math.sin(tilt),
+          dx * Math.sin(tilt) + dz * Math.cos(tilt) + 60
+        ];
+        for (let s = -10; s <= 10; s += 0.7) {
+          const r = 2.6 + Math.abs(s) * 0.65;
+          const [xTop, zTop] = rotD(s, r);
+          const [xBot, zBot] = rotD(s, -r);
+          damru.push([xTop, 3, zTop, "#FFB703"], [xBot, 3, zBot, "#FFB703"]);
+          const zig = Math.sin(s * 0.9) * r * 0.85;
+          const [xZig, zZig] = rotD(s, zig);
+          damru.push([xZig, 3.5, zZig, "#FFFFFF"]);
+        }
+        [-10, 10].forEach(endX => {
+          const rEnd = 2.6 + 10 * 0.65;
+          for (let k = 0; k <= 24; k++) {
+            const a = (k / 24) * Math.PI * 2;
+            const [rx, rz] = rotD(endX + 1.8 * Math.cos(a), rEnd * Math.sin(a));
+            damru.push([rx, 3.5, rz, "#FFFFFF"]);
+          }
+        });
+        for (let zOff = -2.8; zOff <= 2.8; zOff += 0.7) {
+          const [kx, kz] = rotD(0, zOff);
+          damru.push([kx, 4, kz, "#FF2A85"]);
+        }
+
+        return allocateParts([
+          { pts: centralBlade, col: "#FFFFFF", w: 0.28 },
+          { pts: outerProngs, col: "#FFB703", w: 0.34 },
+          { pts: tilak, col: "#FFFFFF", w: 0.14 },
+          { pts: damru, col: "#FFB703", w: 0.24 }
+        ], nDrones);
+      }
+
+      // 6. DIWALI DIYA — Restored Ornate Carved Earthen Lamp + Multi-Layered Teardrop Flame
+      if (id === "diya") {
+        const bowl = [], flame = [];
+        for (let v = 0; v <= 1; v += 0.04) {
+          const rx = 12 + Math.sin(v * Math.PI * 0.65) * 26;
+          const ry = 7 + Math.sin(v * Math.PI * 0.65) * 14;
+          const z = 39 + v * 17;
+          const n = 56;
+          for (let k = 0; k <= n; k++) {
+            const th = (k / n) * Math.PI * 2;
+            const spout = th > -0.35 && th < 0.35 ? (1 + 0.28 * v) : 1.0;
+            const isRim = v > 0.88;
+            bowl.push([rx * spout * Math.cos(th), ry * Math.sin(th), z, isRim ? "#FFD700" : (k % 4 === 0 ? "#FF9E00" : "#E63946")]);
+          }
+        }
+        for (let u = 0; u <= 1; u += 0.025) {
+          const fr = 9.5 * Math.sin(u * Math.PI) * (1 - u * 0.42);
+          const fz = 59 + u * 32;
+          const col = u < 0.38 ? "#FFFFFF" : (u < 0.72 ? "#FFD60A" : "#FF5500");
+          for (let k = 0; k <= 20; k++) {
+            const th = (k / 20) * Math.PI * 2;
+            flame.push([12 + fr * Math.cos(th), fr * Math.sin(th), fz, col]);
+          }
+        }
+        return allocateParts([{ pts: bowl, col: "#FF5500", w: 0.58 }, { pts: flame, col: "#FFD60A", w: 0.42 }], nDrones);
       }
 
       // 8. INTERLOCKING WEDDING RINGS + FACETED DIAMOND SOLITAIRE CROWN
