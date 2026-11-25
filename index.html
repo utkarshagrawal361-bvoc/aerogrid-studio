@@ -563,6 +563,22 @@
     }
 
     // Dual-Engine Generative Fetcher (Gemini Imagen-3 Priority -> Zero-Auth Pollinations -> Local Procedural Fallback)
+    // Helper to reject light/yellow rate-limit banners (like Pollinations "Free limit reached")
+    function isValidDarkLightArt(imgEl) {
+      const c = document.createElement('canvas');
+      c.width = 64; c.height = 48;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(imgEl, 0, 0, 64, 48);
+      const d = ctx.getImageData(0, 0, 64, 48).data;
+      let brightPixels = 0;
+      for (let i = 0; i < d.length; i += 4) {
+        if ((d[i] + d[i + 1] + d[i + 2]) / 3 > 140) brightPixels++;
+      }
+      // Valid drone light-art on black background has < 45% bright background pixels
+      return (brightPixels / (64 * 48)) < 0.45;
+    }
+
+    // Dual-Engine Generative Fetcher (Gemini API Key Priority -> Banner-Guarded Free AI -> Clean Fallback)
     async function fetchGeneratedLightArt(userPrompt, styleTheme) {
       const paletteHint = styleTheme === "tricolour"
         ? "glowing Indian tricolour saffron white and emerald green neon LEDs"
@@ -570,19 +586,20 @@
           ? "glowing golden saffron and magenta neon LEDs"
           : "glowing golden and electric cyan neon LEDs");
 
-      const engineeredPrompt = `${userPrompt}, intricate luminous 3D drone light show sculpture made of ${paletteHint} on a pure solid pitch-black background, symmetrical, sharp glowing outlines, centered composition, no text, no ground, no horizon, high contrast`;
+      const engineeredPrompt = `${userPrompt}, intricate luminous 3D drone light show sculpture made of ${paletteHint} on a pure solid pitch-black background, symmetrical, sharp glowing outlines, centered composition, no text, no ground, high contrast`;
 
       const tag = document.getElementById('aiEngineTag');
       const thumb = document.getElementById('aiPreviewThumb');
       const ph = document.getElementById('aiPreviewPlaceholder');
 
-      // 1. Try Google Gemini Imagen-3 API if Pro Key is provided
+      // 1. Priority: Google Gemini / Imagen API if Pro Key is saved
       const geminiKey = localStorage.getItem('aerogrid_gemini_key');
       if (geminiKey) {
         try {
-          tag.textContent = "IMAGEN-3...";
+          tag.textContent = "GEMINI AI...";
           tag.className = "text-amber-300 animate-pulse";
-          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${encodeURIComponent(geminiKey)}`, {
+          // Try Imagen 3 first, then Gemini 2.5 Flash Image
+          const imgRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${encodeURIComponent(geminiKey)}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -590,41 +607,59 @@
               parameters: { sampleCount: 1, aspectRatio: "4:3" }
             })
           });
-          if (res.ok) {
-            const json = await res.json();
+          if (imgRes.ok) {
+            const json = await imgRes.json();
             const b64 = json?.predictions?.[0]?.bytesBase64Encoded;
             if (b64) {
               const img = await loadImageAsync(`data:image/png;base64,${b64}`);
-              thumb.src = img.src;
-              thumb.classList.remove('hidden');
-              ph.classList.add('hidden');
-              tag.textContent = "IMAGEN-3 OK";
-              tag.className = "text-emerald-400";
+              thumb.src = img.src; thumb.classList.remove('hidden'); ph.classList.add('hidden');
+              tag.textContent = "IMAGEN-3 OK"; tag.className = "text-emerald-400";
+              return img;
+            }
+          }
+          // Fallback to Gemini 2.5 Flash Image generation endpoint
+          const flashRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${encodeURIComponent(geminiKey)}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: engineeredPrompt }] }],
+              generationConfig: { responseModalities: ["IMAGE"] }
+            })
+          });
+          if (flashRes.ok) {
+            const fJson = await flashRes.json();
+            const part = fJson?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+            if (part?.inlineData?.data) {
+              const img = await loadImageAsync(`data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`);
+              thumb.src = img.src; thumb.classList.remove('hidden'); ph.classList.add('hidden');
+              tag.textContent = "GEMINI OK"; tag.className = "text-emerald-400";
               return img;
             }
           }
         } catch (e) {
-          console.warn("Imagen-3 fallback triggered:", e);
+          console.warn("Gemini API fallback:", e);
         }
       }
 
-      // 2. Try Zero-Auth Free Generative AI Endpoint with Cache-Busted Seed & Timeout
+      // 2. Zero-Auth Endpoint with Strict Yellow-Banner Rejection
       const seed = Math.floor(Math.random() * 999999);
       const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(engineeredPrompt)}?width=512&height=384&nologo=true&seed=${seed}`;
       try {
         tag.textContent = "GENERATING...";
         tag.className = "text-sky-400 animate-pulse";
-        const img = await loadImageWithTimeout(url, 14000);
-        thumb.src = img.src;
-        thumb.classList.remove('hidden');
-        ph.classList.add('hidden');
-        tag.textContent = "AI READY";
-        tag.className = "text-emerald-400";
+        const img = await loadImageWithTimeout(url, 12000);
+        if (!isValidDarkLightArt(img)) {
+          throw new Error("Rate-limit banner rejected");
+        }
+        thumb.src = img.src; thumb.classList.remove('hidden'); ph.classList.add('hidden');
+        tag.textContent = "AI READY"; tag.className = "text-emerald-400";
         return img;
       } catch (err) {
-        console.warn("Public AI busy, using High-Contrast Synthesizer:", err);
-        tag.textContent = "SYNTHESIZED";
+        tag.textContent = geminiKey ? "RETRY / UPLOAD" : "ADD PRO KEY";
         tag.className = "text-amber-300";
+        document.getElementById('statusToast').textContent = geminiKey
+          ? "⚠️ API busy — try again or upload image in Uploads tab"
+          : "⚠️ Free public limit reached — click '🔑 Pro Key' in top bar for unlimited AI!";
         return synthesizeFallbackArtCanvas(userPrompt, styleTheme);
       }
     }
