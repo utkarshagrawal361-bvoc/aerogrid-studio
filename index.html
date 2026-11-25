@@ -564,104 +564,82 @@
 
     // Dual-Engine Generative Fetcher (Gemini Imagen-3 Priority -> Zero-Auth Pollinations -> Local Procedural Fallback)
     // Helper to reject light/yellow rate-limit banners (like Pollinations "Free limit reached")
-    function isValidDarkLightArt(imgEl) {
-      const c = document.createElement('canvas');
-      c.width = 64; c.height = 48;
-      const ctx = c.getContext('2d');
-      ctx.drawImage(imgEl, 0, 0, 64, 48);
-      const d = ctx.getImageData(0, 0, 64, 48).data;
-      let brightPixels = 0;
-      for (let i = 0; i < d.length; i += 4) {
-        if ((d[i] + d[i + 1] + d[i + 2]) / 3 > 140) brightPixels++;
-      }
-      // Valid drone light-art on black background has < 45% bright background pixels
-      return (brightPixels / (64 * 48)) < 0.45;
+    // Render crisp SVG string onto offscreen Canvas for 3D Drone Sampling (Zero CORS, Razor Sharp)
+    function renderSvgToCanvas(svgCode) {
+      return new Promise((resolve, reject) => {
+        const cleanSvg = svgCode.replace(/```svg|```xml|```/gi, '').trim();
+        const match = cleanSvg.match(/<svg[\s\S]*<\/svg>/i);
+        if (!match) return reject(new Error("Invalid SVG"));
+        const blob = new Blob([match[0]], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          c.width = 520; c.height = 400;
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = '#000000';
+          ctx.fillRect(0, 0, c.width, c.height);
+          ctx.drawImage(img, 20, 15, 480, 370);
+          URL.revokeObjectURL(url);
+          resolve(c);
+        };
+        img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+        img.src = url;
+      });
     }
 
-    // Dual-Engine Generative Fetcher (Gemini API Key Priority -> Banner-Guarded Free AI -> Clean Fallback)
+    // Ultra-Fast Gemini Vector Light-Art Generator + Zero-Error Fallback
     async function fetchGeneratedLightArt(userPrompt, styleTheme) {
-      const paletteHint = styleTheme === "tricolour"
-        ? "glowing Indian tricolour saffron white and emerald green neon LEDs"
-        : (styleTheme === "divine_fire"
-          ? "glowing golden saffron and magenta neon LEDs"
-          : "glowing golden and electric cyan neon LEDs");
-
-      const engineeredPrompt = `${userPrompt}, intricate luminous 3D drone light show sculpture made of ${paletteHint} on a pure solid pitch-black background, symmetrical, sharp glowing outlines, centered composition, no text, no ground, high contrast`;
-
       const tag = document.getElementById('aiEngineTag');
       const thumb = document.getElementById('aiPreviewThumb');
       const ph = document.getElementById('aiPreviewPlaceholder');
 
-      // 1. Priority: Google Gemini / Imagen API if Pro Key is saved
+      const paletteDesc = styleTheme === "tricolour"
+        ? "Indian Tricolour (#FF9933 saffron, #FFFFFF white, #10B981 emerald green)"
+        : (styleTheme === "divine_fire"
+          ? "Divine Gold (#FFD700), Saffron (#FF6D00), and Magenta (#FF2A85)"
+          : "Imperial Gold (#FFD700), Electric Cyan (#00E5FF), and Pure White (#FFFFFF)");
+
       const geminiKey = localStorage.getItem('aerogrid_gemini_key');
       if (geminiKey) {
         try {
-          tag.textContent = "GEMINI AI...";
+          tag.textContent = "GEMINI 3D...";
           tag.className = "text-amber-300 animate-pulse";
-          // Try Imagen 3 first, then Gemini 2.5 Flash Image
-          const imgRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${encodeURIComponent(geminiKey)}`, {
+
+          const sysPrompt = `You are a master drone light-show vector artist. Output ONLY a single valid standalone <svg viewBox="0 0 400 320" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)"> with a solid black background <rect width="400" height="320" fill="#000000"/>. Draw an intricate, symmetrical, recognizable, high-detail luminous light-art illustration of: "${userPrompt}". Use ONLY crisp glowing strokes (fill="none" or dark fill, stroke-width="2.2" to "3.5") in ${paletteDesc}. Center the subject between x=50..350 and y=30..290. No text labels, no watermarks. Output raw SVG only.`;
+
+          const res = await fetch(`[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$){encodeURIComponent(geminiKey)}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              instances: [{ prompt: engineeredPrompt }],
-              parameters: { sampleCount: 1, aspectRatio: "4:3" }
+              contents: [{ parts: [{ text: sysPrompt }] }],
+              generationConfig: { temperature: 0.4 }
             })
           });
-          if (imgRes.ok) {
-            const json = await imgRes.json();
-            const b64 = json?.predictions?.[0]?.bytesBase64Encoded;
-            if (b64) {
-              const img = await loadImageAsync(`data:image/png;base64,${b64}`);
-              thumb.src = img.src; thumb.classList.remove('hidden'); ph.classList.add('hidden');
-              tag.textContent = "IMAGEN-3 OK"; tag.className = "text-emerald-400";
-              return img;
-            }
+
+          if (res.ok) {
+            const json = await res.json();
+            const rawText = json?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            const canvas = await renderSvgToCanvas(rawText);
+            thumb.src = canvas.toDataURL();
+            thumb.classList.remove('hidden');
+            ph.classList.add('hidden');
+            tag.textContent = "GEMINI AI OK";
+            tag.className = "text-emerald-400";
+            return canvas;
           }
-          // Fallback to Gemini 2.5 Flash Image generation endpoint
-          const flashRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${encodeURIComponent(geminiKey)}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: engineeredPrompt }] }],
-              generationConfig: { responseModalities: ["IMAGE"] }
-            })
-          });
-          if (flashRes.ok) {
-            const fJson = await flashRes.json();
-            const part = fJson?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-            if (part?.inlineData?.data) {
-              const img = await loadImageAsync(`data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`);
-              thumb.src = img.src; thumb.classList.remove('hidden'); ph.classList.add('hidden');
-              tag.textContent = "GEMINI OK"; tag.className = "text-emerald-400";
-              return img;
-            }
-          }
-        } catch (e) {
-          console.warn("Gemini API fallback:", e);
+        } catch (err) {
+          console.warn("Gemini SVG generation error:", err);
         }
       }
 
-      // 2. Zero-Auth Endpoint with Strict Yellow-Banner Rejection
-      const seed = Math.floor(Math.random() * 999999);
-      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(engineeredPrompt)}?width=512&height=384&nologo=true&seed=${seed}`;
-      try {
-        tag.textContent = "GENERATING...";
-        tag.className = "text-sky-400 animate-pulse";
-        const img = await loadImageWithTimeout(url, 12000);
-        if (!isValidDarkLightArt(img)) {
-          throw new Error("Rate-limit banner rejected");
-        }
-        thumb.src = img.src; thumb.classList.remove('hidden'); ph.classList.add('hidden');
-        tag.textContent = "AI READY"; tag.className = "text-emerald-400";
-        return img;
-      } catch (err) {
-        tag.textContent = geminiKey ? "RETRY / UPLOAD" : "ADD PRO KEY";
-        tag.className = "text-amber-300";
-        document.getElementById('statusToast').textContent = geminiKey
-          ? "⚠️ API busy — try again or upload image in Uploads tab"
-          : "⚠️ Free public limit reached — click '🔑 Pro Key' in top bar for unlimited AI!";
-        return synthesizeFallbackArtCanvas(userPrompt, styleTheme);
-      }
+      // Clean Instant Synthesizer when no API key is entered yet
+      tag.textContent = geminiKey ? "FALLBACK" : "ADD PRO KEY";
+      tag.className = "text-amber-300";
+      document.getElementById('statusToast').textContent = geminiKey
+        ? "⚠️ Check Gemini API Key validity or internet connection"
+        : "🔑 Click 'Pro Key' in top bar & paste your free Google AI Studio key for unlimited AI shapes!";
+      return synthesizeFallbackArtCanvas(userPrompt, styleTheme);
     }
 
     function loadImageAsync(src) {
@@ -844,25 +822,23 @@
 
     async function initInitialShow() {
       const drones = 2200;
-      const textSlide = {
+      const slide1 = {
         type: "text", text: "INDIA 2026", color: "tricolour", font: "900 Arial, sans-serif",
-        label: '"INDIA 2026"', dur: 20, trans: "wave",
+        label: '"INDIA 2026"', dur: 15, trans: "spiral",
         cloud: build3DTextCloud("INDIA 2026", drones, "tricolour")
       };
-      slides = [
-        { type: "ai", prompt: "Map of India with glowing borders", label: "Indian Map", dur: 15, trans: "spiral", cloud: textSlide.cloud },
-        { type: "ai", prompt: "Lord Ganesha sitting on lotus", label: "Lord Ganesha", dur: 15, trans: "burst", cloud: textSlide.cloud },
-        textSlide
-      ];
+      const slide2 = {
+        type: "text", text: "AEROGRID", color: "gold", font: "900 Arial, sans-serif",
+        label: '"AEROGRID"', dur: 15, trans: "burst",
+        cloud: build3DTextCloud("AEROGRID", drones, "gold")
+      };
+      slides = [slide1, slide2];
       activateSlide(0, true);
-      // Generate Slide 1 & Slide 2 live on startup
-      const img1 = await fetchGeneratedLightArt("Map of India with glowing borders", "tricolour");
-      slides[0].cloud = compileImageTo3DCloud(img1, drones, "tricolour", 12);
-      if (activeSlideIdx === 0) activateSlide(0, false);
-
-      const img2 = await fetchGeneratedLightArt("Lord Ganesha sitting on lotus", "gold_cyan");
-      slides[1].cloud = compileImageTo3DCloud(img2, drones, "gold_cyan", 14);
-      if (activeSlideIdx === 1) activateSlide(1, false);
+      if (localStorage.getItem('aerogrid_gemini_key')) {
+        document.getElementById('statusToast').textContent = "✓ Gemini Pro AI Active • Type any prompt & click Generate!";
+      } else {
+        document.getElementById('statusToast').textContent = "🔑 Click 'Pro Key' (top right) to connect your Google AI Studio key!";
+      }
     }
 
     function handleResize() {
