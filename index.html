@@ -666,170 +666,199 @@
         return allocateParts([{ pts: petals, col: "#FF9E00", w: 0.86 }, { pts: stemLeaves, col: "#10B981", w: 0.14 }], nDrones);
       }
 
-      // 4. LORD GANESHA — Ornate Seated Ganesha Silhouette (Crown, Parashu Axe, Lotus, Trunk & Mushak)
+      // 4. LORD GANESHA — High-Res Shaded Devotional Artwork with 3D Relief Depth
       if (id === "ganesha") {
-        const crownHead = [], bodyDhoti = [], armsSymbols = [];
-        // Multi-Tiered Ornate Mukut Crown + Halo
+        const c = document.createElement('canvas');
+        c.width = 420; c.height = 460;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        const cx = 210;
+
+        // 1. Radiating Golden Prabhavali Halo
+        ctx.strokeStyle = '#FFB703';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        for (let a = -Math.PI * 1.15; a <= Math.PI * 0.15; a += 0.05) {
+          const r = 148 + Math.sin(a * 18) * 6;
+          const x = cx + r * Math.cos(a), y = 185 + r * Math.sin(a);
+          a === -Math.PI * 1.15 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // 2. Ornate 3-Tier Temple Mukut Crown
         [
-          { w: 12, z: 86, h: 4.5, col: "#FFB703" },
-          { w: 9, z: 91, h: 4.0, col: "#FFFFFF" },
-          { w: 5.5, z: 96, h: 3.5, col: "#FFB703" }
+          { y: 88, rx: 44, ry: 18, col: '#FFD700', lw: 6 },
+          { y: 66, rx: 32, ry: 15, col: '#FF9E00', lw: 5 },
+          { y: 46, rx: 20, ry: 12, col: '#FFFFFF', lw: 4 }
         ].forEach(t => {
-          for (let k = 0; k <= 30; k++) {
-            const a = (k / 30) * Math.PI;
-            crownHead.push([t.w * Math.cos(a), 5, t.z + t.h * Math.sin(a), t.col]);
-          }
+          ctx.strokeStyle = t.col;
+          ctx.lineWidth = t.lw;
+          ctx.beginPath();
+          ctx.ellipse(cx, t.y, t.rx, t.ry, 0, Math.PI, 0);
+          ctx.stroke();
         });
-        crownHead.push([0, 5, 102, "#FFFFFF"]);
+        // Kalash Spire
+        ctx.fillStyle = '#FFD700';
+        ctx.beginPath();
+        ctx.arc(cx, 26, 5, 0, Math.PI * 2);
+        ctx.fill();
 
-        // Forehead, Tilak, Open Elephant Ears & Curved Trunk
-        for (let k = 0; k <= 36; k++) {
-          const a = 0.15 * Math.PI + (k / 36) * 0.7 * Math.PI;
-          crownHead.push([11 * Math.cos(a), 6, 78 + 7 * Math.sin(a), "#FFB703"]);
-        }
-        for (let z = 79; z <= 84; z += 0.6) crownHead.push([0, 7, z, "#FF2A85"]);
+        // 3. Large Sculpted Elephant Ears (Double Contour)
         [-1, 1].forEach(s => {
-          for (let k = 0; k <= 36; k++) {
-            const a = -0.45 * Math.PI + (k / 36) * 0.9 * Math.PI;
-            crownHead.push([s * (10 + 10 * Math.cos(a)), 3, 75 + 10 * Math.sin(a), "#FFB703"]);
-            crownHead.push([s * (9 + 7.5 * Math.cos(a)), 2.5, 75 + 7.5 * Math.sin(a), "#FF6D00"]);
-          }
-        });
-        // Flowing S-Curved Trunk
-        for (let s = 0; s <= 60; s++) {
-          const u = s / 60;
-          const tx = u < 0.7 ? Math.sin((u / 0.7) * Math.PI * 0.5) * 9 : 9 - Math.sin(((u - 0.7) / 0.3) * Math.PI) * 4;
-          const tz = 77 - u * 18 + (u > 0.72 ? (u - 0.72) * 10 : 0);
-          crownHead.push([tx, 7, tz, "#FFFFFF"], [tx - 1.4, 6.5, tz, "#FFB703"]);
-        }
+          ctx.strokeStyle = '#FFB703';
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.ellipse(cx + s * 62, 138, 34, 46, s * 0.25, -Math.PI * 0.55, Math.PI * 0.55, s < 0);
+          ctx.stroke();
 
-        // Seated Torso, Sacred Thread, Crossed Legs & Throne Pedestal
-        for (let k = 0; k <= 50; k++) {
-          const a = (k / 50) * Math.PI * 2;
-          bodyDhoti.push([14 * Math.cos(a), 5, 56 + 11 * Math.sin(a), "#FFB703"]);
-          bodyDhoti.push([11 * Math.cos(a), 5.5, 56 + 8.5 * Math.sin(a), "#FF6D00"]);
-        }
-        // Crossed Legs & Draped Dhoti Folds
-        for (let row = 0; row < 4; row++) {
-          const zBase = 41 + row * 2.2;
-          for (let x = -20 + row; x <= 20 - row; x += 1.2) {
-            bodyDhoti.push([x, 6, zBase + Math.sin(x * 0.25) * 1.4, row % 2 === 0 ? "#FFB703" : "#FFFFFF"]);
-          }
-        }
-        // Throne Base + Mushak (Mouse) on Bottom Right
-        for (let x = -24; x <= 24; x += 1.2) bodyDhoti.push([x, 4, 34, "#FFFFFF"], [x, 4, 37, "#FFB703"]);
-        for (let k = 0; k <= 16; k++) {
-          const a = (k / 16) * Math.PI;
-          bodyDhoti.push([17 + 4 * Math.cos(a), 6, 37.5 + 2.5 * Math.sin(a), "#FFFFFF"]);
-        }
-
-        // 4 Arms: Upper Left Parashu (Axe), Upper Right Lotus, Lower Blessing & Modak Bowl
-        // Upper Left Parashu Axe
-        for (let z = 64; z <= 86; z += 1.0) armsSymbols.push([-22, 5, z, "#FFB703"]);
-        for (let k = 0; k <= 20; k++) {
-          const a = -0.4 * Math.PI + (k / 20) * 0.8 * Math.PI;
-          armsSymbols.push([-22 - 6 * Math.cos(a), 5, 81 + 6 * Math.sin(a), "#FFFFFF"]);
-        }
-        // Upper Right Blooming Pink/Gold Lotus
-        for (let p = -2; p <= 2; p++) {
-          for (let k = 0; k <= 14; k++) {
-            const a = (k / 14) * Math.PI;
-            armsSymbols.push([22 + p * 2.2 + 3 * Math.cos(a), 5, 79 + 5 * Math.sin(a), "#FF2A85"]);
-          }
-        }
-        // Lower Arms & Modak
-        for (let u = 0; u <= 1; u += 0.05) {
-          armsSymbols.push([-14 - u * 12, 6, 63 - u * 8, "#FFB703"], [14 + u * 12, 6, 63 - u * 8, "#10B981"]);
-        }
-
-        return allocateParts([
-          { pts: crownHead, col: "#FFB703", w: 0.34 },
-          { pts: bodyDhoti, col: "#FFB703", w: 0.42 },
-          { pts: armsSymbols, col: "#FF2A85", w: 0.24 }
-        ], nDrones);
-      }
-
-      // 5. SHIVA TRISHUL — Exact Double-Contour Gold/Cyan Trident, Tripundra Tilak & Tilted Damru
-      if (id === "trishul") {
-        const centralBlade = [], outerProngs = [], tilak = [], damru = [];
-
-        // Central Tall Spearhead Blade (Double-Line White/Cyan Contour + Twin Shaft)
-        for (let s = 0; s <= 70; s++) {
-          const u = s / 70;
-          const z = 82 + u * 26; // 82 to 108 tip
-          const halfW = u < 0.25 ? (u / 0.25) * 4.5 : 4.5 * (1 - (u - 0.25) / 0.75);
-          centralBlade.push([-halfW, 1, z, "#FFFFFF"], [halfW, 1, z, "#FFFFFF"]);
-          if (halfW > 1.2) {
-            centralBlade.push([-halfW * 0.5, 1.5, z, "#38BDF8"], [halfW * 0.5, 1.5, z, "#38BDF8"]);
-          }
-        }
-        // Twin Vertical Shaft Columns from z=32 to z=82
-        for (let z = 32; z <= 82; z += 1.0) {
-          centralBlade.push([-1.3, 0, z, "#FFFFFF"], [1.3, 0, z, "#FFFFFF"]);
-        }
-
-        // Double-Layered Lyre-Shaped Outer Trident Prongs (Outer Gold + Inner Cyan)
-        [-1, 1].forEach(side => {
-          for (let s = 0; s <= 85; s++) {
-            const u = s / 85;
-            // S-curved lyre profile rising from base (z=75) to sharp tip (z=102)
-            const x = side * (3.5 + Math.sin(u * Math.PI * 0.85) * 16.5 - (u > 0.75 ? (u - 0.75) * 12 : 0));
-            const z = 75 + u * 27 - Math.sin(u * Math.PI) * 4.5;
-            outerProngs.push([x, 1, z, "#FFB703"]); // Outer Gold Border
-            outerProngs.push([x - side * 2.2, 1.5, z + 0.8, "#00E5FF"]); // Inner Cyan Border
-          }
-        });
-        // Ornate Collar Rings at Trident Neck (z=73..76)
-        [73.5, 75.5].forEach(cz => {
-          for (let x = -5; x <= 5; x += 0.8) outerProngs.push([x, 2, cz, "#FFB703"]);
+          ctx.strokeStyle = '#FF6D00';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.ellipse(cx + s * 56, 138, 22, 32, s * 0.25, -Math.PI * 0.5, Math.PI * 0.5, s < 0);
+          ctx.stroke();
         });
 
-        // Sacred 3-Bar White Tripundra Tilak + Red Bindi across Central Blade (z=86..91)
-        [86.5, 88.8, 91.1].forEach(tz => {
-          for (let x = -7.5; x <= 7.5; x += 0.85) {
-            tilak.push([x, 3, tz, "#FFFFFF"]);
-          }
-        });
-        tilak.push([0, 3.8, 88.8, "#FF2A85"], [-0.8, 3.8, 88.8, "#FF2A85"], [0.8, 3.8, 88.8, "#FF2A85"]);
+        // 4. Sculpted Head, Eyes, Tilak & S-Curved Trunk
+        ctx.strokeStyle = '#FFB703';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(cx, 132, 42, Math.PI * 1.12, Math.PI * 1.88);
+        ctx.stroke();
 
-        // Tilted Hourglass Damru Drum with Gold Rims & Diagonal Tension Strings (z=52..68)
-        const tilt = -0.32; // ~18 deg tilt like reference image
-        const rotD = (dx, dz) => [
-          dx * Math.cos(tilt) - dz * Math.sin(tilt),
-          dx * Math.sin(tilt) + dz * Math.cos(tilt) + 60
-        ];
-        // Left & Right Drum Heads + Cross-Laced Strings
-        for (let s = -10; s <= 10; s += 0.7) {
-          const r = 2.6 + Math.abs(s) * 0.65;
-          const [xTop, zTop] = rotD(s, r);
-          const [xBot, zBot] = rotD(s, -r);
-          damru.push([xTop, 3, zTop, "#FFB703"], [xBot, 3, zBot, "#FFB703"]);
-          // Diagonal zig-zag tension cords
-          const zig = Math.sin(s * 0.9) * r * 0.85;
-          const [xZig, zZig] = rotD(s, zig);
-          damru.push([xZig, 3.5, zZig, "#FFFFFF"]);
-        }
-        // Left & Right Oval Drum Faces
-        [-10, 10].forEach(endX => {
-          const rEnd = 2.6 + 10 * 0.65;
-          for (let k = 0; k <= 24; k++) {
-            const a = (k / 24) * Math.PI * 2;
-            const [rx, rz] = rotD(endX + 1.8 * Math.cos(a), rEnd * Math.sin(a));
-            damru.push([rx, 3.5, rz, "#FFFFFF"]);
-          }
-        });
-        // Red Center Waist Knot on Damru
-        for (let zOff = -2.8; zOff <= 2.8; zOff += 0.7) {
-          const [kx, kz] = rotD(0, zOff);
-          damru.push([kx, 4, kz, "#FF2A85"]);
-        }
+        // Tripundra Tilak & Bindi
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(cx - 5, 102); ctx.lineTo(cx - 5, 122);
+        ctx.moveTo(cx + 5, 102); ctx.lineTo(cx + 5, 122);
+        ctx.stroke();
+        ctx.fillStyle = '#FF2A85';
+        ctx.beginPath(); ctx.arc(cx, 113, 4, 0, Math.PI * 2); ctx.fill();
 
-        return allocateParts([
-          { pts: centralBlade, col: "#FFFFFF", w: 0.28 },
-          { pts: outerProngs, col: "#FFB703", w: 0.34 },
-          { pts: tilak, col: "#FFFFFF", w: 0.14 },
-          { pts: damru, col: "#FFB703", w: 0.24 }
-        ], nDrones);
+        // Expressive Eyes
+        [-18, 18].forEach(ex => {
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.ellipse(cx + ex, 130, 8, 4, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+
+        // Graceful S-Curved Trunk with Modak Curl
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 7;
+        ctx.beginPath();
+        ctx.moveTo(cx - 10, 146);
+        ctx.bezierCurveTo(cx - 12, 185, cx + 38, 185, cx + 34, 215);
+        ctx.bezierCurveTo(cx + 32, 232, cx + 12, 228, cx + 16, 214);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#FF9E00';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(cx + 10, 146);
+        ctx.bezierCurveTo(cx + 8, 178, cx + 44, 180, cx + 38, 216);
+        ctx.stroke();
+
+        // 5. Four Connected Arms + Parashu Axe + Pink Lotus + Modak Bowl
+        // Upper Left Arm & Parashu Axe
+        ctx.strokeStyle = '#FFB703';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(cx - 42, 205);
+        ctx.quadraticCurveTo(cx - 95, 195, cx - 108, 155);
+        ctx.stroke();
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(cx - 108, 120); ctx.lineTo(cx - 108, 185);
+        ctx.stroke();
+        ctx.strokeStyle = '#38BDF8';
+        ctx.beginPath();
+        ctx.arc(cx - 108, 136, 18, Math.PI * 0.6, Math.PI * 1.4);
+        ctx.stroke();
+
+        // Upper Right Arm & Blooming Lotus
+        ctx.strokeStyle = '#FFB703';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(cx + 42, 205);
+        ctx.quadraticCurveTo(cx + 95, 195, cx + 108, 155);
+        ctx.stroke();
+        [-14, -7, 0, 7, 14].forEach(dx => {
+          ctx.strokeStyle = '#FF2A85';
+          ctx.lineWidth = 3.5;
+          ctx.beginPath();
+          ctx.ellipse(cx + 108 + dx * 0.7, 138, 6, 16, dx * 0.04, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+
+        // Lower Left & Right Arms
+        ctx.strokeStyle = '#FF9E00';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(cx - 48, 222); ctx.quadraticCurveTo(cx - 92, 245, cx - 84, 275);
+        ctx.moveTo(cx + 48, 222); ctx.quadraticCurveTo(cx + 92, 245, cx + 84, 275);
+        ctx.stroke();
+
+        // 6. Torso, Sacred Janeu & Crossed Dhoti Legs
+        ctx.strokeStyle = '#FFB703';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.ellipse(cx, 255, 56, 48, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Sacred Janeu Thread across chest
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(cx - 34, 216);
+        ctx.quadraticCurveTo(cx - 5, 252, cx + 38, 282);
+        ctx.stroke();
+
+        // Crossed Legs & Dhoti Folds
+        ctx.strokeStyle = '#FF6D00';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.ellipse(cx, 326, 86, 24, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeStyle = '#FFD700';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.ellipse(cx, 326, 62, 14, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 7. Royal Throne Base + Mushak (Mouse)
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 5;
+        ctx.strokeRect(cx - 102, 356, 204, 18);
+        ctx.strokeStyle = '#10B981';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.arc(cx + 76, 348, 11, Math.PI, 0);
+        ctx.stroke();
+
+        // Sample lit pixels into 3D Drone Cloud with Depth Relief
+        const imgData = ctx.getImageData(0, 0, c.width, c.height).data;
+        const sampled = [];
+        for (let y = 4; y < c.height - 4; y += 3) {
+          for (let x = 4; x < c.width - 4; x += 3) {
+            const idx = (y * c.width + x) * 4;
+            const r = imgData[idx], g = imgData[idx + 1], b = imgData[idx + 2];
+            if (r + g + b > 90) {
+              const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+              const nx = ((x - cx) / 165) * 44;
+              const nz = 104 - ((y - 20) / 380) * 72;
+              const ny = Math.cos(((x - cx) / 165) * Math.PI * 0.5) * 8;
+              sampled.push([+nx.toFixed(2), +ny.toFixed(2), +nz.toFixed(2), hex]);
+            }
+          }
+        }
+        return allocateParts([{ pts: sampled, col: "#FFB703", w: 1.0 }], nDrones);
       }
 
       // 7. BEATING 3D HEART — Multi-Shell Volumetric Heart Sculpture
