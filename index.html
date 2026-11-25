@@ -12,7 +12,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     * { box-sizing: border-box; }
-    body { background: #03060E; color: #F8FAFC; font-family: 'Inter', system-ui, sans-serif; overflow-x: hidden; }
+    body { background: #02050C; color: #F8FAFC; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; }
     .studio-panel { background: #090F1D; border-color: rgba(56, 189, 248, 0.16); }
     .nav-btn.active { background: rgba(56, 189, 248, 0.16); color: #38BDF8; border-left: 3px solid #38BDF8; }
     .slide-card { transition: all 0.18s ease; cursor: pointer; }
@@ -38,12 +38,12 @@
       <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center font-black text-slate-950 text-sm">AG</div>
       <div class="leading-tight">
         <span class="font-bold text-white text-sm tracking-tight">AeroGrid Studio</span>
-        <span class="hidden lg:inline text-[11px] text-emerald-400 font-mono ml-2">● Real-World Swarm Choreography</span>
+        <span class="hidden lg:inline text-[11px] text-emerald-400 font-mono ml-2">● Broadcast 3D Swarm Engine</span>
       </div>
     </div>
 
     <!-- Magic Prompt Bar -->
-    <div class="flex-1 max-w-xl flex items-center gap-2 bg-[#0C1425] border border-slate-700/80 rounded-xl px-3 py-1.5">
+    <div id="magicPromptWrap" class="flex-1 max-w-xl flex items-center gap-2 bg-[#0C1425] border border-slate-700/80 rounded-xl px-3 py-1.5">
       <span class="text-sky-400 text-xs">✦</span>
       <input id="magicPrompt" type="text" value='Taj Mahal -> Dancing Peacock -> "INDIA 2026"'
         onkeydown="if(event.key==='Enter') applyMagicPrompt()"
@@ -60,8 +60,13 @@
         <span class="text-slate-400">UAVs:</span>
         <input id="droneManualInput" type="number" min="100" max="1000" step="10" value="800"
           onchange="changeFleetCount(this.value)"
+          onkeydown="if(event.key==='Enter') changeFleetCount(this.value)"
           class="w-14 bg-transparent text-sky-400 font-bold text-right focus:outline-none" />
       </div>
+      <button id="clientViewBtn" onclick="toggleClientView()"
+        class="px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-sky-300 text-xs font-semibold transition">
+        👁️ Client View
+      </button>
       <button id="recVideoBtn" onclick="recordPitchVideo()"
         class="px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-xs font-semibold">
         🎥 Pitch Video
@@ -77,7 +82,7 @@
   <div class="flex-1 flex overflow-hidden">
 
     <!-- LEFT RAIL -->
-    <nav class="w-16 bg-[#050914] border-r border-slate-800 flex flex-col items-center py-3 gap-2 shrink-0">
+    <nav id="leftRail" class="w-16 bg-[#050914] border-r border-slate-800 flex flex-col items-center py-3 gap-2 shrink-0">
       <button id="tabBtn-elements" onclick="switchSidebarTab('elements')" class="nav-btn active w-full py-2.5 flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white">
         <span class="text-base">✨</span><span>Elements</span>
       </button>
@@ -93,12 +98,12 @@
     </nav>
 
     <!-- SIDEBAR DRAWER -->
-    <aside class="w-72 studio-panel border-r border-slate-800 p-4 overflow-y-auto shrink-0">
+    <aside id="sidebarDrawer" class="w-72 studio-panel border-r border-slate-800 p-4 overflow-y-auto shrink-0">
       <!-- TAB 1: 3D ELEMENTS -->
       <div id="panel-elements" class="space-y-3">
         <div>
           <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">Mega-Show Formations</h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">Real-world parametric 3D swarm sculptures</p>
+          <p class="text-[11px] text-slate-400 mt-0.5">Broadcast parametric 3D swarm sculptures</p>
         </div>
         <div id="elementGrid" class="grid grid-cols-2 gap-2"></div>
       </div>
@@ -182,14 +187,19 @@
     </aside>
 
     <!-- CENTER 3D STAGE -->
-    <main class="flex-1 flex flex-col bg-[#02040A] relative overflow-hidden">
+    <main class="flex-1 flex flex-col bg-[#02050C] relative overflow-hidden">
       <!-- Floating Top Stage Bar -->
       <div class="h-11 bg-[#050914]/95 border-b border-slate-800/80 px-4 flex items-center justify-between gap-2 text-xs shrink-0">
-        <div class="flex items-center gap-2">
-          <span id="statusToast" class="font-mono text-[11px] text-emerald-400">✓ Real-World Swarm Choreography Active</span>
+        <div class="flex items-center gap-2 min-w-0">
+          <span id="statusToast" class="font-mono text-[11px] text-emerald-400 truncate">✓ Slide 01: Taj Mahal • 800 UAVs</span>
         </div>
 
-        <div class="flex items-center gap-2 font-mono text-[11px]">
+        <div class="flex items-center gap-2 font-mono text-[11px] shrink-0">
+          <button id="clientPlayBtn" onclick="togglePlayShow()"
+            class="hidden px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 font-bold text-[11px]">
+            ▶ Play Show
+          </button>
+
           <span class="text-slate-500">TRANSITION:</span>
           <select id="transitionSelect" onchange="updateActiveSlideTransition(this.value)"
             class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-sky-300 focus:outline-none">
@@ -202,7 +212,8 @@
           <span class="text-slate-500 ml-1">VENUE:</span>
           <select id="venueSelect" onchange="changeVenue(this.value)"
             class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-amber-300 focus:outline-none">
-            <option value="stadium" selected>Stadium Arena</option>
+            <option value="riverfront" selected>Riverfront Mirror Lake</option>
+            <option value="stadium">Stadium Arena</option>
             <option value="palace">Royal Palace Lawn</option>
             <option value="grid">Night Grid</option>
           </select>
@@ -223,15 +234,15 @@
         <div>ACTIVE SLIDE: <span id="hudSlideName" class="text-white font-semibold">01. Taj Mahal</span></div>
         <div class="flex items-center gap-4">
           <span>FLEET: <b id="hudFleet" class="text-sky-400">800 UAVs</b></span>
-          <span>MAX VEL: <b class="text-amber-300">5.2 m/s</b></span>
-          <span>SPACING: <b class="text-emerald-400">2.10m [SAFE]</b></span>
+          <span>MAX VEL: <b id="hudMaxVel" class="text-amber-300">4.8 m/s</b></span>
+          <span>SPACING: <b id="hudSpacing" class="text-emerald-400">2.24m [DGCA SAFE]</b></span>
         </div>
       </div>
     </main>
   </div>
 
   <!-- BOTTOM STORYBOARD TIMELINE -->
-  <footer class="h-32 bg-[#050914] border-t border-slate-800 px-4 py-2.5 flex items-center gap-4 shrink-0 z-30">
+  <footer id="bottomTimeline" class="h-32 bg-[#050914] border-t border-slate-800 px-4 py-2.5 flex items-center gap-4 shrink-0 z-30">
     <div class="flex flex-col justify-between h-full pr-3 border-r border-slate-800 shrink-0">
       <button id="playShowBtn" onclick="togglePlayShow()"
         class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20">
@@ -265,7 +276,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
         <div class="bg-[#050914] border border-slate-800 p-3 rounded-xl">
           <label class="text-slate-400 block mb-1">Fleet Size (100 - 1,000 UAVs)</label>
-          <input id="modalDroneInput" type="number" min="100" max="1000" step="10" value="800" oninput="changeFleetCount(this.value)"
+          <input id="modalDroneInput" type="number" min="100" max="1000" step="10" value="800" onchange="changeFleetCount(this.value)"
             class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sky-400 font-mono font-bold" />
         </div>
         <div class="bg-[#050914] border border-slate-800 p-3 rounded-xl">
@@ -339,14 +350,15 @@
     // --------------------------------------------------------------------------
     // 1. REAL-WORLD DRONE SHOW PARAMETRIC POINT-CLOUD CHOREOGRAPHY ENGINE
     // --------------------------------------------------------------------------
-    let scene, camera, renderer, controls, dronePoints, trailLines, venueGroup;
-    let currentPositions, startPositions, targetPositions, prevPositions, droneColors;
+    let scene, camera, renderer, controls, dronePoints, reflectionPoints, trailLines, venueGroup;
+    let currentPositions, reflectionPositions, startPositions, targetPositions, prevPositions, droneColors;
     let morphProgress = 1.0;
     let currentTransition = "spiral";
     let slides = [];
     let activeSlideIdx = 0;
     let autoPlay = false;
     let autoTimer = 0;
+    let clientViewActive = false;
     let lastCompiledCsv = "";
     let lastJobId = "AG_SHOW";
 
@@ -409,21 +421,40 @@
       }
     ];
 
+    // Evenly distributes drones along structural ribs/contours without skipping architectural edges
     function allocateParts(parts, nDrones) {
-      const totalW = parts.reduce((s, p) => s + p.w, 0);
+      const validParts = parts.filter(p => p.pts && p.pts.length > 0);
+      if (!validParts.length) return [];
+      const totalW = validParts.reduce((s, p) => s + p.w, 0);
       const out = [];
       let assigned = 0;
-      parts.forEach((p, idx) => {
-        if (!p.pts.length) return;
-        const k = (idx === parts.length - 1) ? (nDrones - assigned) : Math.max(1, Math.round(nDrones * (p.w / totalW)));
+
+      validParts.forEach((p, idx) => {
+        const k = (idx === validParts.length - 1)
+          ? (nDrones - assigned)
+          : Math.max(1, Math.round(nDrones * (p.w / totalW)));
         assigned += k;
+
+        const m = p.pts.length;
         for (let i = 0; i < k; i++) {
-          const j = Math.floor(((i + 0.5) / k) * p.pts.length) % p.pts.length;
-          const pt = p.pts[j];
-          out.push([+pt[0].toFixed(2), +pt[1].toFixed(2), +pt[2].toFixed(2), pt[3] || p.col]);
+          // Exact stratified linear-interpolated traversal along continuous structural contour
+          const pos = (k === 1) ? 0 : (i / (k - 1)) * (m - 1);
+          const lo = Math.floor(pos);
+          const hi = Math.min(m - 1, lo + 1);
+          const frac = pos - lo;
+          const p0 = p.pts[lo];
+          const p1 = p.pts[hi];
+          const x = p0[0] + (p1[0] - p0[0]) * frac;
+          const y = p0[1] + (p1[1] - p0[1]) * frac;
+          const z = p0[2] + (p1[2] - p0[2]) * frac;
+          const col = (frac < 0.5 ? p0[3] : p1[3]) || p.col;
+          out.push([+x.toFixed(2), +y.toFixed(2), +z.toFixed(2), col]);
         }
       });
-      while (out.length < nDrones && out.length > 0) out.push([...out[out.length % out.length]]);
+
+      while (out.length < nDrones && out.length > 0) {
+        out.push([...out[out.length % out.length]]);
+      }
       return out.slice(0, nDrones);
     }
 
@@ -466,89 +497,106 @@
         const normX = (px - minX) / Math.max(1, maxX - minX);
         const triCol = normX < 0.34 ? "#FF9933" : (normX < 0.67 ? "#FFFFFF" : "#10B981");
         const col = colorTheme === "tricolour" ? triCol : (solidMap[colorTheme] || "#00E5FF");
-        out.push([+((px - midX) * scale).toFixed(2), 0.0, +(68 - (py - midY) * scale).toFixed(2), col]);
+        out.push([+((px - midX) * scale).toFixed(2), 0.0, +(64 - (py - midY) * scale).toFixed(2), col]);
       }
       return out;
     }
 
-    // AUTHENTIC REAL-WORLD DRONE CHOREOGRAPHY FORMATIONS (NO BLOCKS/PRIMITIVES)
+    // 12 BROADCAST-GRADE PARAMETRIC 3D DRONE FORMATIONS
     function buildElementCloud(id, nDrones) {
-      // 1. TAJ MAHAL — Grand Marble Plinth, Double-Tier Iwan Arches, Bulbous Onion Dome & 4 Minarets
+      // 1. TAJ MAHAL — 16 Vertical Dome Ribs, Lotus Spire, Wide Marble Plinth, Double-Story Arches & 4 Minarets
       if (id === "taj") {
-        const mainDome = [], chhatris = [], facade = [], minarets = [];
-        // Full 3D Bulbous Mughal Dome + Lotus Kalash Spire
-        for (let u = 0.0; u <= 1.0; u += 0.022) {
-          const r = u < 0.70
-            ? 21 * Math.sin((u / 0.70) * Math.PI * 0.84) * 1.14
-            : 21 * Math.sin(0.84 * Math.PI) * 1.14 * Math.pow(1 - (u - 0.70) / 0.30, 1.9);
-          const z = 69 + u * 31;
-          const rings = Math.max(8, Math.round(r * 1.8));
-          for (let k = 0; k < rings; k++) {
-            const th = (k / rings) * Math.PI * 2;
-            mainDome.push([r * Math.cos(th), r * Math.sin(th), z, u > 0.80 ? "#FFD700" : "#FFFFFF"]);
+        const domeRibs = [], plinthFacade = [], iwanArch = [], minarets = [];
+
+        // 16 Crisp Continuous Meridional Dome Ribs + Horizontal Crown & Drum Rings + Lotus Finial
+        const numRibs = 16;
+        for (let rIdx = 0; rIdx < numRibs; rIdx++) {
+          const th = (rIdx / numRibs) * Math.PI * 2;
+          for (let s = 0; s <= 24; s++) {
+            const u = s / 24;
+            const rad = u < 0.72
+              ? 20.5 * Math.sin((u / 0.72) * Math.PI * 0.84) * 1.12
+              : 20.5 * Math.sin(0.84 * Math.PI) * 1.12 * Math.pow(1 - (u - 0.72) / 0.28, 1.85);
+            const z = 67 + u * 31;
+            domeRibs.push([rad * Math.cos(th), rad * Math.sin(th), z, u > 0.82 ? "#FFD700" : "#FFFFFF"]);
           }
         }
-        for (let z = 100; z <= 109; z += 0.45) mainDome.push([0, 0, z, "#FFD700"]);
+        // Equatorial & Neck Drum Rings for Dome Structural Clarity
+        [0.04, 0.38, 0.72].forEach(u => {
+          const rad = u < 0.72
+            ? 20.5 * Math.sin((u / 0.72) * Math.PI * 0.84) * 1.12
+            : 20.5 * Math.sin(0.84 * Math.PI) * 1.12;
+          const z = 67 + u * 31;
+          for (let k = 0; k <= 36; k++) {
+            const th = (k / 36) * Math.PI * 2;
+            domeRibs.push([rad * Math.cos(th), rad * Math.sin(th), z, u === 0.04 ? "#FFD700" : "#E0F2FE"]);
+          }
+        });
+        // Tall Golden Lotus Kalash Spire
+        for (let z = 98; z <= 109; z += 0.7) domeRibs.push([0, 0, z, "#FFD700"]);
 
-        // Four Corner Chhatri Cupolas around Main Dome
-        [[-22, -6], [22, -6], [-18, 8], [18, 8]].forEach(([cx, cy]) => {
-          for (let u = 0; u <= 1; u += 0.1) {
-            const r = 6.2 * Math.sin(u * Math.PI);
-            for (let k = 0; k < 10; k++) {
-              const th = (k / 10) * Math.PI * 2;
-              chhatris.push([cx + r * Math.cos(th), cy + r * Math.sin(th), 69 + u * 10, "#FFD700"]);
+        // Wide Marble Terrace Plinth + Double-Story Side Arches
+        for (let x = -50; x <= 50; x += 1.4) {
+          plinthFacade.push([x, 12, 34, "#38BDF8"], [x, -12, 34, "#38BDF8"], [x, 12, 39, "#FFFFFF"]);
+        }
+        for (let x = -35; x <= 35; x += 1.4) {
+          plinthFacade.push([x, 11, 66, "#FFFFFF"], [x, 11, 53, "#38BDF8"]);
+        }
+        // Double-story flanking arched niches
+        [-24, 24].forEach(cx => {
+          [40, 54].forEach(baseZ => {
+            for (let t = 0; t <= 16; t++) {
+              const ang = (t / 16) * Math.PI;
+              plinthFacade.push([cx + 6.5 * Math.cos(ang), 11.5, baseZ + 10 * Math.sin(ang), "#E0F2FE"]);
             }
+          });
+        });
+        // Corner Chhatri Cupolas flanking main dome
+        [-21, 21].forEach(cx => {
+          for (let k = 0; k <= 16; k++) {
+            const ang = (k / 16) * Math.PI;
+            plinthFacade.push([cx + 6.2 * Math.cos(ang), 8, 67 + 9.5 * Math.sin(ang), "#FFD700"]);
           }
         });
 
-        // Wide Marble Terrace Plinth + Double-Story Facade + Central Grand Iwan Arch
-        for (let x = -48; x <= 48; x += 1.2) {
-          facade.push([x, 12, 38, "#38BDF8"], [x, -12, 38, "#38BDF8"], [x, 12, 42, "#FFFFFF"]);
+        // Glowing Central Mughal Pishtaq Frame & Pointed Iwan Archway
+        for (let z = 39; z <= 72; z += 1.1) {
+          iwanArch.push([-13, 12.5, z, "#FFD700"], [13, 12.5, z, "#FFD700"]);
         }
-        for (let x = -34; x <= 34; x += 1.2) {
-          facade.push([x, 11, 68, "#FFFFFF"], [x, 11, 55, "#38BDF8"]);
-          if (Math.abs(x) > 12) {
-            for (let z = 43; z <= 67; z += 3.0) facade.push([x, 11, z, "#E2E8F0"]);
-          }
-        }
-        // Central Pishtaq Frame & Pointed Mughal Archway
-        for (let z = 42; z <= 73; z += 1.2) {
-          facade.push([-12.5, 12, z, "#FFD700"], [12.5, 12, z, "#FFD700"]);
-        }
-        for (let x = -12.5; x <= 12.5; x += 1.2) facade.push([x, 12, 73, "#FFD700"]);
-        for (let t = 0; t <= 1; t += 0.015) {
-          const ang = t * Math.PI;
-          const ax = 10.2 * Math.cos(ang);
-          const az = 42 + 22 * Math.pow(Math.sin(ang), 0.72);
-          facade.push([ax, 12, az, "#FFD700"], [ax * 0.85, 12, az - 1.5, "#00E5FF"]);
+        for (let x = -13; x <= 13; x += 1.1) iwanArch.push([x, 12.5, 72, "#FFD700"]);
+        for (let t = 0; t <= 48; t++) {
+          const ang = (t / 48) * Math.PI;
+          const ax = 10.5 * Math.cos(ang);
+          const az = 39 + 23 * Math.pow(Math.sin(ang), 0.72);
+          iwanArch.push([ax, 12.5, az, "#FFD700"], [ax * 0.84, 12.5, az - 1.6, "#00E5FF"]);
         }
 
-        // 4 Tapered Minarets with Glowing Balconies & Cupola Tops
-        [[-46, -12], [46, -12], [-42, 12], [42, 12]].forEach(([mx, my]) => {
-          for (let z = 39; z <= 93; z += 1.2) {
-            const taper = 2.8 - ((z - 39) / 54) * 1.2;
-            const isBalcony = (Math.abs(z - 54) < 0.9 || Math.abs(z - 70) < 0.9 || Math.abs(z - 86) < 0.9);
-            const rad = isBalcony ? taper + 1.6 : taper;
-            for (let k = 0; k < 6; k++) {
-              const th = (k / 6) * Math.PI * 2;
-              minarets.push([mx + rad * Math.cos(th), my + rad * Math.sin(th), z, isBalcony ? "#FFD700" : "#FFFFFF"]);
-            }
+        // All 4 Tapered Minarets with 3 Golden Balconies each
+        [[-46, -11], [46, -11], [-42, 11], [42, 11]].forEach(([mx, my]) => {
+          for (let z = 35; z <= 91; z += 1.8) {
+            const taper = 2.6 - ((z - 35) / 56) * 1.1;
+            minarets.push([mx - taper, my, z, "#FFFFFF"], [mx + taper, my, z, "#FFFFFF"]);
           }
-          minarets.push([mx, my, 96, "#FFD700"]);
+          [52, 68, 84].forEach(bz => {
+            for (let k = 0; k <= 10; k++) {
+              const th = (k / 10) * Math.PI * 2;
+              minarets.push([mx + 3.6 * Math.cos(th), my + 3.6 * Math.sin(th), bz, "#FFD700"]);
+            }
+          });
+          minarets.push([mx, my, 94.5, "#FFD700"]);
         });
 
         return allocateParts([
-          { pts: mainDome, col: "#FFFFFF", w: 0.34 },
-          { pts: chhatris, col: "#FFD700", w: 0.10 },
-          { pts: facade, col: "#38BDF8", w: 0.32 },
+          { pts: domeRibs, col: "#FFFFFF", w: 0.34 },
+          { pts: plinthFacade, col: "#38BDF8", w: 0.24 },
+          { pts: iwanArch, col: "#FFD700", w: 0.18 },
           { pts: minarets, col: "#FFFFFF", w: 0.24 }
         ], nDrones);
       }
 
-      // 2. DANCING PEACOCK — Realistic Front-Facing Royal Peacock with Layered Shimmering Plumage
+      // 2. DANCING PEACOCK — Layered Plumage Fan, Ocelli Feather Eyes, Sculpted Neck, Beak & Kalgi Crest
       if (id === "peacock") {
         const plumage = [], eyes = [], body = [];
-        // Multi-layered dense plumage fan (25 quills across 3 concentric tiers)
         const numQuills = 25;
         for (let q = 0; q < numQuills; q++) {
           const u = q / (numQuills - 1);
@@ -556,13 +604,12 @@
           const maxR = 42 + 5 * Math.sin(u * Math.PI);
           for (let r = 9; r <= maxR; r += 2.0) {
             const col = r < 22 ? "#0284C7" : (r < 34 ? "#00E5FF" : "#10B981");
-            plumage.push([r * Math.cos(ang) * 1.15, -5 - (r / maxR) * 5, 50 + r * Math.sin(ang), col]);
+            plumage.push([r * Math.cos(ang) * 1.15, -5 - (r / maxR) * 5, 48 + r * Math.sin(ang), col]);
           }
-          // Outer & Mid Ocelli Feather Eyes
           [maxR - 3.5, maxR - 13].forEach((er, tierIdx) => {
             if (tierIdx === 1 && q % 2 === 1) return;
-            const ex = er * Math.cos(ang) * 1.15, ez = 50 + er * Math.sin(ang);
-            for (let k = 0; k < 6; k++) {
+            const ex = er * Math.cos(ang) * 1.15, ez = 48 + er * Math.sin(ang);
+            for (let k = 0; k <= 6; k++) {
               const th = (k / 6) * Math.PI * 2;
               eyes.push([ex + 2.0 * Math.cos(th), -4, ez + 2.0 * Math.sin(th), "#FFD700"]);
             }
@@ -570,20 +617,18 @@
           });
         }
 
-        // Front-Facing Sculpted Royal Blue Torso, Slender Neck, Head & Crown (Natural Proportions)
-        for (let u = 0; u <= 1; u += 0.018) {
-          const nz = 40 + u * 34;
+        for (let u = 0; u <= 1; u += 0.02) {
+          const nz = 38 + u * 34;
           const nx = Math.sin(u * Math.PI * 0.9) * 2.5;
           const rx = u < 0.48 ? (6.8 * Math.sin((u / 0.48) * Math.PI * 0.85) + 1.6) : (2.2 - (u - 0.48) * 1.2);
-          for (let k = 0; k < 12; k++) {
-            const th = (k / 12) * Math.PI * 2;
+          for (let k = 0; k <= 10; k++) {
+            const th = (k / 10) * Math.PI * 2;
             body.push([nx + rx * Math.cos(th), 7 + rx * 0.75 * Math.sin(th), nz, u > 0.45 ? "#00E5FF" : "#10B981"]);
           }
         }
-        // Sculpted Head, Sharp Beak & Delicate 3-Plume Kalgi Crest
-        const hx = 1.2, hz = 76;
-        for (let k = 0; k < 18; k++) {
-          const th = (k / 18) * Math.PI * 2;
+        const hx = 1.2, hz = 74;
+        for (let k = 0; k <= 16; k++) {
+          const th = (k / 16) * Math.PI * 2;
           body.push([hx + 2.8 * Math.cos(th), 8, hz + 2.8 * Math.sin(th), "#38BDF8"]);
         }
         body.push([hx + 0.8, 9.2, hz + 0.5, "#FFFFFF"]);
@@ -607,123 +652,133 @@
           const baseR = 30 * Math.sin(phi);
           const depth = 16 * Math.cos(phi);
           const lobes = 12 + tier * 3;
-          const ptsInRing = 48 + tier * 16;
+          const ptsInRing = 56 + tier * 16;
           const col = tier <= 2 ? "#FF4500" : (tier <= 5 ? "#FF9E00" : "#FFD60A");
-          for (let k = 0; k < ptsInRing; k++) {
+          for (let k = 0; k <= ptsInRing; k++) {
             const th = (k / ptsInRing) * Math.PI * 2;
             const wave = 1 + 0.18 * Math.sin(lobes * th + tier * 0.6);
-            petals.push([baseR * wave * Math.cos(th), depth + 2.4 * Math.cos(lobes * th), 73 + baseR * wave * Math.sin(th), col]);
+            petals.push([baseR * wave * Math.cos(th), depth + 2.4 * Math.cos(lobes * th), 70 + baseR * wave * Math.sin(th), col]);
           }
         }
-        for (let z = 34; z <= 54; z += 0.6) stemLeaves.push([Math.sin((z - 34) * 0.14) * 1.6, -2, z, "#10B981"]);
-        for (let u = 0; u <= 1; u += 0.035) {
-          const lx = u * 20, lz = 44 + Math.sin(u * Math.PI) * 5.5;
+        for (let z = 31; z <= 51; z += 0.6) stemLeaves.push([Math.sin((z - 31) * 0.14) * 1.6, -2, z, "#10B981"]);
+        for (let u = 0; u <= 1; u += 0.03) {
+          const lx = u * 20, lz = 41 + Math.sin(u * Math.PI) * 5.5;
           stemLeaves.push([-lx, 0, lz + 2.8 * Math.sin(u * Math.PI), "#10B981"], [-lx, 0, lz - 2.8 * Math.sin(u * Math.PI), "#34D399"]);
           stemLeaves.push([lx, 0, lz - 2 + 2.8 * Math.sin(u * Math.PI), "#10B981"], [lx, 0, lz - 2 - 2.8 * Math.sin(u * Math.PI), "#34D399"]);
         }
         return allocateParts([{ pts: petals, col: "#FF9E00", w: 0.86 }, { pts: stemLeaves, col: "#10B981", w: 0.14 }], nDrones);
       }
 
-      // 4. LORD GANESHA — Iconic Devotional Calligraphic Line-Art Sculpture (Crown, Forehead, Trunk & Lotus Base)
+      // 4. LORD GANESHA — Bold Double-Strand Calligraphic Crown, Tilak, Open C-Ears, S-Trunk & Lotus Base
       if (id === "ganesha") {
-        const crown = [], faceTrunk = [], earsLotus = [];
-        // 3-Tiered Sacred Mukut Crown + Top Kalash
+        const crown = [], browTilak = [], trunk = [], ears = [], lotus = [];
+
+        // 3-Tiered Bold Double-Strand Sacred Mukut Crown + Golden Kalash Spire
         [
-          { w: 14, z: 85, col: "#FFD700" },
-          { w: 10, z: 90, col: "#FF9E00" },
-          { w: 6, z: 95, col: "#FFD700" }
+          { w: 15.5, z: 83, col: "#FFD700" },
+          { w: 11.2, z: 89, col: "#FF9E00" },
+          { w: 6.8, z: 95, col: "#FFD700" }
         ].forEach(tier => {
-          for (let t = 0; t <= 1; t += 0.025) {
-            const ang = t * Math.PI;
-            crown.push([tier.w * Math.cos(ang), 4, tier.z + 3.2 * Math.sin(ang), tier.col]);
+          for (let t = 0; t <= 36; t++) {
+            const ang = (t / 36) * Math.PI;
+            const x = tier.w * Math.cos(ang);
+            const z = tier.z + 3.4 * Math.sin(ang);
+            crown.push([x, 5, z, tier.col], [x * 0.92, 5.5, z + 1.1, "#FFFFFF"]);
           }
         });
-        crown.push([0, 4, 101, "#FFFFFF"], [0, 4, 103, "#FFD700"]);
+        for (let z = 99; z <= 105; z += 0.8) crown.push([0, 5.5, z, "#FFD700"]);
 
-        // Continuous Devotional Forehead Brow, Tilak & Graceful S-Curved Trunk
-        for (let t = 0; t <= 1; t += 0.01) {
-          const ang = 0.15 * Math.PI + t * 0.7 * Math.PI;
-          faceTrunk.push([15 * Math.cos(ang), 6, 75 + 8 * Math.sin(ang), "#FF9E00"]);
+        // Bold Double-Strand Forehead Brow + Glowing Tripundra Tilak
+        for (let t = 0; t <= 44; t++) {
+          const ang = 0.14 * Math.PI + (t / 44) * 0.72 * Math.PI;
+          const x = 16 * Math.cos(ang);
+          const z = 73 + 8.5 * Math.sin(ang);
+          browTilak.push([x, 6.5, z, "#FF9E00"], [x * 0.94, 7.0, z + 1.2, "#FFD700"]);
         }
-        // Tilak on forehead
-        for (let z = 76; z <= 82; z += 0.6) faceTrunk.push([0, 7.5, z, "#FFFFFF"]);
-        faceTrunk.push([0, 8, 79, "#FF2A85"]);
+        for (let z = 74; z <= 81; z += 0.6) {
+          browTilak.push([-0.7, 8, z, "#FFFFFF"], [0.7, 8, z, "#FFFFFF"]);
+        }
+        browTilak.push([0, 8.5, 77.5, "#FF2A85"]);
 
-        // Long Flowing Trunk curving smoothly to the right with Modak curl
-        for (let u = 0; u <= 1; u += 0.008) {
+        // Continuous Bold Double-Strand S-Curved Trunk with Modak Curl
+        for (let s = 0; s <= 90; s++) {
+          const u = s / 90;
           const tx = u < 0.72
-            ? Math.sin((u / 0.72) * Math.PI * 0.5) * 14
-            : 14 - Math.sin(((u - 0.72) / 0.28) * Math.PI) * 5;
-          const tz = 74 - u * 27 + (u > 0.75 ? (u - 0.75) * 16 : 0);
-          faceTrunk.push([tx, 7, tz, "#FF6D00"], [tx - 1.5, 6.5, tz + 0.5, "#FFD700"]);
+            ? Math.sin((u / 0.72) * Math.PI * 0.5) * 14.5
+            : 14.5 - Math.sin(((u - 0.72) / 0.28) * Math.PI) * 5.5;
+          const tz = 72 - u * 27 + (u > 0.74 ? (u - 0.74) * 17 : 0);
+          trunk.push(
+            [tx, 7.5, tz, "#FF6D00"],
+            [tx - 1.8, 7.0, tz + 0.6, "#FFD700"],
+            [tx + 1.2, 7.0, tz - 0.4, "#FF2A85"]
+          );
         }
 
-        // Graceful Open Elephant Ears (C-Curves, NOT closed circles!)
+        // Open Double-Strand C-Curved Elephant Ears (Left & Right)
         [-1, 1].forEach(side => {
-          for (let t = 0; t <= 1; t += 0.015) {
-            const ang = -0.42 * Math.PI + t * 0.84 * Math.PI;
-            const ex = side * (14 + 13 * Math.cos(ang));
-            const ez = 71 + 14 * Math.sin(ang);
-            earsLotus.push([ex, 2, ez, "#FFD700"], [ex * 0.92, 1, ez, "#FF9E00"]);
+          for (let t = 0; t <= 44; t++) {
+            const ang = -0.44 * Math.PI + (t / 44) * 0.88 * Math.PI;
+            const ex1 = side * (14.5 + 14.0 * Math.cos(ang));
+            const ez1 = 69 + 14.5 * Math.sin(ang);
+            const ex2 = side * (13.0 + 11.5 * Math.cos(ang));
+            const ez2 = 69 + 12.2 * Math.sin(ang);
+            ears.push([ex1, 3, ez1, "#FFD700"], [ex2, 2.5, ez2, "#FF9E00"]);
           }
         });
 
-        // Sacred Lotus Pedestal Base
-        for (let p = -2; p <= 2; p++) {
-          for (let t = 0; t <= 1; t += 0.04) {
-            const ang = t * Math.PI;
-            earsLotus.push([p * 9 + 7 * Math.cos(ang), 3, 39 + 5 * Math.sin(ang), "#FF2A85"]);
+        // Sacred 5-Petal Lotus Pedestal Base
+        [-18, -9, 0, 9, 18].forEach((px, idx) => {
+          const h = idx === 2 ? 6.5 : (Math.abs(idx - 2) === 1 ? 5.5 : 4.5);
+          for (let t = 0; t <= 20; t++) {
+            const ang = (t / 20) * Math.PI;
+            lotus.push([px + 7.5 * Math.cos(ang), 4, 35 + h * Math.sin(ang), idx % 2 === 0 ? "#FF2A85" : "#FFD700"]);
           }
-        }
+        });
 
         return allocateParts([
-          { pts: crown, col: "#FFD700", w: 0.22 },
-          { pts: faceTrunk, col: "#FF9E00", w: 0.42 },
-          { pts: earsLotus, col: "#FFD700", w: 0.36 }
+          { pts: crown, col: "#FFD700", w: 0.20 },
+          { pts: browTilak, col: "#FF9E00", w: 0.16 },
+          { pts: trunk, col: "#FF6D00", w: 0.24 },
+          { pts: ears, col: "#FFD700", w: 0.24 },
+          { pts: lotus, col: "#FF2A85", w: 0.16 }
         ], nDrones);
       }
 
       // 5. SHIVA TRISHUL — Majestic Spearhead Trident, Tripundra Tilak & Glowing Damru
       if (id === "trishul") {
         const shaft = [], blades = [], damru = [], tilak = [];
-        // Thick Central Shaft & Sharp Diamond Spearhead
-        for (let z = 34; z <= 106; z += 0.55) {
-          shaft.push([0, 0, z, z > 90 ? "#FFFFFF" : "#FFD700"]);
-          if (z > 90 && z < 103) {
-            const w = 3.6 * Math.sin(((z - 90) / 13) * Math.PI);
+        for (let z = 32; z <= 105; z += 0.55) {
+          shaft.push([0, 0, z, z > 89 ? "#FFFFFF" : "#FFD700"]);
+          if (z > 89 && z < 102) {
+            const w = 3.8 * Math.sin(((z - 89) / 13) * Math.PI);
             shaft.push([-w, 1, z, "#FFFFFF"], [w, 1, z, "#FFFFFF"]);
           }
         }
-        // Double-Curved Outer Trident Prongs with Flared Tips
-        for (let t = 0; t <= 1; t += 0.01) {
-          const ang = t * Math.PI;
+        for (let t = 0; t <= 80; t++) {
+          const ang = (t / 80) * Math.PI;
           const px = 16.5 * Math.cos(ang);
-          const pz = 89 - 12 * Math.sin(ang);
+          const pz = 88 - 12 * Math.sin(ang);
           blades.push([px, 1.5, pz, "#FF9E00"], [px * 0.92, -1, pz + 1.2, "#FFD700"]);
         }
         [-16.5, 16.5].forEach(bx => {
-          for (let z = 89; z <= 101; z += 0.45) {
-            const flare = z > 96 ? (101 - z) * 0.45 : 0;
+          for (let z = 88; z <= 100; z += 0.45) {
+            const flare = z > 95 ? (100 - z) * 0.45 : 0;
             blades.push([bx, 1.5, z, "#FFFFFF"]);
             if (flare > 0) blades.push([bx - flare, 1.5, z, "#FFD700"], [bx + flare, 1.5, z, "#FFD700"]);
           }
         });
-
-        // Sculpted Hourglass Damru Drum with Golden Rim Rings
         for (let dz = -7; dz <= 7; dz += 0.45) {
           const w = 2.0 + Math.abs(dz) * 1.15;
           const isRim = Math.abs(Math.abs(dz) - 7) < 0.6;
-          for (let k = 0; k < 12; k++) {
+          for (let k = 0; k <= 12; k++) {
             const th = (k / 12) * Math.PI * 2;
-            damru.push([w * Math.cos(th), w * 0.65 * Math.sin(th) + 4, 60 + dz, isRim ? "#FFD700" : "#00E5FF"]);
+            damru.push([w * Math.cos(th), w * 0.65 * Math.sin(th) + 4, 59 + dz, isRim ? "#FFD700" : "#00E5FF"]);
           }
         }
-
-        // Sacred Horizontal Tripundra Tilak + Third Eye above Damru
         [-5, -2.5, 0].forEach(oz => {
-          for (let x = -11; x <= 11; x += 1.0) tilak.push([x, 5, 48 + oz, "#FFFFFF"]);
+          for (let x = -11; x <= 11; x += 1.0) tilak.push([x, 5, 46 + oz, "#FFFFFF"]);
         });
-        tilak.push([0, 6, 45.5, "#FF2A85"]);
+        tilak.push([0, 6, 43.5, "#FF2A85"]);
 
         return allocateParts([
           { pts: shaft, col: "#FFD700", w: 0.32 },
@@ -739,21 +794,20 @@
         for (let v = 0; v <= 1; v += 0.04) {
           const rx = 12 + Math.sin(v * Math.PI * 0.65) * 26;
           const ry = 7 + Math.sin(v * Math.PI * 0.65) * 14;
-          const z = 42 + v * 17;
+          const z = 39 + v * 17;
           const n = 56;
-          for (let k = 0; k < n; k++) {
+          for (let k = 0; k <= n; k++) {
             const th = (k / n) * Math.PI * 2;
             const spout = th > -0.35 && th < 0.35 ? (1 + 0.28 * v) : 1.0;
             const isRim = v > 0.88;
             bowl.push([rx * spout * Math.cos(th), ry * Math.sin(th), z, isRim ? "#FFD700" : (k % 4 === 0 ? "#FF9E00" : "#E63946")]);
           }
         }
-        // Volumetric 3D Flame over right spout
         for (let u = 0; u <= 1; u += 0.025) {
           const fr = 9.5 * Math.sin(u * Math.PI) * (1 - u * 0.42);
-          const fz = 62 + u * 32;
+          const fz = 59 + u * 32;
           const col = u < 0.38 ? "#FFFFFF" : (u < 0.72 ? "#FFD60A" : "#FF5500");
-          for (let k = 0; k < 20; k++) {
+          for (let k = 0; k <= 20; k++) {
             const th = (k / 20) * Math.PI * 2;
             flame.push([12 + fr * Math.cos(th), fr * Math.sin(th), fz, col]);
           }
@@ -767,10 +821,10 @@
         for (let shell = 0.35; shell <= 1.0; shell += 0.13) {
           const depth = Math.sqrt(Math.max(0, 1 - shell * shell)) * 15;
           const col = shell > 0.88 ? "#FF85B3" : (shell > 0.65 ? "#FF2A85" : "#FFD700");
-          for (let k = 0; k < 160; k++) {
+          for (let k = 0; k <= 160; k++) {
             const t = (k / 160) * Math.PI * 2;
             const hx = 16 * Math.pow(Math.sin(t), 3) * 2.05 * shell;
-            const hz = (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * 1.9 * shell + 70;
+            const hz = (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * 1.9 * shell + 68;
             pts.push([hx, depth, hz, col]);
             if (depth > 0.5) pts.push([hx, -depth, hz, col]);
           }
@@ -778,31 +832,35 @@
         return allocateParts([{ pts, col: "#FF2A85", w: 1.0 }], nDrones);
       }
 
-      // 8. INTERLOCKING WEDDING RINGS + FACETED SOLITAIRE CROWN
+      // 8. INTERLOCKING WEDDING RINGS + FACETED DIAMOND SOLITAIRE CROWN
       if (id === "rings") {
         const r1 = [], r2 = [], diamond = [];
-        for (let k = 0; k < 220; k++) {
+        for (let k = 0; k <= 220; k++) {
           const t = (k / 220) * Math.PI * 2;
           for (let a = 0; a < 8; a++) {
             const phi = (a / 8) * Math.PI * 2;
             const tubeR = 2.4;
-            const rad = 19 + tubeR * Math.cos(phi);
+            const rad = 19.5 + tubeR * Math.cos(phi);
             const off = tubeR * Math.sin(phi);
-            r1.push([-12.5 + rad * Math.cos(t), 11 * Math.sin(t) + off, 65 + rad * Math.sin(t), "#FFD700"]);
-            r2.push([12.5 + rad * Math.cos(t), -11 * Math.sin(t) + off, 65 + rad * Math.sin(t), "#38BDF8"]);
+            r1.push([-13.5 + rad * Math.cos(t), 11 * Math.sin(t) + off, 63 + rad * Math.sin(t), "#FFD700"]);
+            r2.push([13.5 + rad * Math.cos(t), -11 * Math.sin(t) + off, 63 + rad * Math.sin(t), "#38BDF8"]);
           }
         }
-        // Faceted Diamond Solitaire mounted cleanly at top of Gold Ring (-12.5, 0, 84..94)
-        for (let k = 0; k < 36; k++) {
-          const th = (k / 36) * Math.PI * 2;
-          diamond.push([-12.5 + 5.8 * Math.cos(th), 5.8 * Math.sin(th), 89.5, "#FFFFFF"]); // Girdle
-          diamond.push([-12.5 + 3.2 * Math.cos(th), 3.2 * Math.sin(th), 93.0, "#E0F2FE"]); // Table
-          if (k % 3 === 0) {
-            diamond.push([-12.5 + 2.8 * Math.cos(th), 2.8 * Math.sin(th), 86.5, "#38BDF8"]); // Pavilion
+        // Faceted Diamond Solitaire Crown mounted atop Gold Ring (-13.5, 0, 84..94)
+        for (let k = 0; k <= 40; k++) {
+          const th = (k / 40) * Math.PI * 2;
+          diamond.push([-13.5 + 6.0 * Math.cos(th), 6.0 * Math.sin(th), 88.5, "#FFFFFF"]);
+          diamond.push([-13.5 + 3.4 * Math.cos(th), 3.4 * Math.sin(th), 92.2, "#E0F2FE"]);
+          if (k % 4 === 0) {
+            diamond.push([-13.5 + 2.8 * Math.cos(th), 2.8 * Math.sin(th), 85.2, "#38BDF8"]);
           }
         }
-        diamond.push([-12.5, 0, 84.5, "#FFD700"]); // Prong base
-        return allocateParts([{ pts: r1, col: "#FFD700", w: 0.43 }, { pts: r2, col: "#38BDF8", w: 0.43 }, { pts: diamond, col: "#FFFFFF", w: 0.14 }], nDrones);
+        diamond.push([-13.5, 0, 83.2, "#FFD700"]);
+        return allocateParts([
+          { pts: r1, col: "#FFD700", w: 0.43 },
+          { pts: r2, col: "#38BDF8", w: 0.43 },
+          { pts: diamond, col: "#FFFFFF", w: 0.14 }
+        ], nDrones);
       }
 
       // 9. 3D EARTH GLOBE — Fibonacci Sphere with Continents, Oceans & Polar Ice Caps
@@ -813,7 +871,7 @@
           const th = Math.sqrt(nDrones * Math.PI) * phi;
           const x = 29 * Math.cos(th) * Math.sin(phi);
           const y = 29 * Math.sin(th) * Math.sin(phi);
-          const z = 68 + 29 * Math.cos(phi);
+          const z = 65 + 29 * Math.cos(phi);
           const lat = Math.cos(phi);
           const land = Math.sin(th * 2.5 + lat * 2.0) + Math.cos(lat * 3.8 - th * 1.8);
           const col = Math.abs(lat) > 0.85 ? "#FFFFFF" : (land > 0.15 ? "#10B981" : "#0284C7");
@@ -825,28 +883,26 @@
       // 10. ISRO SPACE ROCKET — Aerodynamic Fuselage, Payload Fairing, 4 Swept Fins & Exhaust Plume
       if (id === "rocket") {
         const body = [], fins = [], plume = [];
-        for (let z = 52; z <= 104; z += 1.1) {
-          const u = (z - 52) / 52;
+        for (let z = 49; z <= 102; z += 1.1) {
+          const u = (z - 49) / 53;
           const r = u > 0.68 ? 7.2 * Math.cos(((u - 0.68) / 0.32) * Math.PI * 0.48) : 7.2;
-          const col = u > 0.68 ? "#FF6D00" : (Math.abs(z - 76) < 2 ? "#10B981" : "#FFFFFF");
-          for (let k = 0; k < 20; k++) {
+          const col = u > 0.68 ? "#FF6D00" : (Math.abs(z - 73) < 2 ? "#10B981" : "#FFFFFF");
+          for (let k = 0; k <= 20; k++) {
             const th = (k / 20) * Math.PI * 2;
             body.push([r * Math.cos(th), r * Math.sin(th), z, col]);
           }
         }
-        // 4 Swept Delta Fins
         [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5].forEach(ang => {
           for (let f = 0; f <= 1; f += 0.08) {
             const fr = 7.2 + f * 9.5;
-            const fz = 52 + (1 - f) * 14;
-            fins.push([fr * Math.cos(ang), fr * Math.sin(ang), fz, "#38BDF8"], [fr * Math.cos(ang), fr * Math.sin(ang), 52, "#38BDF8"]);
+            const fz = 49 + (1 - f) * 14;
+            fins.push([fr * Math.cos(ang), fr * Math.sin(ang), fz, "#38BDF8"], [fr * Math.cos(ang), fr * Math.sin(ang), 49, "#38BDF8"]);
           }
         });
-        // Thruster Fire Plume
-        for (let z = 30; z <= 51; z += 1.0) {
-          const u = (51 - z) / 21;
+        for (let z = 27; z <= 48; z += 1.0) {
+          const u = (48 - z) / 21;
           const r = 6.5 * Math.sin(u * Math.PI * 0.85);
-          for (let k = 0; k < 14; k++) {
+          for (let k = 0; k <= 14; k++) {
             const th = (k / 14) * Math.PI * 2;
             plume.push([r * Math.cos(th), r * Math.sin(th), z, u < 0.45 ? "#FFD60A" : "#FF4500"]);
           }
@@ -857,10 +913,10 @@
       // 11. WORLD CUP TROPHY — Sculpted Chalice, Twin Wing Handles & Pedestal
       if (id === "trophy") {
         const cup = [], handles = [], base = [];
-        for (let z = 54; z <= 98; z += 1.1) {
-          const u = (z - 54) / 44;
+        for (let z = 51; z <= 96; z += 1.1) {
+          const u = (z - 51) / 45;
           const r = u < 0.35 ? (3.5 + (0.35 - u) * 12) : (3.5 + Math.pow((u - 0.35) / 0.65, 1.3) * 16.5);
-          for (let k = 0; k < 28; k++) {
+          for (let k = 0; k <= 28; k++) {
             const th = (k / 28) * Math.PI * 2;
             cup.push([r * Math.cos(th), r * 0.75 * Math.sin(th), z, u > 0.88 ? "#FFFFFF" : "#FFD700"]);
           }
@@ -868,47 +924,76 @@
         [-1, 1].forEach(side => {
           for (let k = 0; k <= 40; k++) {
             const th = -0.4 * Math.PI + (k / 40) * 0.85 * Math.PI;
-            handles.push([side * (16 + 8 * Math.cos(th)), 0, 84 + 11 * Math.sin(th), "#FF9E00"]);
+            handles.push([side * (16 + 8 * Math.cos(th)), 0, 81 + 11 * Math.sin(th), "#FF9E00"]);
           }
         });
-        for (let z = 44; z <= 53; z += 1.5) {
-          for (let k = 0; k < 24; k++) {
+        for (let z = 41; z <= 50; z += 1.5) {
+          for (let k = 0; k <= 24; k++) {
             const th = (k / 24) * Math.PI * 2;
-            base.push([13 * Math.cos(th), 9 * Math.sin(th), z, z > 50 ? "#FFD700" : "#38BDF8"]);
+            base.push([13 * Math.cos(th), 9 * Math.sin(th), z, z > 47 ? "#FFD700" : "#38BDF8"]);
           }
         }
         return allocateParts([{ pts: cup, col: "#FFD700", w: 0.62 }, { pts: handles, col: "#FF9E00", w: 0.18 }, { pts: base, col: "#38BDF8", w: 0.20 }], nDrones);
       }
 
-      // 12. FORMULA 1 CAR — Sleek Aerodynamic Monocoque, Halo Cockpit, Front/Rear Wings & 4 Slick Tires
-      const body = [], wings = [], wheels = [];
-      for (let x = -46; x <= 44; x += 1.1) {
-        const noseTaper = x < -8 ? Math.max(0.22, 1 - ((-8 - x) / 38) * 0.78) : 1.0;
-        const sidepod = x >= -8 && x <= 26 ? (11.5 * Math.sin(((x + 8) / 34) * Math.PI * 0.85) + 3.5) : (10 * noseTaper);
-        const roofZ = 47 + (x > -12 && x < 24 ? 8.5 * Math.sin(((x + 12) / 36) * Math.PI) : 1.5);
-        [-1, 1].forEach(s => {
-          body.push([x, s * sidepod, 46, "#FF2A85"], [x, s * sidepod * 0.55, roofZ, "#00E5FF"]);
-        });
-        body.push([x, 0, roofZ + 1.2, "#FFFFFF"]);
-      }
-      // Wide Front Wing & DRS Rear Wing
-      for (let y = -18; y <= 18; y += 1.0) {
-        wings.push([-46, y, 46.5, "#00E5FF"], [-43, y, 47.5, "#FFFFFF"], [42, y * 0.85, 59, "#00E5FF"], [44, y * 0.85, 61, "#FFFFFF"]);
-      }
-      // 4 Thick Racing Tires
-      [[-27, -14], [-27, 14], [27, -15], [27, 15]].forEach(([wx, wy]) => {
-        for (let k = 0; k < 36; k++) {
-          const th = (k / 36) * Math.PI * 2;
-          [-1.8, 1.8].forEach(ty => {
-            wheels.push([wx + 6.8 * Math.cos(th), wy + ty, 49.5 + 6.8 * Math.sin(th), "#FFD700"]);
-          });
+      // 12. FORMULA 1 CAR — Sharp Aerodynamic Side-Profile Monocoque, Halo Cockpit, DRS Wings & 4 Distinct Circular Tires
+      const chassis = [], halo = [], wings = [], wheels = [];
+      // Clean Side-Profile Chassis Upper & Lower Contours (Left & Right Rails)
+      [-8.5, 8.5].forEach(sy => {
+        for (let s = 0; s <= 64; s++) {
+          const u = s / 64;
+          const x = -46 + u * 88; // -46 (front nose) to +42 (rear diffuser)
+          // Flat floor plank
+          chassis.push([x, sy, 43.5, "#FF2A85"]);
+          // Sculpted nosecone -> cockpit cowl -> engine cover
+          let topZ = 45.0;
+          if (x < -14) topZ = 45.0 + ((x + 46) / 32) * 5.0;
+          else if (x < 6) topZ = 50.0 + Math.sin(((x + 14) / 20) * Math.PI) * 3.2;
+          else topZ = 53.2 - ((x - 6) / 36) * 3.8;
+          const taperY = x < -14 ? (0.35 + 0.65 * ((x + 46) / 32)) : 1.0;
+          chassis.push([x, sy * taperY, topZ, "#00E5FF"]);
         }
       });
-      return allocateParts([{ pts: body, col: "#FF2A85", w: 0.48 }, { pts: wings, col: "#00E5FF", w: 0.20 }, { pts: wheels, col: "#FFD700", w: 0.32 }], nDrones);
+      // Center Spine & Halo Cockpit Hoop + Airbox Intake
+      for (let x = -46; x <= 42; x += 2.2) {
+        let spineZ = x < -14 ? 45.5 + ((x + 46) / 32) * 5.2 : (x < 8 ? 50.8 : 55.5 - ((x - 8) / 34) * 5.5);
+        chassis.push([x, 0, spineZ, "#FFFFFF"]);
+      }
+      for (let t = 0; t <= 24; t++) {
+        const ang = (t / 24) * Math.PI;
+        halo.push([-2 + 9 * Math.cos(ang), 3.6 * Math.sin(ang), 53.5 + 3.2 * Math.sin(ang), "#FFFFFF"]);
+        halo.push([-2 + 9 * Math.cos(ang), -3.6 * Math.sin(ang), 53.5 + 3.2 * Math.sin(ang), "#FFFFFF"]);
+      }
+      // Wide Front Wing (-47) & Multi-Element Rear DRS Wing (+41)
+      for (let y = -18; y <= 18; y += 1.2) {
+        wings.push([-47, y, 44.0, "#00E5FF"], [-44, y, 45.2, "#FFFFFF"]);
+        wings.push([40, y * 0.82, 57.5, "#00E5FF"], [42.5, y * 0.82, 60.0, "#FFFFFF"]);
+      }
+      [-15, 15].forEach(wy => {
+        for (let z = 49; z <= 60; z += 1.5) wings.push([41, wy, z, "#FF2A85"]);
+      });
+      // 4 Distinct Crisp Circular Racing Tires (Front x=-27, Rear x=+27)
+      [[-27, -13.5], [-27, 13.5], [27, -14.5], [27, 14.5]].forEach(([wx, wy]) => {
+        for (let k = 0; k <= 36; k++) {
+          const th = (k / 36) * Math.PI * 2;
+          const rOuter = 6.8, rInner = 4.2;
+          wheels.push(
+            [wx + rOuter * Math.cos(th), wy, 48.2 + rOuter * Math.sin(th), "#FFD700"],
+            [wx + rInner * Math.cos(th), wy, 48.2 + rInner * Math.sin(th), "#FFFFFF"]
+          );
+        }
+      });
+
+      return allocateParts([
+        { pts: chassis, col: "#FF2A85", w: 0.38 },
+        { pts: halo, col: "#FFFFFF", w: 0.12 },
+        { pts: wings, col: "#00E5FF", w: 0.20 },
+        { pts: wheels, col: "#FFD700", w: 0.30 }
+      ], nDrones);
     }
 
     // --------------------------------------------------------------------------
-    // 2. THREE.JS ENGINE + LIVE KINETIC MOTION + TRANSITIONS
+    // 2. THREE.JS ENGINE + MIRROR WATER REFLECTION + LIVE KINETIC MOTION
     // --------------------------------------------------------------------------
     function createGlowSprite() {
       const c = document.createElement('canvas');
@@ -916,8 +1001,9 @@
       const ctx = c.getContext('2d');
       const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
       grad.addColorStop(0.0, 'rgba(255,255,255,1)');
-      grad.addColorStop(0.28, 'rgba(255,255,255,0.92)');
-      grad.addColorStop(0.60, 'rgba(255,255,255,0.28)');
+      grad.addColorStop(0.18, 'rgba(255,255,255,0.96)');
+      grad.addColorStop(0.45, 'rgba(255,255,255,0.42)');
+      grad.addColorStop(0.75, 'rgba(255,255,255,0.10)');
       grad.addColorStop(1.0, 'rgba(0,0,0,0)');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 64, 64);
@@ -928,10 +1014,10 @@
       const container = document.getElementById('threeContainer');
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x02040a);
-      scene.fog = new THREE.FogExp2(0x02040a, 0.0022);
+      scene.fog = new THREE.FogExp2(0x02040a, 0.0020);
 
       camera = new THREE.PerspectiveCamera(48, container.clientWidth / container.clientHeight, 0.1, 1000);
-      camera.position.set(0, 54, 136);
+      camera.position.set(0, 44, 112);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
       renderer.setSize(container.clientWidth, container.clientHeight);
@@ -939,16 +1025,16 @@
       container.appendChild(renderer.domElement);
 
       controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.target.set(0, 66, 0);
+      controls.target.set(0, 62, 0);
       controls.enableDamping = true;
       controls.dampingFactor = 0.06;
-      controls.minDistance = 35;
+      controls.minDistance = 30;
       controls.maxDistance = 260;
       controls.update();
 
       venueGroup = new THREE.Group();
       scene.add(venueGroup);
-      changeVenue("stadium");
+      changeVenue("riverfront");
 
       const starGeo = new THREE.BufferGeometry();
       const starVerts = [];
@@ -962,22 +1048,50 @@
       setupDroneParticles(800);
       loadTemplate(0);
 
-      window.addEventListener('resize', () => {
-        camera.aspect = container.clientWidth / container.clientHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(container.clientWidth, container.clientHeight);
-      });
+      window.addEventListener('resize', handleResize);
       animateThree();
+    }
+
+    function handleResize() {
+      const container = document.getElementById('threeContainer');
+      if (!container || !camera || !renderer) return;
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
     }
 
     function changeVenue(mode) {
       while (venueGroup.children.length > 0) venueGroup.remove(venueGroup.children[0]);
-      if (mode === "grid") {
+      if (mode === "riverfront") {
+        // Dark Mirror Lake Surface + Subtle Shoreline Promenade Rings
+        const lake = new THREE.Mesh(
+          new THREE.CircleGeometry(140, 64),
+          new THREE.MeshBasicMaterial({ color: 0x030b1a, transparent: true, opacity: 0.72, side: THREE.DoubleSide })
+        );
+        lake.rotation.x = -Math.PI / 2;
+        venueGroup.add(lake);
+
+        const shoreRing1 = new THREE.Mesh(
+          new THREE.RingGeometry(88, 89.2, 64),
+          new THREE.MeshBasicMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.25, side: THREE.DoubleSide })
+        );
+        shoreRing1.rotation.x = -Math.PI / 2;
+        shoreRing1.position.y = 0.2;
+        venueGroup.add(shoreRing1);
+
+        const shoreRing2 = new THREE.Mesh(
+          new THREE.RingGeometry(118, 119.5, 64),
+          new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.14, side: THREE.DoubleSide })
+        );
+        shoreRing2.rotation.x = -Math.PI / 2;
+        shoreRing2.position.y = 0.2;
+        venueGroup.add(shoreRing2);
+      } else if (mode === "grid") {
         venueGroup.add(new THREE.GridHelper(180, 36, 0x1e3a5f, 0x0c172a));
       } else if (mode === "stadium") {
         const turf = new THREE.Mesh(
           new THREE.PlaneGeometry(110, 74),
-          new THREE.MeshBasicMaterial({ color: 0x064e3b, side: THREE.DoubleSide })
+          new THREE.MeshBasicMaterial({ color: 0x064e3b, transparent: true, opacity: 0.65, side: THREE.DoubleSide })
         );
         turf.rotation.x = -Math.PI / 2;
         venueGroup.add(turf);
@@ -991,7 +1105,7 @@
       } else if (mode === "palace") {
         const lawn = new THREE.Mesh(
           new THREE.CircleGeometry(90, 48),
-          new THREE.MeshBasicMaterial({ color: 0x065f46, side: THREE.DoubleSide })
+          new THREE.MeshBasicMaterial({ color: 0x065f46, transparent: true, opacity: 0.65, side: THREE.DoubleSide })
         );
         lawn.rotation.x = -Math.PI / 2;
         venueGroup.add(lawn);
@@ -1006,10 +1120,16 @@
 
     function setupDroneParticles(count) {
       if (dronePoints) scene.remove(dronePoints);
+      if (reflectionPoints) scene.remove(reflectionPoints);
       if (trailLines) scene.remove(trailLines);
 
+      const spriteTex = createGlowSprite();
+      const spriteSize = count >= 700 ? 4.2 : 4.8;
+
+      // Primary Sky Swarm Points
       const geo = new THREE.BufferGeometry();
       currentPositions = new Float32Array(count * 3);
+      reflectionPositions = new Float32Array(count * 3);
       startPositions = new Float32Array(count * 3);
       prevPositions = new Float32Array(count * 3);
       targetPositions = new Float32Array(count * 3);
@@ -1018,36 +1138,72 @@
       geo.setAttribute('position', new THREE.BufferAttribute(currentPositions, 3));
       geo.setAttribute('color', new THREE.BufferAttribute(droneColors, 3));
 
-      const spriteSize = count >= 700 ? 3.25 : 3.65;
       dronePoints = new THREE.Points(geo, new THREE.PointsMaterial({
-        size: spriteSize, map: createGlowSprite(), vertexColors: true,
-        transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+        size: spriteSize,
+        map: spriteTex,
+        vertexColors: true,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
       }));
       scene.add(dronePoints);
 
+      // Real-Time Mirror Water Reflection Points Layer beneath Ground Plane
+      const refGeo = new THREE.BufferGeometry();
+      refGeo.setAttribute('position', new THREE.BufferAttribute(reflectionPositions, 3));
+      refGeo.setAttribute('color', new THREE.BufferAttribute(droneColors, 3));
+
+      reflectionPoints = new THREE.Points(refGeo, new THREE.PointsMaterial({
+        size: spriteSize * 1.15,
+        map: spriteTex,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.28,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      }));
+      scene.add(reflectionPoints);
+
+      // Motion Trail Lines
       const trailGeo = new THREE.BufferGeometry();
       trailGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 2 * 3), 3));
       trailGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(count * 2 * 3), 3));
       trailLines = new THREE.LineSegments(trailGeo, new THREE.LineBasicMaterial({
-        vertexColors: true, transparent: true, opacity: 0.36, blending: THREE.AdditiveBlending
+        vertexColors: true, transparent: true, opacity: 0.34, blending: THREE.AdditiveBlending
       }));
       scene.add(trailLines);
+    }
+
+    function updateTelemetryHUD(drones, slide) {
+      const id = slide?.id || slide?.type || "custom";
+      // Dynamic physics calculation based on fleet density & spatial spread
+      const densityFactor = (drones - 100) / 900; // 0..1
+      const spreadScale = id === "text" ? 1.12 : (id === "taj" || id === "peacock" ? 1.05 : 0.96);
+      const spacing = Math.max(2.02, +( (2.68 - densityFactor * 0.56) * spreadScale ).toFixed(2));
+      const baseVel = slide?.trans === "burst" ? 5.4 : (slide?.trans === "spiral" ? 5.1 : 4.6);
+      const maxVel = +(baseVel + densityFactor * 0.35).toFixed(1);
+
+      document.getElementById('hudFleet').textContent = `${drones} UAVs`;
+      document.getElementById('hudMaxVel').textContent = `${maxVel} m/s`;
+      document.getElementById('hudSpacing').textContent = `${spacing}m [DGCA SAFE]`;
+      document.getElementById('statusToast').textContent = `✓ Slide 0${activeSlideIdx + 1}: ${slide?.label || 'Formation'} • ${drones} UAVs`;
     }
 
     function activateSlide(idx, instant = false) {
       if (!slides[idx]) return;
       activeSlideIdx = idx;
       const slide = slides[idx];
+      const drones = currentPositions.length / 3;
       currentTransition = slide.trans || "spiral";
       document.getElementById('transitionSelect').value = currentTransition;
       document.getElementById('hudSlideName').textContent = `0${idx + 1}. ${slide.label}`;
+      updateTelemetryHUD(drones, slide);
 
       const cloud = slide.cloud;
-      const count = currentPositions.length / 3;
       const colObj = new THREE.Color();
       const tCols = trailLines.geometry.attributes.color.array;
 
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < drones; i++) {
         const pt = cloud[i % cloud.length];
         startPositions[i * 3] = currentPositions[i * 3];
         startPositions[i * 3 + 1] = currentPositions[i * 3 + 1];
@@ -1064,6 +1220,10 @@
           prevPositions[i * 3] = pt[0];
           prevPositions[i * 3 + 1] = pt[2];
           prevPositions[i * 3 + 2] = pt[1];
+
+          reflectionPositions[i * 3] = pt[0];
+          reflectionPositions[i * 3 + 1] = -pt[2] * 0.65;
+          reflectionPositions[i * 3 + 2] = pt[1];
         }
         colObj.set(pt[3] || '#00E5FF');
         droneColors[i * 3] = colObj.r;
@@ -1078,8 +1238,12 @@
       }
       morphProgress = instant ? 1.0 : 0.0;
       dronePoints.geometry.attributes.color.needsUpdate = true;
+      reflectionPoints.geometry.attributes.color.needsUpdate = true;
       trailLines.geometry.attributes.color.needsUpdate = true;
-      if (instant) dronePoints.geometry.attributes.position.needsUpdate = true;
+      if (instant) {
+        dronePoints.geometry.attributes.position.needsUpdate = true;
+        reflectionPoints.geometry.attributes.position.needsUpdate = true;
+      }
       renderStoryboard();
     }
 
@@ -1117,7 +1281,7 @@
           if (morphProgress > 0.92) {
             if (activeId === "heart") {
               const beat = 1.0 + 0.08 * Math.pow(Math.sin(t * 2.4), 4);
-              tx *= beat; ty = 70 + (ty - 70) * beat; tz *= beat;
+              tx *= beat; ty = 68 + (ty - 68) * beat; tz *= beat;
             } else if (activeId === "earth" || activeId === "trophy" || activeId === "rings") {
               const ang = t * 0.45;
               const rx = tx * Math.cos(ang) - tz * Math.sin(ang);
@@ -1125,7 +1289,7 @@
               tx = rx; tz = rz;
             } else if (activeId === "peacock") {
               tz += Math.sin(t * 2.0 + tx * 0.12) * 1.4;
-            } else if (activeId === "diya" && ty > 62) {
+            } else if (activeId === "diya" && ty > 59) {
               tx += Math.sin(t * 4.5 + ty * 0.2) * 1.1;
             }
           }
@@ -1142,7 +1306,7 @@
               bz += Math.sin(ang) * rad;
             } else if (currentTransition === "burst") {
               bx += (tx * 0.45) * arc;
-              by += ((ty - 66) * 0.45) * arc;
+              by += ((ty - 62) * 0.45) * arc;
               bz += (tz * 0.45) * arc;
             } else if (currentTransition === "wave") {
               by += Math.sin(tx * 0.12 + morphProgress * 6.0) * 14 * arc;
@@ -1151,18 +1315,29 @@
 
           const hx = Math.sin(t + i * 0.37) * 0.14;
           const hy = Math.cos(t * 1.1 + i * 0.53) * 0.14;
-          currentPositions[ix] = bx + hx;
-          currentPositions[iy] = by + hy;
-          currentPositions[iz] = bz;
+          const finalX = bx + hx;
+          const finalY = by + hy;
+          const finalZ = bz;
 
-          tVerts[i * 6] = currentPositions[ix];
-          tVerts[i * 6 + 1] = currentPositions[iy];
-          tVerts[i * 6 + 2] = currentPositions[iz];
+          currentPositions[ix] = finalX;
+          currentPositions[iy] = finalY;
+          currentPositions[iz] = finalZ;
+
+          // Real-Time Mirror Water Reflection with Subtle Ripple Wave
+          const ripple = Math.sin(t * 3.0 + finalY * 0.15) * 0.45;
+          reflectionPositions[ix] = finalX + ripple;
+          reflectionPositions[iy] = -finalY * 0.65;
+          reflectionPositions[iz] = finalZ + ripple * 0.5;
+
+          tVerts[i * 6] = finalX;
+          tVerts[i * 6 + 1] = finalY;
+          tVerts[i * 6 + 2] = finalZ;
           tVerts[i * 6 + 3] = prevPositions[ix];
           tVerts[i * 6 + 4] = prevPositions[iy];
           tVerts[i * 6 + 5] = prevPositions[iz];
         }
         dronePoints.geometry.attributes.position.needsUpdate = true;
+        reflectionPoints.geometry.attributes.position.needsUpdate = true;
         trailLines.geometry.attributes.position.needsUpdate = true;
       }
       controls.update();
@@ -1170,7 +1345,7 @@
     }
 
     // --------------------------------------------------------------------------
-    // 3. SIDEBAR, TEMPLATES & STORYBOARD CONTROLS
+    // 3. SIDEBAR, TEMPLATES, CLIENT VIEW & STORYBOARD CONTROLS
     // --------------------------------------------------------------------------
     function populateSidebarUI() {
       document.getElementById('templateList').innerHTML = SHOW_TEMPLATES.map((tpl, idx) => `
@@ -1200,6 +1375,27 @@
       });
     }
 
+    function toggleClientView() {
+      clientViewActive = !clientViewActive;
+      document.getElementById('leftRail').classList.toggle('hidden', clientViewActive);
+      document.getElementById('sidebarDrawer').classList.toggle('hidden', clientViewActive);
+      document.getElementById('bottomTimeline').classList.toggle('hidden', clientViewActive);
+      document.getElementById('magicPromptWrap').classList.toggle('hidden', clientViewActive);
+      document.getElementById('clientPlayBtn').classList.toggle('hidden', !clientViewActive);
+
+      const btn = document.getElementById('clientViewBtn');
+      if (clientViewActive) {
+        btn.textContent = '✕ Exit Client View';
+        btn.classList.add('bg-sky-400', 'text-slate-950');
+        btn.classList.remove('text-sky-300');
+      } else {
+        btn.textContent = '👁️ Client View';
+        btn.classList.remove('bg-sky-400', 'text-slate-950');
+        btn.classList.add('text-sky-300');
+      }
+      setTimeout(handleResize, 30);
+    }
+
     function buildSlideCloud(item, nDrones) {
       if (item.type === "text") {
         return build3DTextCloud(item.text, nDrones, item.color || "tricolour", item.font || "900 Arial, sans-serif");
@@ -1214,7 +1410,6 @@
       slides = tpl.items.map(it => ({ ...it, cloud: buildSlideCloud(it, drones) }));
       document.getElementById('magicPrompt').value = tpl.desc;
       activateSlide(0, true);
-      showToast(`✓ Loaded Show: ${tpl.title}`);
     }
 
     function applyElementToActiveSlide(id, name) {
@@ -1228,7 +1423,6 @@
         cloud: buildElementCloud(id, drones)
       };
       activateSlide(activeSlideIdx, false);
-      showToast(`✓ Slide ${activeSlideIdx + 1}: ${name}`);
     }
 
     function applyCustomTextToSlide() {
@@ -1246,7 +1440,6 @@
         cloud: build3DTextCloud(txt, drones, color, font)
       };
       activateSlide(activeSlideIdx, false);
-      showToast(`✓ Applied 3D Banner "${txt}"`);
     }
 
     function applyMagicPrompt() {
@@ -1284,7 +1477,6 @@
         };
       });
       activateSlide(0, true);
-      showToast(`✓ Compiled ${slides.length} broadcast slides`);
     }
 
     function renderStoryboard() {
@@ -1312,11 +1504,15 @@
     function selectSlide(idx) {
       autoPlay = false;
       document.getElementById('playShowBtn').textContent = '▶ Play Full Show';
+      document.getElementById('clientPlayBtn').textContent = '▶ Play Show';
       activateSlide(idx, false);
     }
 
     function addNewSlide() {
-      if (slides.length >= 6) { showToast("⚠️ Max 6 slides in storyboard"); return; }
+      if (slides.length >= 6) {
+        document.getElementById('statusToast').textContent = "⚠️ Max 6 slides in storyboard";
+        return;
+      }
       const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 800;
       slides.push({
         type: "element", id: "earth", label: "3D Earth Globe", dur: 15, trans: "spiral",
@@ -1335,6 +1531,8 @@
       if (slides[activeSlideIdx]) {
         slides[activeSlideIdx].trans = val;
         currentTransition = val;
+        const drones = currentPositions.length / 3;
+        updateTelemetryHUD(drones, slides[activeSlideIdx]);
         renderStoryboard();
       }
     }
@@ -1343,6 +1541,7 @@
       autoPlay = !autoPlay;
       autoTimer = 0;
       document.getElementById('playShowBtn').textContent = autoPlay ? '⏸ Pause Show' : '▶ Play Full Show';
+      document.getElementById('clientPlayBtn').textContent = autoPlay ? '⏸ Pause' : '▶ Play Show';
       if (autoPlay) activateSlide((activeSlideIdx + 1) % slides.length, false);
     }
 
@@ -1350,7 +1549,6 @@
       const n = Math.max(100, Math.min(1000, parseInt(val, 10) || 800));
       document.getElementById('droneManualInput').value = n;
       document.getElementById('modalDroneInput').value = n;
-      document.getElementById('hudFleet').textContent = `${n} UAVs`;
       slides = slides.map(s => ({ ...s, cloud: buildSlideCloud(s, n) }));
       setupDroneParticles(n);
       activateSlide(activeSlideIdx, true);
@@ -1360,10 +1558,10 @@
     function setCamPreset(mode) {
       controls.autoRotate = false;
       document.getElementById('orbitBtn').classList.remove('bg-amber-400', 'text-slate-950');
-      if (mode === 'audience') camera.position.set(0, 42, 136);
-      else if (mode === 'side') camera.position.set(116, 68, 52);
-      else if (mode === 'top') camera.position.set(0, 175, 25);
-      controls.target.set(0, 66, 0);
+      if (mode === 'audience') camera.position.set(0, 44, 112);
+      else if (mode === 'side') camera.position.set(104, 62, 48);
+      else if (mode === 'top') camera.position.set(0, 165, 22);
+      controls.target.set(0, 62, 0);
       controls.update();
     }
 
@@ -1374,16 +1572,12 @@
       else btn.classList.remove('bg-amber-400', 'text-slate-950');
     }
 
-    function showToast(msg) {
-      document.getElementById('statusToast').textContent = msg;
-    }
-
     function shareClientLink() {
       const seq = encodeURIComponent(slides.map(s => s.label).join(' -> '));
       const drones = document.getElementById('droneManualInput').value;
       const shareUrl = `${window.location.origin}${window.location.pathname}?seq=${seq}&drones=${drones}`;
       navigator.clipboard.writeText(shareUrl);
-      showToast("🔗 Client Preview URL copied to clipboard!");
+      document.getElementById('statusToast').textContent = "🔗 Client Preview URL copied to clipboard!";
     }
 
     function recordPitchVideo() {
@@ -1407,6 +1601,7 @@
         recorder.stop();
         autoPlay = false; controls.autoRotate = false;
         document.getElementById('playShowBtn').textContent = '▶ Play Full Show';
+        document.getElementById('clientPlayBtn').textContent = '▶ Play Show';
       }, 10000);
     }
 
@@ -1445,11 +1640,10 @@
           for (let i = 0; i < drones; i++) {
             const p = pts[Math.floor((i / drones) * (pts.length - 1))];
             const hex = `#${p[3].toString(16).padStart(2,'0')}${p[4].toString(16).padStart(2,'0')}${p[5].toString(16).padStart(2,'0')}`;
-            cloud.push([+((p[0] - midX) * scale).toFixed(2), +((i % 2 === 0 ? 1 : -0.7) * p[2]).toFixed(2), +(68 - (p[1] - midY) * scale).toFixed(2), isLightBg ? "#FFD700" : hex]);
+            cloud.push([+((p[0] - midX) * scale).toFixed(2), +((i % 2 === 0 ? 1 : -0.7) * p[2]).toFixed(2), +(64 - (p[1] - midY) * scale).toFixed(2), isLightBg ? "#FFD700" : hex]);
           }
           slides[activeSlideIdx] = { ...slides[activeSlideIdx], type: "custom", label: file.name.slice(0, 14), cloud };
           activateSlide(activeSlideIdx, false);
-          showToast(`✓ Mapped "${file.name}" to Slide ${activeSlideIdx + 1}`);
         };
         img.src = ev.target.result;
       };
@@ -1504,12 +1698,11 @@
       const cloud = [];
       for (let i = 0; i < drones; i++) {
         const [vx, vy, vz] = verts[Math.floor((i / drones) * (verts.length - 1))];
-        const nz = (vz - cz) * scale + 68.0;
-        cloud.push([+((vx - cx) * scale).toFixed(2), +((vy - cy) * scale).toFixed(2), +nz.toFixed(2), nz > 82 ? "#FFD700" : (nz > 58 ? "#00E5FF" : "#FF2A85")]);
+        const nz = (vz - cz) * scale + 64.0;
+        cloud.push([+((vx - cx) * scale).toFixed(2), +((vy - cy) * scale).toFixed(2), +nz.toFixed(2), nz > 80 ? "#FFD700" : (nz > 56 ? "#00E5FF" : "#FF2A85")]);
       }
       slides[activeSlideIdx] = { ...slides[activeSlideIdx], type: "custom", label: filename.slice(0, 14), cloud };
       activateSlide(activeSlideIdx, false);
-      showToast(`✓ 3D Sculpture "${filename}" loaded!`);
     }
 
     // --------------------------------------------------------------------------
@@ -1556,7 +1749,7 @@
         lines.push(`UAV_${String(d+1).padStart(4,'0')},0.0,${gx.toFixed(2)},${gy.toFixed(2)},0.00,#000000`);
         let tAcc = 30.0;
         slides.forEach(s => {
-          const pt = s.cloud[d % s.cloud.length] || [0, 0, 68, "#00E5FF"];
+          const pt = s.cloud[d % s.cloud.length] || [0, 0, 64, "#00E5FF"];
           lines.push(`UAV_${String(d+1).padStart(4,'0')},${tAcc.toFixed(1)},${pt[0].toFixed(2)},${pt[1].toFixed(2)},${pt[2].toFixed(2)},${pt[3]}`);
           tAcc += (s.dur || 15);
         });
