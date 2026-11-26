@@ -341,6 +341,20 @@
           <button onclick="setCamPreset('side')"     class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-purple-300">3D Depth</button>
           <button onclick="setCamPreset('top')"      class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300">Aerial</button>
           <button id="orbitBtn" onclick="toggleAutoOrbit()" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300">↻ Orbit</button>
+
+          <span class="text-slate-500 ml-1">GLOW:</span>
+          <input id="bloomSlider" type="range" min="0.2" max="2.5" step="0.05" value="1.10"
+            oninput="setBloomStrength(this.value)"
+            title="HDR Bloom Glow Intensity"
+            class="w-14 accent-sky-400 cursor-pointer" />
+          <span id="bloomVal" class="text-sky-300 w-7">1.10</span>
+
+          <span class="text-slate-500 ml-1">SIZE:</span>
+          <input id="droneSizeSlider" type="range" min="1.5" max="8.0" step="0.1" value="3.8"
+            oninput="setDroneSize(this.value)"
+            title="Drone LED Sprite Size"
+            class="w-14 accent-amber-400 cursor-pointer" />
+          <span id="droneSizeVal" class="text-amber-300 w-6">3.8</span>
         </div>
       </div>
 

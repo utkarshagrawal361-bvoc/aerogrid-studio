@@ -12,11 +12,13 @@
 // ---------------------------------------------------------------------------
 let scene, camera, renderer, composer, bloomPass, controls;
 let dronePoints, reflectionPoints, trailLines, venueGroup;
-let currentPositions, reflectionPositions, startPositions, targetPositions, prevPositions, droneColors;
+let currentPositions, reflectionPositions, startPositions, targetPositions, prevPositions, droneColors, baseDroneColors;
 let morphProgress = 1.0;
 let currentTransition = 'spiral';
 let autoPlay = false, autoTimer = 0;
 let clientViewActive = false;
+let userDroneSize = null;
+let waterRippleRings = [];
 
 // ---------------------------------------------------------------------------
 // Glow sprite texture
@@ -124,20 +126,93 @@ window.handleResize = function handleResize() {
 // ---------------------------------------------------------------------------
 window.changeVenue = function changeVenue(mode) {
   while (venueGroup.children.length>0) venueGroup.remove(venueGroup.children[0]);
+  waterRippleRings = [];
+
   if (mode==='riverfront') {
     const lake = new THREE.Mesh(
-      new THREE.CircleGeometry(160,64),
-      new THREE.MeshBasicMaterial({color:0x030b1a,transparent:true,opacity:0.65,side:THREE.DoubleSide})
+      new THREE.CircleGeometry(180,64),
+      new THREE.MeshBasicMaterial({color:0x020917,transparent:true,opacity:0.74,side:THREE.DoubleSide})
     );
     lake.rotation.x = -Math.PI/2;
     venueGroup.add(lake);
-    const shoreRing = new THREE.Mesh(
-      new THREE.RingGeometry(105,106.5,64),
-      new THREE.MeshBasicMaterial({color:0x0ea5e9,transparent:true,opacity:0.25,side:THREE.DoubleSide})
-    );
-    shoreRing.rotation.x = -Math.PI/2;
-    shoreRing.position.y = 0.2;
-    venueGroup.add(shoreRing);
+
+    // Shimmering water reflection ripple rings
+    [22, 42, 64, 86, 106].forEach((rad, idx) => {
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(rad, rad + (idx===4 ? 1.4 : 0.7), 72),
+        new THREE.MeshBasicMaterial({
+          color: idx%2===0 ? 0x0ea5e9 : 0x38bdf8,
+          transparent: true,
+          opacity: idx===4 ? 0.28 : 0.14,
+          side: THREE.DoubleSide
+        })
+      );
+      ring.rotation.x = -Math.PI/2;
+      ring.position.y = 0.12 + idx * 0.02;
+      ring.userData = { baseRadius: rad, phase: idx * 1.15, baseOpacity: idx===4 ? 0.28 : 0.14 };
+      venueGroup.add(ring);
+      waterRippleRings.push(ring);
+    });
+
+    // Dark architectural city skyline silhouette along the far riverfront bank
+    const skylineMatA = new THREE.MeshBasicMaterial({color:0x050a16});
+    const skylineMatB = new THREE.MeshBasicMaterial({color:0x081022});
+    const winVerts = [];
+    const winCols  = [];
+    const bCount   = 36;
+
+    for (let i = 0; i < bCount; i++) {
+      const u = i / (bCount - 1);
+      const angle = (u - 0.5) * Math.PI * 0.86;
+      const dist  = 126 + ((i * 17) % 19);
+      const bx    = Math.sin(angle) * dist;
+      const bz    = -Math.cos(angle) * dist;
+      const bw    = 7 + ((i * 5) % 8);
+      const bd    = 7 + ((i * 3) % 6);
+      const bh    = 14 + Math.abs(Math.sin(i * 1.37)) * 34 + (i % 5 === 0 ? 14 : 0);
+
+      const bldg = new THREE.Mesh(
+        new THREE.BoxGeometry(bw, bh, bd),
+        i % 2 === 0 ? skylineMatA : skylineMatB
+      );
+      bldg.position.set(bx, bh / 2 - 0.5, bz);
+      bldg.lookAt(0, bh / 2 - 0.5, 0);
+      venueGroup.add(bldg);
+
+      // Subtle mirror reflection silhouette below waterline
+      const refBldg = new THREE.Mesh(
+        new THREE.BoxGeometry(bw, bh * 0.72, bd),
+        new THREE.MeshBasicMaterial({color:0x040914, transparent:true, opacity:0.22})
+      );
+      refBldg.position.set(bx, -(bh * 0.36), bz);
+      refBldg.lookAt(0, -(bh * 0.36), 0);
+      venueGroup.add(refBldg);
+
+      // Subtle dimly-lit architectural window & crown lights
+      const rows = Math.floor(bh / 4.2);
+      for (let r = 1; r < rows; r++) {
+        if ((i + r) % 3 === 0) continue;
+        const wy = r * 4.0;
+        const wx = bx + ((r % 2 === 0 ? 0.22 : -0.22) * bw);
+        winVerts.push(wx, wy, bz + bd * 0.52);
+        const isWarm = (i + r) % 4 === 0;
+        winCols.push(isWarm ? 0.45 : 0.18, isWarm ? 0.35 : 0.42, isWarm ? 0.16 : 0.65);
+        // Water reflection of window light
+        winVerts.push(wx, -wy * 0.72, bz + bd * 0.52);
+        winCols.push(isWarm ? 0.16 : 0.07, isWarm ? 0.12 : 0.16, isWarm ? 0.06 : 0.26);
+      }
+      if (i % 4 === 0) {
+        winVerts.push(bx, bh + 0.6, bz);
+        winCols.push(0.85, 0.22, 0.28);
+      }
+    }
+
+    const winGeo = new THREE.BufferGeometry();
+    winGeo.setAttribute('position', new THREE.Float32BufferAttribute(winVerts, 3));
+    winGeo.setAttribute('color',    new THREE.Float32BufferAttribute(winCols, 3));
+    venueGroup.add(new THREE.Points(winGeo, new THREE.PointsMaterial({
+      size: 1.35, vertexColors: true, transparent: true, opacity: 0.78
+    })));
   } else if (mode==='grid') {
     venueGroup.add(new THREE.GridHelper(180,36,0x1e3a5f,0x0c172a));
   } else if (mode==='stadium') {
@@ -166,7 +241,11 @@ function setupDroneParticles(count) {
   if (trailLines)       scene.remove(trailLines);
 
   const spriteTex  = createGlowSprite();
-  const spriteSize = count >= 1500 ? 3.8 : 4.5;
+  const spriteSize = userDroneSize !== null ? userDroneSize : (count >= 1500 ? 3.8 : 4.5);
+  const sizeSlider = document.getElementById('droneSizeSlider');
+  const sizeVal    = document.getElementById('droneSizeVal');
+  if (sizeSlider && userDroneSize === null) sizeSlider.value = spriteSize;
+  if (sizeVal && userDroneSize === null) sizeVal.textContent = spriteSize.toFixed(1);
 
   const geo = new THREE.BufferGeometry();
   currentPositions    = new Float32Array(count*3);
@@ -175,6 +254,7 @@ function setupDroneParticles(count) {
   prevPositions       = new Float32Array(count*3);
   targetPositions     = new Float32Array(count*3);
   droneColors         = new Float32Array(count*3);
+  baseDroneColors     = new Float32Array(count*3);
 
   geo.setAttribute('position', new THREE.BufferAttribute(currentPositions,3));
   geo.setAttribute('color',    new THREE.BufferAttribute(droneColors,3));
@@ -257,9 +337,12 @@ window.activateSlide = function activateSlide(idx, instant=false) {
       reflectionPositions[i*3+2] = pt[1];
     }
     colObj.set(pt[3]||'#00E5FF');
-    droneColors[i*3]   = colObj.r;
-    droneColors[i*3+1] = colObj.g;
-    droneColors[i*3+2] = colObj.b;
+    droneColors[i*3]       = colObj.r;
+    droneColors[i*3+1]     = colObj.g;
+    droneColors[i*3+2]     = colObj.b;
+    baseDroneColors[i*3]   = colObj.r;
+    baseDroneColors[i*3+1] = colObj.g;
+    baseDroneColors[i*3+2] = colObj.b;
     tCols[i*6]   = colObj.r;
     tCols[i*6+1] = colObj.g;
     tCols[i*6+2] = colObj.b;
@@ -298,6 +381,18 @@ function animateThree() {
     const ease = 1-Math.pow(1-morphProgress,3);
     const arc  = Math.sin(morphProgress*Math.PI);
 
+    const activeSlide = window.slides[window.activeSlideIdx];
+    const heroId      = activeSlide?.type === 'hero' ? activeSlide.id : null;
+    const animBlend   = ease;
+    let colorsDirty   = false;
+
+    // Precompute per-frame hero animation parameters
+    const heartPulse = heroId === 'heart'
+      ? (Math.pow(Math.max(0, Math.sin(t * 2.5)), 6) * 0.095 + Math.pow(Math.max(0, Math.sin(t * 2.5 - 0.55)), 8) * 0.06) * animBlend
+      : 0;
+    const globeCos = heroId === 'globe' ? Math.cos(t * 0.35 * animBlend) : 1;
+    const globeSin = heroId === 'globe' ? Math.sin(t * 0.35 * animBlend) : 0;
+
     for (let i=0; i<count; i++) {
       const ix=i*3,iy=i*3+1,iz=i*3+2;
       prevPositions[ix] += (currentPositions[ix]-prevPositions[ix])*0.28;
@@ -320,15 +415,54 @@ function animateThree() {
         }
       }
 
+      // Live dynamic 3D hero formation animations
+      if (heroId === 'heart') {
+        bx = bx * (1 + heartPulse);
+        by = 68 + (by - 68) * (1 + heartPulse);
+        bz = bz * (1 + heartPulse);
+      } else if (heroId === 'globe') {
+        const rx = bx * globeCos - bz * globeSin;
+        const rz = bx * globeSin + bz * globeCos;
+        bx = rx;
+        bz = rz;
+      } else if (heroId === 'rocket') {
+        if (ty < 44) {
+          // Flickering orange-gold exhaust particles streaming downward
+          const cycle = (t * 2.2 + (i * 0.173)) % 1.0;
+          const spread = 1.0 + cycle * 0.55;
+          bx *= spread;
+          bz *= spread;
+          by -= cycle * 7.5 * animBlend;
+          const flicker = 0.65 + 0.55 * Math.sin(t * 22.0 + i * 1.7);
+          droneColors[ix] = Math.min(1, baseDroneColors[ix] * flicker + 0.18);
+          droneColors[iy] = Math.min(1, baseDroneColors[iy] * flicker);
+          droneColors[iz] = Math.min(1, baseDroneColors[iz] * (0.5 + 0.3 * Math.cos(t * 18 + i)));
+          colorsDirty = true;
+        } else {
+          // Subtle rocket thrust vibration
+          by += Math.sin(t * 18.0 + i * 0.1) * 0.18 * animBlend;
+        }
+      } else if (heroId === 'trishul') {
+        // Subtle divine aura shimmer on prongs & damru
+        const wave = Math.sin(t * 2.6 + by * 0.14 + i * 0.03);
+        bx += wave * 0.22 * animBlend;
+        const lum = 0.85 + 0.28 * Math.sin(t * 3.4 + (by * 0.12) + i * 0.08);
+        droneColors[ix] = Math.min(1, baseDroneColors[ix] * lum);
+        droneColors[iy] = Math.min(1, baseDroneColors[iy] * lum);
+        droneColors[iz] = Math.min(1, baseDroneColors[iz] * (lum + 0.06));
+        colorsDirty = true;
+      }
+
       const hx=Math.sin(t+i*0.37)*0.12, hy=Math.cos(t*1.1+i*0.53)*0.12;
       const finalX=bx+hx, finalY=by+hy, finalZ=bz;
 
       currentPositions[ix]=finalX; currentPositions[iy]=finalY; currentPositions[iz]=finalZ;
 
-      const ripple=Math.sin(t*3.0+finalY*0.15)*0.45;
-      reflectionPositions[ix]=finalX+ripple;
+      const rippleX = Math.sin(t*3.2 + finalY*0.14 + finalZ*0.06) * 0.65;
+      const rippleZ = Math.cos(t*2.7 + finalX*0.12) * 0.45;
+      reflectionPositions[ix]=finalX+rippleX;
       reflectionPositions[iy]=-finalY*0.92;
-      reflectionPositions[iz]=finalZ+ripple*0.5;
+      reflectionPositions[iz]=finalZ+rippleZ;
 
       tVerts[i*6]=finalX;   tVerts[i*6+1]=finalY;   tVerts[i*6+2]=finalZ;
       tVerts[i*6+3]=prevPositions[ix]; tVerts[i*6+4]=prevPositions[iy]; tVerts[i*6+5]=prevPositions[iz];
@@ -336,10 +470,45 @@ function animateThree() {
     dronePoints.geometry.attributes.position.needsUpdate      = true;
     reflectionPoints.geometry.attributes.position.needsUpdate = true;
     trailLines.geometry.attributes.position.needsUpdate       = true;
+    if (colorsDirty) {
+      dronePoints.geometry.attributes.color.needsUpdate      = true;
+      reflectionPoints.geometry.attributes.color.needsUpdate = true;
+    }
   }
+
+  // Shimmering water reflection ripples in Riverfront Mirror Lake
+  if (waterRippleRings.length > 0) {
+    for (let r = 0; r < waterRippleRings.length; r++) {
+      const ring = waterRippleRings[r];
+      const wave = Math.sin(t * 1.8 - ring.userData.phase);
+      const sc   = 1 + wave * 0.018;
+      ring.scale.set(sc, sc, 1);
+      ring.material.opacity = ring.userData.baseOpacity * (0.65 + 0.35 * Math.cos(t * 2.2 + ring.userData.phase));
+    }
+  }
+
   controls.update();
   if (composer) composer.render(); else renderer.render(scene,camera);
 }
+
+// ---------------------------------------------------------------------------
+// Live HDR Bloom & Drone Size controls
+// ---------------------------------------------------------------------------
+window.setBloomStrength = function setBloomStrength(val) {
+  const v = Math.max(0.1, Math.min(3.0, parseFloat(val) || 1.1));
+  if (bloomPass) bloomPass.strength = v;
+  const el = document.getElementById('bloomVal');
+  if (el) el.textContent = v.toFixed(2);
+};
+
+window.setDroneSize = function setDroneSize(val) {
+  const v = Math.max(1.0, Math.min(10.0, parseFloat(val) || 3.8));
+  userDroneSize = v;
+  if (dronePoints)      dronePoints.material.size      = v;
+  if (reflectionPoints) reflectionPoints.material.size = v * 1.15;
+  const el = document.getElementById('droneSizeVal');
+  if (el) el.textContent = v.toFixed(1);
+};
 
 // ---------------------------------------------------------------------------
 // UI helpers

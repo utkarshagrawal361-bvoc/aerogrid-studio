@@ -393,7 +393,8 @@ window.buildHeroFormation = function buildHeroFormation(id, nDrones) {
     const r=((z-24)/20)*6.0;
     for (let k=0; k<14; k++) {
       const a=(k/14)*Math.PI*2;
-      flame.push([r*Math.cos(a),r*Math.sin(a),z,z>36?'#FFFFFF':'#FF5500']);
+      const flameCol = z>38 ? '#FFFFFF' : (z>32 ? '#FFD700' : (k%2===0 ? '#FF8C00' : '#FF5500'));
+      flame.push([r*Math.cos(a),r*Math.sin(a),z,flameCol]);
     }
   }
   return allocateParts([{pts:body,col:'#FFFFFF',w:0.62},{pts:fins,col:'#38BDF8',w:0.16},{pts:flame,col:'#FF5500',w:0.22}],nDrones);
