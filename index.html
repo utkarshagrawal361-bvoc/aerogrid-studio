@@ -43,7 +43,7 @@
     }
   </style>
 </head>
-<body class="h-screen flex flex-col select-none">
+<body class="h-screen flex flex-col select-none overflow-hidden">
 
   <!-- TOP STUDIO HEADER -->
   <header class="h-14 border-b border-slate-800 bg-[#050914] px-4 flex items-center justify-between gap-3 shrink-0 z-30">
@@ -92,7 +92,7 @@
   </header>
 
   <!-- MAIN WORKSPACE -->
-  <div class="flex-1 flex overflow-hidden">
+  <div class="flex-1 flex min-h-0 min-w-0 overflow-hidden">
 
     <!-- LEFT RAIL (5 CLEAN STUDIOS) -->
     <nav id="leftRail" class="w-16 bg-[#050914] border-r border-slate-800 flex flex-col items-center py-3 gap-2.5 shrink-0">
@@ -114,7 +114,7 @@
     </nav>
 
     <!-- SIDEBAR DRAWER -->
-    <aside id="sidebarDrawer" class="w-[310px] studio-panel border-r border-slate-800 p-4 overflow-y-auto shrink-0">
+    <aside id="sidebarDrawer" class="w-[310px] studio-panel border-r border-slate-800 p-4 overflow-y-auto min-h-0 shrink-0">
 
       <!-- TAB 1: 2-STAGE TEXT → VISUAL BLUEPRINT PREVIEW → APPROVE TO DRONES -->
       <div id="panel-blueprint" class="space-y-3.5">
@@ -305,7 +305,7 @@
     </aside>
 
     <!-- CENTER 3D STAGE -->
-    <main class="flex-1 flex flex-col bg-[#02050C] relative overflow-hidden">
+    <main class="flex-1 flex flex-col min-h-0 min-w-0 bg-[#02050C] relative overflow-hidden">
       <!-- Floating Top Stage Bar -->
       <div class="h-11 bg-[#050914]/95 border-b border-slate-800/80 px-4 flex items-center justify-between gap-2 text-xs shrink-0">
         <div class="flex items-center gap-2 min-w-0">
@@ -359,7 +359,7 @@
       </div>
 
       <!-- 3D Canvas -->
-      <div id="threeContainer" class="flex-1 w-full relative"></div>
+      <div id="threeContainer" class="flex-1 w-full min-h-0 min-w-0 relative overflow-hidden"></div>
 
       <!-- Telemetry Strip -->
       <div class="h-8 bg-[#050914] border-t border-slate-800/80 px-4 flex items-center justify-between text-[11px] font-mono text-slate-400 shrink-0">

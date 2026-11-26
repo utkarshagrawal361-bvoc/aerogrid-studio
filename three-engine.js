@@ -19,6 +19,11 @@ let autoPlay = false, autoTimer = 0;
 let clientViewActive = false;
 let userDroneSize = null;
 let waterRippleRings = [];
+let currentCamPreset = 'audience';
+let camGlideActive = false;
+const camTargetPos    = new THREE.Vector3(0, 24, 165);
+const camTargetLookAt = new THREE.Vector3(0, 58, 0);
+let resizeObserver = null;
 
 // ---------------------------------------------------------------------------
 // Glow sprite texture
@@ -65,11 +70,12 @@ window.initThreeJS = function initThreeJS() {
   composer.addPass(bloomPass);
 
   controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.target.set(0,14,0);
+  controls.target.set(0,58,0);
   controls.enableDamping = true;
   controls.dampingFactor = 0.06;
-  controls.minDistance = 30;
-  controls.maxDistance = 280;
+  controls.minDistance = 24;
+  controls.maxDistance = 360;
+  controls.addEventListener('start', () => { camGlideActive = false; });
   controls.update();
 
   venueGroup = new THREE.Group();
@@ -106,6 +112,10 @@ window.initThreeJS = function initThreeJS() {
   window.activateSlide(0, true);
 
   window.addEventListener('resize', handleResize);
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver = new ResizeObserver(() => window.handleResize());
+    resizeObserver.observe(container);
+  }
   animateThree();
 };
 
@@ -115,11 +125,82 @@ window.initThreeJS = function initThreeJS() {
 window.handleResize = function handleResize() {
   const container = document.getElementById('threeContainer');
   if (!container||!camera||!renderer) return;
-  camera.aspect = container.clientWidth/container.clientHeight;
+  const w = Math.max(1, container.clientWidth);
+  const h = Math.max(1, container.clientHeight);
+  camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  if (composer) composer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setSize(w, h, false);
+  if (composer) composer.setSize(w, h);
+  if (bloomPass && bloomPass.resolution) bloomPass.resolution.set(w, h);
+  if (window.slides && window.slides[window.activeSlideIdx]) {
+    frameFormation(window.slides[window.activeSlideIdx].cloud, currentCamPreset, true);
+  }
 };
+
+// ---------------------------------------------------------------------------
+// Dynamic Bounding-Sphere Auto-Framing (20% safety margin)
+// ---------------------------------------------------------------------------
+function computeFormationBounds(cloud) {
+  if (!cloud || cloud.length === 0) {
+    return { cx: 0, cy: 58, cz: 0, radius: 40 };
+  }
+  let minX = Infinity, maxX = -Infinity;
+  let minY = Infinity, maxY = -Infinity;
+  let minZ = Infinity, maxZ = -Infinity;
+  for (let i = 0; i < cloud.length; i++) {
+    const pt = cloud[i];
+    const x = pt[0], y = pt[2], z = pt[1];
+    if (x < minX) minX = x; if (x > maxX) maxX = x;
+    if (y < minY) minY = y; if (y > maxY) maxY = y;
+    if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+  }
+  const cx = (minX + maxX) * 0.5;
+  const cy = (minY + maxY) * 0.5;
+  const cz = (minZ + maxZ) * 0.5;
+  let maxDistSq = 0;
+  for (let i = 0; i < cloud.length; i++) {
+    const pt = cloud[i];
+    const dx = pt[0] - cx, dy = pt[2] - cy, dz = pt[1] - cz;
+    const d2 = dx * dx + dy * dy + dz * dz;
+    if (d2 > maxDistSq) maxDistSq = d2;
+  }
+  const radius = Math.max(14, Math.sqrt(maxDistSq));
+  return { cx, cy, cz, radius, minX, maxX, minY, maxY, minZ, maxZ };
+}
+
+function getCamPresetDirection(mode) {
+  if (mode === 'side') return new THREE.Vector3(0.84, 0.22, 0.49).normalize();
+  if (mode === 'top')  return new THREE.Vector3(0.0, 0.96, 0.28).normalize();
+  return new THREE.Vector3(0.0, 0.06, 1.0).normalize();
+}
+
+function frameFormation(cloud, mode, instant = false) {
+  if (!camera || !controls) return;
+  const bounds = computeFormationBounds(cloud);
+  const vFov = THREE.MathUtils.degToRad(camera.fov);
+  const aspect = Math.max(0.4, camera.aspect || 1.6);
+  const hFov = 2 * Math.atan(Math.tan(vFov * 0.5) * aspect);
+
+  // 20% safety margin so 100% of tall or wide formations fit comfortably
+  const safety = 1.20;
+  const distV = (bounds.radius * safety) / Math.tan(vFov * 0.5);
+  const distH = (bounds.radius * safety) / Math.tan(hFov * 0.5);
+  const dist  = Math.max(distV, distH, 52);
+
+  const dir = getCamPresetDirection(mode || currentCamPreset);
+  camTargetLookAt.set(bounds.cx, bounds.cy, bounds.cz);
+  camTargetPos.copy(camTargetLookAt).addScaledVector(dir, dist);
+  controls.maxDistance = Math.max(320, dist * 2.4);
+
+  if (instant) {
+    camGlideActive = false;
+    controls.target.copy(camTargetLookAt);
+    camera.position.copy(camTargetPos);
+    controls.update();
+  } else {
+    camGlideActive = true;
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Venue / environment builder
@@ -358,6 +439,7 @@ window.activateSlide = function activateSlide(idx, instant=false) {
     dronePoints.geometry.attributes.position.needsUpdate      = true;
     reflectionPoints.geometry.attributes.position.needsUpdate = true;
   }
+  frameFormation(cloud, currentCamPreset, instant);
   renderStoryboard();
 };
 
@@ -451,6 +533,13 @@ function animateThree() {
         droneColors[iy] = Math.min(1, baseDroneColors[iy] * lum);
         droneColors[iz] = Math.min(1, baseDroneColors[iz] * (lum + 0.06));
         colorsDirty = true;
+      } else if (heroId === 'rings' && ty > 82) {
+        // Solitaire diamond fire & scintillation
+        const sparkle = 0.80 + 0.45 * Math.pow(Math.max(0, Math.sin(t * 4.5 + i * 1.37)), 4);
+        droneColors[ix] = Math.min(1, baseDroneColors[ix] * sparkle);
+        droneColors[iy] = Math.min(1, baseDroneColors[iy] * sparkle);
+        droneColors[iz] = Math.min(1, baseDroneColors[iz] * sparkle);
+        colorsDirty = true;
       }
 
       const hx=Math.sin(t+i*0.37)*0.12, hy=Math.cos(t*1.1+i*0.53)*0.12;
@@ -487,6 +576,13 @@ function animateThree() {
     }
   }
 
+  if (camGlideActive) {
+    controls.target.lerp(camTargetLookAt, 0.09);
+    camera.position.lerp(camTargetPos, 0.09);
+    if (camera.position.distanceTo(camTargetPos) < 0.25 && controls.target.distanceTo(camTargetLookAt) < 0.25) {
+      camGlideActive = false;
+    }
+  }
   controls.update();
   if (composer) composer.render(); else renderer.render(scene,camera);
 }
@@ -654,12 +750,18 @@ window.changeFleetCount = function changeFleetCount(val) {
 };
 
 window.setCamPreset = function setCamPreset(mode) {
-  controls.autoRotate=false;
+  controls.autoRotate = false;
   document.getElementById('orbitBtn').classList.remove('bg-amber-400','text-slate-950');
-  if (mode==='audience') { camera.position.set(0,24,165); controls.target.set(0,14,0); }
-  else if (mode==='side'){ camera.position.set(112,62,52); controls.target.set(0,56,0); }
-  else if (mode==='top') { camera.position.set(0,175,22); controls.target.set(0,56,0); }
-  controls.update();
+  currentCamPreset = mode || 'audience';
+  const activeSlide = window.slides[window.activeSlideIdx];
+  if (activeSlide && activeSlide.cloud) {
+    frameFormation(activeSlide.cloud, currentCamPreset, true);
+  } else {
+    if (mode === 'audience') { camera.position.set(0, 24, 165); controls.target.set(0, 58, 0); }
+    else if (mode === 'side') { camera.position.set(112, 62, 52); controls.target.set(0, 58, 0); }
+    else if (mode === 'top')  { camera.position.set(0, 175, 22); controls.target.set(0, 58, 0); }
+    controls.update();
+  }
 };
 
 window.toggleAutoOrbit = function toggleAutoOrbit() {
