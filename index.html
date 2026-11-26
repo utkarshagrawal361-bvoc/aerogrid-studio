@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AeroGrid Studio — Generative AI 3D Drone Choreography Platform</title>
+  <title>AeroGrid Studio — Broadcast 3D Drone Choreography & Swarm Compiler</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -24,8 +24,8 @@
     .nav-btn.active { background: rgba(56, 189, 248, 0.16); color: #38BDF8; border-left: 3px solid #38BDF8; }
     .slide-card { transition: all 0.18s ease; cursor: pointer; }
     .slide-card.active { border-color: #38BDF8 !important; background: rgba(56, 189, 248, 0.12) !important; box-shadow: 0 0 18px rgba(56, 189, 248, 0.18); }
-    .chip-btn { transition: all 0.15s ease; cursor: pointer; }
-    .chip-btn:hover { border-color: #38BDF8; background: rgba(56, 189, 248, 0.12); color: #fff; }
+    .hero-card { transition: all 0.15s ease; cursor: pointer; }
+    .hero-card:hover { border-color: #38BDF8; background: rgba(56, 189, 248, 0.10); transform: translateY(-1px); }
     #threeContainer canvas { display: block; width: 100% !important; height: 100% !important; cursor: grab; }
     #threeContainer canvas:active { cursor: grabbing; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -45,19 +45,19 @@
       <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center font-black text-slate-950 text-sm">AG</div>
       <div class="leading-tight">
         <span class="font-bold text-white text-sm tracking-tight">AeroGrid Studio</span>
-        <span class="hidden lg:inline text-[11px] text-emerald-400 font-mono ml-2">● Generative AI + HDR Bloom</span>
+        <span class="hidden lg:inline text-[11px] text-emerald-400 font-mono ml-2">● Zero-Error 3D Swarm Engine</span>
       </div>
     </div>
 
-    <!-- Magic Multi-Slide AI Sequence Bar -->
+    <!-- Quick Show Sequence Bar -->
     <div id="magicPromptWrap" class="flex-1 max-w-xl flex items-center gap-2 bg-[#0C1425] border border-slate-700/80 rounded-xl px-3 py-1.5">
       <span class="text-sky-400 text-xs">✦</span>
-      <input id="magicPrompt" type="text" value='Indian Map -> Lord Ganesha -> "INDIA 2026"'
-        onkeydown="if(event.key==='Enter') runMagicSequence()"
-        placeholder='Type ANY sequence: e.g. Shiv Parvati Family -> Bharat Mata -> "JAI HIND"'
+      <input id="magicPrompt" type="text" value='Taj Mahal -> Shiva Trishul -> "INDIA 2026"'
+        onkeydown="if(event.key==='Enter') runInstantSequence()"
+        placeholder='Sequence: e.g. Taj Mahal -> Heart -> Wedding Rings -> "FOREVER"'
         class="w-full bg-transparent text-xs text-white focus:outline-none" />
-      <button id="magicGoBtn" onclick="runMagicSequence()" class="px-3 py-1 rounded-lg bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-[11px] whitespace-nowrap">
-        Generate Show
+      <button onclick="runInstantSequence()" class="px-3 py-1 rounded-lg bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-[11px] whitespace-nowrap">
+        Build Show
       </button>
     </div>
 
@@ -70,10 +70,6 @@
           onkeydown="if(event.key==='Enter') changeFleetCount(this.value)"
           class="w-14 bg-transparent text-sky-400 font-bold text-right focus:outline-none" />
       </div>
-      <button id="apiKeyBtn" onclick="promptGeminiKey()"
-        class="px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/40 text-amber-300 text-xs font-semibold">
-        🔑 Pro Key
-      </button>
       <button id="clientViewBtn" onclick="toggleClientView()"
         class="px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-sky-300 text-xs font-semibold">
         👁️ Client View
@@ -84,7 +80,7 @@
       </button>
       <button onclick="toggleExportModal(true)"
         class="px-3.5 py-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20">
-        Export & GST →
+        Export &amp; GST →
       </button>
     </div>
   </header>
@@ -92,87 +88,143 @@
   <!-- MAIN WORKSPACE -->
   <div class="flex-1 flex overflow-hidden">
 
-    <!-- LEFT RAIL (3 CLEAN STUDIOS — ZERO HARDCODED SHAPES) -->
-    <nav id="leftRail" class="w-16 bg-[#050914] border-r border-slate-800 flex flex-col items-center py-3 gap-3 shrink-0">
-      <button id="tabBtn-ai" onclick="switchSidebarTab('ai')" class="nav-btn active w-full py-2.5 flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white">
-        <span class="text-base">✨</span><span>AI Studio</span>
+    <!-- LEFT RAIL (5 CLEAN STUDIOS) -->
+    <nav id="leftRail" class="w-16 bg-[#050914] border-r border-slate-800 flex flex-col items-center py-3 gap-2.5 shrink-0">
+      <button id="tabBtn-blueprint" onclick="switchSidebarTab('blueprint')" class="nav-btn active w-full py-2.5 flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white">
+        <span class="text-base">✨</span><span>Blueprint</span>
+      </button>
+      <button id="tabBtn-vault" onclick="switchSidebarTab('vault')" class="nav-btn w-full py-2.5 flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white">
+        <span class="text-base">🏛️</span><span>Hero Vault</span>
+      </button>
+      <button id="tabBtn-draw" onclick="switchSidebarTab('draw')" class="nav-btn w-full py-2.5 flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white">
+        <span class="text-base">🎨</span><span>Sky Draw</span>
       </button>
       <button id="tabBtn-text" onclick="switchSidebarTab('text')" class="nav-btn w-full py-2.5 flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white">
         <span class="text-base">🔤</span><span>3D Text</span>
       </button>
       <button id="tabBtn-uploads" onclick="switchSidebarTab('uploads')" class="nav-btn w-full py-2.5 flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white">
-        <span class="text-base">☁️</span><span>Uploads</span>
+        <span class="text-base">☁️</span><span>Paste/3D</span>
       </button>
     </nav>
 
     <!-- SIDEBAR DRAWER -->
-    <aside id="sidebarDrawer" class="w-76 w-[300px] studio-panel border-r border-slate-800 p-4 overflow-y-auto shrink-0">
+    <aside id="sidebarDrawer" class="w-[310px] studio-panel border-r border-slate-800 p-4 overflow-y-auto shrink-0">
 
-      <!-- TAB 1: INFINITE AI FORMATION GENERATOR -->
-      <div id="panel-ai" class="space-y-4">
+      <!-- TAB 1: 2-STAGE TEXT -> VISUAL BLUEPRINT PREVIEW -> APPROVE TO DRONES -->
+      <div id="panel-blueprint" class="space-y-3.5">
         <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">Infinite AI 3D Generator</h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">Describe ANY object, deity, map, animal, or monument</p>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">2-Stage Blueprint Compiler</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">1. Preview visual blueprint &bull; 2. Approve to compile drones</p>
         </div>
 
         <div class="space-y-2">
-          <textarea id="singleAiPrompt" rows="3"
-            placeholder="e.g. Shiv Parvati Family blessing, glowing gold and cyan light sculpture..."
-            class="w-full bg-[#050914] border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-sky-400 focus:outline-none resize-none">Map of India with glowing saffron white and green borders</textarea>
+          <textarea id="bpPromptInput" rows="2"
+            placeholder="Type theme or subject: e.g. Indian Map, Shiv Trishul, Lotus, Taj Mahal, Diya, Crown..."
+            class="w-full bg-[#050914] border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:border-sky-400 focus:outline-none resize-none">Indian Map with Ashoka Chakra</textarea>
 
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block text-[10px] text-slate-400 mb-1">LED Palette</label>
-              <select id="aiStyleSelect" class="w-full bg-[#050914] border border-slate-700 rounded-lg px-2 py-1.5 text-[11px] text-white">
-                <option value="gold_cyan">Royal Gold & Cyan</option>
+              <label class="block text-[10px] text-slate-400 mb-1">LED Color Theme</label>
+              <select id="bpPaletteSelect" onchange="generateBlueprintPreview()" class="w-full bg-[#050914] border border-slate-700 rounded-lg px-2 py-1.5 text-[11px] text-white">
                 <option value="tricolour">Indian Tricolour</option>
-                <option value="divine_fire">Divine Saffron & Pink</option>
-                <option value="diamond">Pure Diamond White</option>
+                <option value="gold_cyan">Royal Gold &amp; Cyan</option>
+                <option value="divine_fire">Saffron &amp; Magenta</option>
+                <option value="diamond">Diamond White</option>
               </select>
             </div>
             <div>
-              <label class="block text-[10px] text-slate-400 mb-1">3D Relief Depth</label>
-              <select id="aiDepthSelect" class="w-full bg-[#050914] border border-slate-700 rounded-lg px-2 py-1.5 text-[11px] text-white">
-                <option value="14">Deep 3D Sculpture</option>
+              <label class="block text-[10px] text-slate-400 mb-1">3D Sculpture Depth</label>
+              <select id="bpDepthSelect" class="w-full bg-[#050914] border border-slate-700 rounded-lg px-2 py-1.5 text-[11px] text-white">
+                <option value="14">Deep 3D Relief</option>
                 <option value="7">Curved Panorama</option>
                 <option value="0">Flat Stadium Banner</option>
               </select>
             </div>
           </div>
 
-          <button id="genSingleBtn" onclick="generateSingleSlideFromAI()"
-            class="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-400 to-indigo-500 hover:opacity-95 text-slate-950 font-extrabold text-xs shadow-lg shadow-sky-500/20">
-            ✦ Generate onto Active Slide
+          <button onclick="generateBlueprintPreview()"
+            class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-sky-400/40 text-sky-300 font-bold text-xs">
+            1. 👁️ Generate / Refresh Visual Preview
           </button>
         </div>
 
-        <!-- Live AI Preview Thumbnail -->
-        <div class="p-2.5 rounded-xl bg-[#050914] border border-slate-800 space-y-1.5">
-          <div class="flex items-center justify-between text-[10px] font-mono text-slate-400">
-            <span>AI LIGHT-ART REFERENCE</span>
-            <span id="aiEngineTag" class="text-emerald-400">READY</span>
+        <!-- Stage 1 Visual Preview Box (Supports Ctrl+V Image Paste!) -->
+        <div class="p-2.5 rounded-xl bg-[#050914] border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between text-[10px] font-mono">
+            <span class="text-slate-400">STAGE 1: BLUEPRINT PREVIEW</span>
+            <span id="bpStatusBadge" class="text-emerald-400">READY</span>
           </div>
-          <div class="w-full h-36 rounded-lg bg-black border border-slate-800/80 flex items-center justify-center overflow-hidden">
-            <img id="aiPreviewThumb" alt="AI Light Art Preview" class="w-full h-full object-contain hidden" />
-            <span id="aiPreviewPlaceholder" class="text-[11px] text-slate-600 font-mono">Generated blueprint appears here</span>
+          <div class="w-full h-40 rounded-lg bg-black border border-slate-800 flex items-center justify-center overflow-hidden relative">
+            <canvas id="blueprintCanvas" width="320" height="240" class="w-full h-full object-contain"></canvas>
           </div>
+          <p class="text-[10px] text-slate-400 text-center">Tip: Press <b class="text-sky-300">Ctrl + V</b> anywhere to paste any AI image into this preview!</p>
         </div>
 
-        <!-- Quick Test Ideas -->
-        <div class="space-y-1.5">
-          <span class="text-[10px] font-mono uppercase text-slate-400">Instant Prompt Ideas:</span>
+        <!-- Stage 2 Approve & Send to 3D Drones -->
+        <button onclick="approveBlueprintToDrones()"
+          class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-400 to-sky-400 hover:opacity-95 text-slate-950 font-extrabold text-xs shadow-lg shadow-emerald-500/20">
+          2. ✓ Approve &amp; Compile to 3D Drones
+        </button>
+
+        <!-- Quick Theme Chips -->
+        <div class="space-y-1">
+          <span class="text-[10px] font-mono uppercase text-slate-400">Quick Blueprints:</span>
           <div class="flex flex-wrap gap-1.5 text-[11px]">
-            <button onclick="quickFillPrompt('Map of India with Ashoka Chakra')" class="chip-btn px-2.5 py-1 rounded-lg bg-[#050914] border border-slate-800 text-slate-300">🇮🇳 Indian Map</button>
-            <button onclick="quickFillPrompt('Bharat Mata holding Indian flag')" class="chip-btn px-2.5 py-1 rounded-lg bg-[#050914] border border-slate-800 text-slate-300">🙏 Bharat Mata</button>
-            <button onclick="quickFillPrompt('Shiv Parvati Family with Trishul')" class="chip-btn px-2.5 py-1 rounded-lg bg-[#050914] border border-slate-800 text-slate-300">🕉️ Shiv Parvati</button>
-            <button onclick="quickFillPrompt('Lord Ganesha sitting on lotus')" class="chip-btn px-2.5 py-1 rounded-lg bg-[#050914] border border-slate-800 text-slate-300">🪔 Ganesha</button>
-            <button onclick="quickFillPrompt('Taj Mahal dome and four minarets')" class="chip-btn px-2.5 py-1 rounded-lg bg-[#050914] border border-slate-800 text-slate-300">🕌 Taj Mahal</button>
-            <button onclick="quickFillPrompt('Dancing Peacock with open feathers')" class="chip-btn px-2.5 py-1 rounded-lg bg-[#050914] border border-slate-800 text-slate-300">🦚 Peacock</button>
+            <button onclick="setBpPrompt('Indian Map with Ashoka Chakra', 'tricolour')" class="px-2 py-1 rounded-lg bg-[#050914] border border-slate-800 hover:border-sky-400 text-slate-300">🇮🇳 Indian Map</button>
+            <button onclick="setBpPrompt('Shiv Trishul & Damru', 'gold_cyan')" class="px-2 py-1 rounded-lg bg-[#050914] border border-slate-800 hover:border-sky-400 text-slate-300">🔱 Trishul</button>
+            <button onclick="setBpPrompt('Sacred Lotus Mandala', 'divine_fire')" class="px-2 py-1 rounded-lg bg-[#050914] border border-slate-800 hover:border-sky-400 text-slate-300">🪷 Lotus</button>
+            <button onclick="setBpPrompt('Royal Taj Mahal Silhouette', 'gold_cyan')" class="px-2 py-1 rounded-lg bg-[#050914] border border-slate-800 hover:border-sky-400 text-slate-300">🕌 Taj Mahal</button>
+            <button onclick="setBpPrompt('Royal Crown Emblem', 'gold_cyan')" class="px-2 py-1 rounded-lg bg-[#050914] border border-slate-800 hover:border-sky-400 text-slate-300">👑 Crown</button>
+            <button onclick="setBpPrompt('Diwali Sacred Diya', 'divine_fire')" class="px-2 py-1 rounded-lg bg-[#050914] border border-slate-800 hover:border-sky-400 text-slate-300">🪔 Diya</button>
           </div>
         </div>
       </div>
+      <!-- TAB 2: HERO SHOW VAULT (VERIFIED BROADCAST SCULPTURES) -->
+      <div id="panel-vault" class="hidden space-y-3">
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">Verified Hero Sculptures</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">Instant 1-click broadcast formations (0ms latency)</p>
+        </div>
+        <div id="heroGrid" class="grid grid-cols-2 gap-2.5"></div>
+      </div>
 
-      <!-- TAB 2: 3D SKY TYPOGRAPHY -->
+      <!-- TAB 3: SYMMETRY SKY DRAW PAD -->
+      <div id="panel-draw" class="hidden space-y-3.5">
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">Symmetry Sky Draw Pad</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">Draw any custom emblem, monument, or signature live</p>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-1.5">
+            <button onclick="setDrawColor('#FFD700')" class="w-6 h-6 rounded-full bg-[#FFD700] border-2 border-white"></button>
+            <button onclick="setDrawColor('#00E5FF')" class="w-6 h-6 rounded-full bg-[#00E5FF] border border-slate-600"></button>
+            <button onclick="setDrawColor('#FF2A85')" class="w-6 h-6 rounded-full bg-[#FF2A85] border border-slate-600"></button>
+            <button onclick="setDrawColor('#10B981')" class="w-6 h-6 rounded-full bg-[#10B981] border border-slate-600"></button>
+            <button onclick="setDrawColor('#FFFFFF')" class="w-6 h-6 rounded-full bg-white border border-slate-600"></button>
+          </div>
+          <label class="flex items-center gap-1.5 text-[11px] text-sky-300 cursor-pointer">
+            <input id="mirrorDrawChk" type="checkbox" checked class="accent-sky-400" />
+            <span>Mirror X</span>
+          </label>
+        </div>
+
+        <div class="rounded-xl overflow-hidden border border-slate-700 bg-black relative">
+          <canvas id="skyDrawCanvas" width="276" height="230" class="w-full cursor-crosshair touch-none"></canvas>
+          <div class="absolute top-1.5 left-2 text-[10px] font-mono text-slate-500 pointer-events-none">DRAW ON NIGHT SKY</div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="clearSkyDrawPad()" class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">
+            🗑 Clear Pad
+          </button>
+          <button onclick="sendSkyDrawingToDrones()" class="py-2 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-xs">
+            ✦ Fly Drawing
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 4: 3D SKY TYPOGRAPHY -->
       <div id="panel-text" class="hidden space-y-3.5">
         <div>
           <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">3D Sky Typography</h3>
@@ -207,26 +259,30 @@
         </button>
       </div>
 
-      <!-- TAB 3: UPLOADS -->
+      <!-- TAB 5: PASTE / UPLOAD IMAGE & 3D MESH -->
       <div id="panel-uploads" class="hidden space-y-4">
         <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">Custom Brand & 3D Import</h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">Convert any client image, logo, or 3D mesh</p>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">Paste Image / 3D Model</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">Convert any client photo, AI art, or 3D mesh</p>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-[#050914] border border-sky-500/30 space-y-2">
+          <p class="text-xs font-semibold text-white">1-Click Clipboard Paste (`Ctrl + V`)</p>
+          <p class="text-[11px] text-slate-400">Copy any image from Gemini, Google, or WhatsApp and press <b class="text-sky-300">Ctrl + V</b> to load it into Blueprint Preview.</p>
         </div>
 
         <div class="p-3.5 rounded-xl bg-[#050914] border border-slate-800 space-y-2">
-          <p class="text-xs font-semibold text-white">2D Brand Logo / Artwork (PNG/JPG)</p>
-          <p class="text-[11px] text-slate-400">Uses Sobel Edge + 3D Depth Relief Compiler.</p>
+          <p class="text-xs font-semibold text-white">Upload 2D Logo / Artwork (PNG/JPG)</p>
           <input id="refFile" type="file" accept="image/*" class="hidden" onchange="uploadReferenceImage(this)" />
           <button onclick="document.getElementById('refFile').click()"
             class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-semibold text-sky-300">
-            ⬆ Upload 2D Image
+            ⬆ Choose Image File
           </button>
         </div>
 
         <div class="p-3.5 rounded-xl bg-[#050914] border border-purple-500/30 space-y-2">
           <p class="text-xs font-semibold text-white">Studio 3D Mesh (.GLB / .OBJ)</p>
-          <p class="text-[11px] text-slate-400">Direct vertex & surface mapping for Blender models.</p>
+          <p class="text-[11px] text-slate-400">Direct vertex mapping for Blender 3D models.</p>
           <input id="meshFile" type="file" accept=".glb,.gltf,.obj" class="hidden" onchange="upload3DMesh(this)" />
           <button onclick="document.getElementById('meshFile').click()"
             class="w-full py-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/50 text-xs font-semibold text-purple-200">
@@ -246,7 +302,7 @@
       <!-- Floating Top Stage Bar -->
       <div class="h-11 bg-[#050914]/95 border-b border-slate-800/80 px-4 flex items-center justify-between gap-2 text-xs shrink-0">
         <div class="flex items-center gap-2 min-w-0">
-          <span id="statusToast" class="font-mono text-[11px] text-emerald-400 truncate">✓ Ready • Type any prompt or click Generate</span>
+          <span id="statusToast" class="font-mono text-[11px] text-emerald-400 truncate">✓ Ready • Preview Blueprint or Pick Hero Sculpture</span>
         </div>
 
         <div class="flex items-center gap-2 font-mono text-[11px] shrink-0">
@@ -286,7 +342,7 @@
 
       <!-- Telemetry Strip -->
       <div class="h-8 bg-[#050914] border-t border-slate-800/80 px-4 flex items-center justify-between text-[11px] font-mono text-slate-400 shrink-0">
-        <div>ACTIVE SLIDE: <span id="hudSlideName" class="text-white font-semibold">01. Indian Map</span></div>
+        <div>ACTIVE SLIDE: <span id="hudSlideName" class="text-white font-semibold">01. Taj Mahal</span></div>
         <div class="flex items-center gap-4">
           <span>FLEET: <b id="hudFleet" class="text-sky-400">2200 UAVs</b></span>
           <span>MAX VEL: <b id="hudMaxVel" class="text-amber-300">5.2 m/s</b></span>
@@ -322,8 +378,8 @@
     <div class="bg-[#0B1120] border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 space-y-5">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
-          <h2 class="text-lg font-bold text-white">Flight Package Compiler & KTC GST Billing</h2>
-          <p class="text-xs text-slate-400">Export Skybrush `.SKYC`, `.CSV` trajectories & GST Tax Invoice</p>
+          <h2 class="text-lg font-bold text-white">Flight Package Compiler &amp; KTC GST Billing</h2>
+          <p class="text-xs text-slate-400">Export Skybrush `.SKYC`, `.CSV` trajectories &amp; GST Tax Invoice</p>
         </div>
         <button onclick="toggleExportModal(false)" class="px-3 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white text-xs">✕ Close</button>
       </div>
@@ -383,7 +439,7 @@
       </div>
 
       <button onclick="compileAndExport()" class="w-full py-3 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-sm">
-        Compile Full Flight Package & Generate Invoice
+        Compile Full Flight Package &amp; Generate Invoice
       </button>
 
       <div id="downloadBox" class="hidden p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/40 space-y-3">
@@ -400,10 +456,9 @@
       </div>
     </div>
   </div>
-
   <script>
     // --------------------------------------------------------------------------
-    // 1. GENERATIVE AI + SOBEL EDGE + 3D DEPTH RELIEF COMPILER (ZERO HARDCODED SHAPES)
+    // 1. 2-STAGE BLUEPRINT COMPOSER + SOBEL EDGE 3D COMPILER + HERO VAULT
     // --------------------------------------------------------------------------
     let scene, camera, renderer, composer, bloomPass, controls;
     let dronePoints, reflectionPoints, trailLines, venueGroup;
@@ -417,35 +472,198 @@
     let clientViewActive = false;
     let lastCompiledCsv = "";
     let lastJobId = "AG_SHOW";
+    let drawColor = "#FFD700";
+    let isDrawingPad = false;
+    let lastPadPt = null;
 
     const STATE_NAMES = {
       "24": "Gujarat", "27": "Maharashtra", "07": "Delhi", "08": "Rajasthan",
       "29": "Karnataka", "33": "Tamil Nadu", "09": "Uttar Pradesh"
     };
 
-    function promptGeminiKey() {
-      const existing = localStorage.getItem('aerogrid_gemini_key') || '';
-      const val = prompt("Enter Google Gemini API Key (AIza...) for Priority Imagen-3 Generation (leave blank to use Zero-Auth Free AI):", existing);
-      if (val !== null) {
-        const clean = val.trim();
-        if (clean) {
-          localStorage.setItem('aerogrid_gemini_key', clean);
-          document.getElementById('apiKeyBtn').textContent = '🔑 Pro Active';
-          document.getElementById('statusToast').textContent = '✓ Gemini Imagen-3 Pro Key saved!';
-        } else {
-          localStorage.removeItem('aerogrid_gemini_key');
-          document.getElementById('apiKeyBtn').textContent = '🔑 Pro Key';
-          document.getElementById('statusToast').textContent = '✓ Switched to Zero-Auth Free AI Engine';
+    const HERO_VAULT = [
+      { id: "taj", name: "Taj Mahal", tag: "HERITAGE", icon: "🕌" },
+      { id: "trishul", name: "Shiva Trishul", tag: "DIVINE", icon: "🔱" },
+      { id: "heart", name: "Beating 3D Heart", tag: "WEDDING", icon: "❤️" },
+      { id: "rings", name: "Wedding Rings", tag: "WEDDING", icon: "💍" },
+      { id: "globe", name: "3D Earth Globe", tag: "GLOBAL", icon: "🌍" },
+      { id: "rocket", name: "ISRO Rocket", tag: "AEROSPACE", icon: "🚀" }
+    ];
+
+    function setBpPrompt(txt, pal) {
+      document.getElementById('bpPromptInput').value = txt;
+      if (pal) document.getElementById('bpPaletteSelect').value = pal;
+      generateBlueprintPreview();
+    }
+
+    // STAGE 1: Deterministic Semantic Light-Art Blueprint Renderer (0% API failure)
+    function generateBlueprintPreview() {
+      const raw = (document.getElementById('bpPromptInput').value || "INDIA").trim();
+      const pal = document.getElementById('bpPaletteSelect').value;
+      const c = document.getElementById('blueprintCanvas');
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      const q = raw.toLowerCase();
+      const cx = 160, cy = 120;
+      const c1 = pal === "tricolour" ? "#FF9933" : (pal === "divine_fire" ? "#FFD700" : (pal === "diamond" ? "#FFFFFF" : "#FFD700"));
+      const c2 = pal === "tricolour" ? "#FFFFFF" : (pal === "divine_fire" ? "#FF2A85" : (pal === "diamond" ? "#38BDF8" : "#00E5FF"));
+      const c3 = pal === "tricolour" ? "#10B981" : (pal === "divine_fire" ? "#FF6D00" : "#FFFFFF");
+
+      if (q.includes("india") || q.includes("map") || q.includes("bharat")) {
+        // High-precision stylized India silhouette + Ashoka Chakra
+        const pts = [
+          [148, 22], [164, 26], [174, 42], [168, 56], [186, 68], [218, 72],
+          [246, 62], [262, 74], [248, 92], [234, 88], [214, 96], [206, 118],
+          [184, 146], [166, 186], [156, 216], [146, 188], [130, 148], [116, 122],
+          [94, 114], [90, 98], [114, 92], [126, 72], [136, 48]
+        ];
+        ctx.lineWidth = 4;
+        for (let i = 0; i < pts.length; i++) {
+          const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % pts.length];
+          const avgY = (y1 + y2) / 2;
+          ctx.strokeStyle = avgY < 85 ? c1 : (avgY < 145 ? c2 : c3);
+          ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        }
+        // Ashoka Chakra center
+        ctx.strokeStyle = "#38BDF8"; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(160, 118, 20, 0, Math.PI * 2); ctx.stroke();
+        for (let k = 0; k < 12; k++) {
+          const a = (k / 12) * Math.PI * 2;
+          ctx.beginPath(); ctx.moveTo(160, 118); ctx.lineTo(160 + 19 * Math.cos(a), 118 + 19 * Math.sin(a)); ctx.stroke();
+        }
+      } else if (q.includes("trishul") || q.includes("shiv")) {
+        // Central spear + side prongs + Tripundra + Damru
+        ctx.strokeStyle = c2; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(cx, 22); ctx.lineTo(cx, 218); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, 20); ctx.lineTo(cx - 12, 54); ctx.lineTo(cx + 12, 54); ctx.closePath(); ctx.stroke();
+        ctx.strokeStyle = c1; ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(cx - 46, 36); ctx.quadraticCurveTo(cx - 52, 88, cx, 88);
+        ctx.quadraticCurveTo(cx + 52, 88, cx + 46, 36);
+        ctx.stroke();
+        // Damru
+        ctx.strokeStyle = c3; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(cx - 24, 134); ctx.lineTo(cx + 24, 158); ctx.lineTo(cx + 24, 134); ctx.lineTo(cx - 24, 158); ctx.closePath(); ctx.stroke();
+      } else if (q.includes("lotus") || q.includes("flower") || q.includes("mandala")) {
+        for (let layer = 0; layer < 3; layer++) {
+          const petals = 8 + layer * 4;
+          const r = 42 + layer * 24;
+          ctx.strokeStyle = layer === 0 ? c1 : (layer === 1 ? c2 : c3);
+          ctx.lineWidth = 3;
+          for (let k = 0; k < petals; k++) {
+            const a = (k / petals) * Math.PI * 2;
+            ctx.beginPath();
+            ctx.ellipse(cx + Math.cos(a) * (r * 0.55), cy + Math.sin(a) * (r * 0.55), r * 0.45, 11, a, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+      } else if (q.includes("taj") || q.includes("palace") || q.includes("temple") || q.includes("mandir")) {
+        // Onion dome + spire + arches + 4 minarets
+        ctx.strokeStyle = c1; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(cx, 82, 34, Math.PI, 0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, 26); ctx.lineTo(cx, 48); ctx.stroke();
+        ctx.strokeStyle = c2; ctx.lineWidth = 3.5;
+        ctx.strokeRect(cx - 56, 84, 112, 92);
+        ctx.beginPath(); ctx.arc(cx, 176, 26, Math.PI, 0); ctx.stroke();
+        [cx - 88, cx - 72, cx + 72, cx + 88].forEach((mx, idx) => {
+          ctx.strokeStyle = idx % 2 === 0 ? c1 : c3;
+          ctx.beginPath(); ctx.moveTo(mx, 56); ctx.lineTo(mx, 176); ctx.stroke();
+        });
+        ctx.strokeStyle = c3; ctx.beginPath(); ctx.moveTo(45, 178); ctx.lineTo(275, 178); ctx.stroke();
+      } else if (q.includes("crown") || q.includes("king") || q.includes("royal")) {
+        ctx.strokeStyle = c1; ctx.lineWidth = 4.5;
+        ctx.beginPath();
+        ctx.moveTo(68, 174); ctx.lineTo(56, 86); ctx.lineTo(108, 126);
+        ctx.lineTo(cx, 62); ctx.lineTo(212, 126); ctx.lineTo(264, 86);
+        ctx.lineTo(252, 174); ctx.closePath(); ctx.stroke();
+        [56, cx, 264].forEach(jx => {
+          ctx.fillStyle = c2; ctx.beginPath(); ctx.arc(jx, jx === cx ? 54 : 78, 6, 0, Math.PI * 2); ctx.fill();
+        });
+      } else if (q.includes("diya") || q.includes("lamp") || q.includes("flame")) {
+        ctx.strokeStyle = c3; ctx.lineWidth = 4.5;
+        ctx.beginPath(); ctx.arc(cx, 134, 68, 0.1 * Math.PI, 0.9 * Math.PI); ctx.closePath(); ctx.stroke();
+        ctx.strokeStyle = c1; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(cx, 42); ctx.quadraticCurveTo(cx + 28, 86, cx, 118); ctx.quadraticCurveTo(cx - 28, 86, cx, 42); ctx.stroke();
+      } else {
+        // Ornamental Aura Halo + Custom Typography Emblem
+        ctx.strokeStyle = c1; ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        for (let a = 0; a <= Math.PI * 2; a += 0.05) {
+          const r = 92 + Math.sin(a * 16) * 6;
+          const x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
+          a === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.closePath(); ctx.stroke();
+        ctx.strokeStyle = c2; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(cx, cy, 78, 0, Math.PI * 2); ctx.stroke();
+        ctx.font = "900 28px Arial, sans-serif";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(raw.toUpperCase().slice(0, 14), cx, cy);
+      }
+
+      document.getElementById('bpStatusBadge').textContent = "PREVIEW READY";
+      document.getElementById('bpStatusBadge').className = "text-sky-400 font-bold";
+      document.getElementById('statusToast').textContent = `👁️ Blueprint ready for "${raw.slice(0, 22)}" — click 'Approve & Compile' to fly!`;
+    }
+
+    // STAGE 2: Compile Approved Blueprint Canvas into 3D Drone Coordinates
+    function approveBlueprintToDrones() {
+      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 2200;
+      const pal = document.getElementById('bpPaletteSelect').value;
+      const depthAmp = parseFloat(document.getElementById('bpDepthSelect').value);
+      const label = (document.getElementById('bpPromptInput').value || "Blueprint").trim().slice(0, 20);
+      const canvas = document.getElementById('blueprintCanvas');
+
+      const cloud = compileImageTo3DCloud(canvas, drones, pal, depthAmp);
+      slides[activeSlideIdx] = {
+        ...slides[activeSlideIdx],
+        type: "blueprint",
+        label,
+        cloud
+      };
+      document.getElementById('bpStatusBadge').textContent = "COMPILED ✓";
+      document.getElementById('bpStatusBadge').className = "text-emerald-400 font-bold";
+      activateSlide(activeSlideIdx, false);
+    }
+
+    // Global Clipboard Paste (Ctrl+V) -> Loads directly into Blueprint Preview & Compiles
+    window.addEventListener('paste', (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const blob = item.getAsFile();
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const img = new Image();
+            img.onload = () => {
+              const c = document.getElementById('blueprintCanvas');
+              const ctx = c.getContext('2d');
+              ctx.fillStyle = "#000000";
+              ctx.fillRect(0, 0, c.width, c.height);
+              const fit = Math.min((c.width - 16) / img.width, (c.height - 16) / img.height);
+              const dw = img.width * fit, dh = img.height * fit;
+              ctx.drawImage(img, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
+              switchSidebarTab('blueprint');
+              document.getElementById('bpPromptInput').value = "Pasted AI Art";
+              document.getElementById('bpStatusBadge').textContent = "IMAGE PASTED";
+              approveBlueprintToDrones();
+            };
+            img.src = ev.target.result;
+          };
+          reader.readAsDataURL(blob);
+          break;
         }
       }
-    }
+    });
 
-    function quickFillPrompt(txt) {
-      document.getElementById('singleAiPrompt').value = txt;
-      generateSingleSlideFromAI();
-    }
-
-    // Sobel Edge-Priority + 3D Depth Relief Compiler from ANY Image/Canvas
+    // Sobel Edge-Priority + 3D Depth Relief Compiler
     function compileImageTo3DCloud(imgSource, nDrones, styleTheme = "gold_cyan", depthAmp = 14) {
       const w = 260, h = 220;
       const c = document.createElement('canvas');
@@ -454,7 +672,6 @@
       ctx.fillStyle = '#000';
       ctx.fillRect(0, 0, w, h);
 
-      // Fit image centered preserving aspect ratio
       const iw = imgSource.width || w;
       const ih = imgSource.height || h;
       const fit = Math.min((w - 16) / iw, (h - 16) / ih);
@@ -462,7 +679,6 @@
       ctx.drawImage(imgSource, (w - dw) / 2, (h - dh) / 2, dw, dh);
 
       const data = ctx.getImageData(0, 0, w, h).data;
-      // Detect if uploaded image has a light/white background
       const cornerLum = (data[0] + data[1] + data[2] + data[(w - 1) * 4] + data[(w - 1) * 4 + 1] + data[(w - 1) * 4 + 2]) / 6;
       const isLightBg = cornerLum > 165;
 
@@ -473,9 +689,7 @@
         lumGrid[i] = isLightBg ? (255 - rawL) : rawL;
       }
 
-      // Sobel Edge Detection + Luminous Fill Extraction
-      const edgePts = [];
-      const fillPts = [];
+      const edgePts = [], fillPts = [];
       let minX = w, maxX = 0, minY = h, maxY = 0;
 
       for (let y = 2; y < h - 2; y += 2) {
@@ -503,25 +717,20 @@
       const combined = [...edgePts, ...fillPts];
       if (combined.length < 20) return build3DTextCloud("AEROGRID", nDrones, "gold");
 
-      const midX = (minX + maxX) / 2;
-      const midY = (minY + maxY) / 2;
-      const spanX = Math.max(1, maxX - minX);
-      const spanY = Math.max(1, maxY - minY);
+      const midX = (minX + maxX) / 2, midY = (minY + maxY) / 2;
+      const spanX = Math.max(1, maxX - minX), spanY = Math.max(1, maxY - minY);
       const scale = Math.min(104 / spanX, 68 / spanY);
 
-      // Allocate 65% drones to razor-sharp edges/contours, 35% to volumetric interior shading
       const edgeBudget = Math.min(edgePts.length, Math.floor(nDrones * 0.65));
       const fillBudget = nDrones - edgeBudget;
       const selected = [];
 
       for (let i = 0; i < edgeBudget; i++) {
-        const j = Math.floor((i / Math.max(1, edgeBudget)) * edgePts.length);
-        selected.push(edgePts[j]);
+        selected.push(edgePts[Math.floor((i / Math.max(1, edgeBudget)) * edgePts.length)]);
       }
       const fillPool = fillPts.length > 0 ? fillPts : edgePts;
       for (let i = 0; i < fillBudget; i++) {
-        const j = Math.floor((i / Math.max(1, fillBudget)) * fillPool.length);
-        selected.push(fillPool[j]);
+        selected.push(fillPool[Math.floor((i / Math.max(1, fillBudget)) * fillPool.length)]);
       }
 
       const out = [];
@@ -529,13 +738,9 @@
         const [px, py, lum, r, g, b, edgeMag] = selected[i % selected.length];
         const normX = (px - minX) / spanX;
         const normY = (py - minY) / spanY;
-
-        // Cylindrical 3D Sculptural Relief + Luminance Extrusion
         const archDepth = Math.cos((normX - 0.5) * Math.PI) * (depthAmp * 0.65);
         const lumDepth = ((lum / 255) - 0.35) * (depthAmp * 0.55);
-        const yDepth = archDepth + lumDepth;
 
-        // Preserve vibrant original colors if colorful, else apply broadcast LED palette
         const maxC = Math.max(r, g, b), minC = Math.min(r, g, b);
         const isColorful = !isLightBg && (maxC - minC > 45);
         let hex;
@@ -548,13 +753,12 @@
         } else if (styleTheme === "diamond") {
           hex = edgeMag > 160 ? "#FFFFFF" : "#38BDF8";
         } else {
-          // Royal Gold & Cyan
           hex = edgeMag > 150 ? "#FFD700" : (lum > 140 ? "#FFFFFF" : "#00E5FF");
         }
 
         out.push([
           +((px - midX) * scale).toFixed(2),
-          +yDepth.toFixed(2),
+          +(archDepth + lumDepth).toFixed(2),
           +(66 - (py - midY) * scale).toFixed(2),
           hex
         ]);
@@ -562,143 +766,258 @@
       return out;
     }
 
-    // Dual-Engine Generative Fetcher (Gemini Imagen-3 Priority -> Zero-Auth Pollinations -> Local Procedural Fallback)
-    // Helper to reject light/yellow rate-limit banners (like Pollinations "Free limit reached")
-    // Render crisp SVG string onto offscreen Canvas for 3D Drone Sampling (Zero CORS, Razor Sharp)
-    function renderSvgToCanvas(svgCode) {
-      return new Promise((resolve, reject) => {
-        const cleanSvg = svgCode.replace(/```svg|```xml|```/gi, '').trim();
-        const match = cleanSvg.match(/<svg[\s\S]*<\/svg>/i);
-        if (!match) return reject(new Error("Invalid SVG"));
-        const blob = new Blob([match[0]], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const img = new Image();
-        img.onload = () => {
-          const c = document.createElement('canvas');
-          c.width = 520; c.height = 400;
-          const ctx = c.getContext('2d');
-          ctx.fillStyle = '#000000';
-          ctx.fillRect(0, 0, c.width, c.height);
-          ctx.drawImage(img, 20, 15, 480, 370);
-          URL.revokeObjectURL(url);
-          resolve(c);
-        };
-        img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
-        img.src = url;
+    // Verified Hero Sculptures (Taj Mahal, Trishul, 3D Heart, Wedding Rings, Earth Globe, ISRO Rocket)
+    function allocateParts(parts, nDrones) {
+      const out = [];
+      let rem = nDrones;
+      parts.forEach((p, idx) => {
+        const count = idx === parts.length - 1 ? rem : Math.max(1, Math.round(nDrones * p.w));
+        rem -= count;
+        if (!p.pts || p.pts.length === 0) return;
+        for (let i = 0; i < count; i++) {
+          const j = Math.floor((i / count) * p.pts.length);
+          const pt = p.pts[j];
+          out.push([pt[0], pt[1], pt[2], pt[3] || p.col]);
+        }
       });
+      return out;
     }
 
-    // Ultra-Fast Gemini Vector Light-Art Generator + Zero-Error Fallback
-    async function fetchGeneratedLightArt(userPrompt, styleTheme) {
-      const tag = document.getElementById('aiEngineTag');
-      const thumb = document.getElementById('aiPreviewThumb');
-      const ph = document.getElementById('aiPreviewPlaceholder');
-
-      const paletteDesc = styleTheme === "tricolour"
-        ? "Indian Tricolour (#FF9933 saffron, #FFFFFF white, #10B981 emerald green)"
-        : (styleTheme === "divine_fire"
-          ? "Divine Gold (#FFD700), Saffron (#FF6D00), and Magenta (#FF2A85)"
-          : "Imperial Gold (#FFD700), Electric Cyan (#00E5FF), and Pure White (#FFFFFF)");
-
-      const geminiKey = localStorage.getItem('aerogrid_gemini_key');
-      if (geminiKey) {
-        try {
-          tag.textContent = "GEMINI 3D...";
-          tag.className = "text-amber-300 animate-pulse";
-
-          const sysPrompt = `You are a master drone light-show vector artist. Output ONLY a single valid standalone <svg viewBox="0 0 400 320" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)"> with a solid black background <rect width="400" height="320" fill="#000000"/>. Draw an intricate, symmetrical, recognizable, high-detail luminous light-art illustration of: "${userPrompt}". Use ONLY crisp glowing strokes (fill="none" or dark fill, stroke-width="2.2" to "3.5") in ${paletteDesc}. Center the subject between x=50..350 and y=30..290. No text labels, no watermarks. Output raw SVG only.`;
-
-          const res = await fetch(`[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$){encodeURIComponent(geminiKey)}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: sysPrompt }] }],
-              generationConfig: { temperature: 0.4 }
-            })
-          });
-
-          if (res.ok) {
-            const json = await res.json();
-            const rawText = json?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-            const canvas = await renderSvgToCanvas(rawText);
-            thumb.src = canvas.toDataURL();
-            thumb.classList.remove('hidden');
-            ph.classList.add('hidden');
-            tag.textContent = "GEMINI AI OK";
-            tag.className = "text-emerald-400";
-            return canvas;
+    function buildHeroFormation(id, nDrones) {
+      if (id === "taj") {
+        const plinth = [], arches = [], dome = [], minarets = [];
+        for (let x = -46; x <= 46; x += 2.2) {
+          for (let y = -18; y <= 18; y += 3.0) {
+            plinth.push([x, y, 36, "#94A3B8"]);
+            if (Math.abs(x) === 46 || Math.abs(y) === 18) plinth.push([x, y, 42, "#E2E8F0"]);
           }
-        } catch (err) {
-          console.warn("Gemini SVG generation error:", err);
+        }
+        for (let z = 42; z <= 70; z += 1.5) {
+          for (let x = -28; x <= 28; x += 1.6) {
+            const inMainArch = Math.abs(x) < 10 && z < 64 && (Math.pow(x / 10, 2) + Math.pow((z - 42) / 22, 2) < 1);
+            const inSideArch = Math.abs(x) > 13 && Math.abs(x) < 23 && ((z > 43 && z < 53) || (z > 56 && z < 66));
+            if (!inMainArch && !inSideArch) {
+              arches.push([x, 12, z, "#E0F2FE"], [x, -12, z, "#38BDF8"]);
+            }
+          }
+        }
+        for (let i = 0; i < 420; i++) {
+          const u = i / 420;
+          const th = (i * 2.39996) % (Math.PI * 2);
+          const r = 16.5 * Math.sin(u * Math.PI * 0.88) * (1 + 0.16 * Math.sin(u * Math.PI));
+          const z = 70 + u * 23;
+          dome.push([r * Math.cos(th), r * Math.sin(th), z, u > 0.72 ? "#FFD700" : "#FDE047"]);
+        }
+        for (let z = 93; z <= 104; z += 0.9) dome.push([0, 0, z, "#FFFFFF"]);
+        [[-40, 15], [40, 15], [-40, -15], [40, -15]].forEach(([mx, my]) => {
+          for (let z = 42; z <= 88; z += 1.6) {
+            const rad = 2.8 - (z - 42) * 0.022;
+            const isBalcony = Math.abs(z - 56) < 1.2 || Math.abs(z - 70) < 1.2 || Math.abs(z - 84) < 1.2;
+            for (let k = 0; k < 8; k++) {
+              const a = (k / 8) * Math.PI * 2;
+              minarets.push([mx + (isBalcony ? rad + 1.2 : rad) * Math.cos(a), my + (isBalcony ? rad + 1.2 : rad) * Math.sin(a), z, isBalcony ? "#FFD700" : "#E2E8F0"]);
+            }
+          }
+          minarets.push([mx, my, 92, "#FFD700"]);
+        });
+        return allocateParts([{ pts: plinth, col: "#94A3B8", w: 0.14 }, { pts: arches, col: "#38BDF8", w: 0.34 }, { pts: dome, col: "#FFD700", w: 0.28 }, { pts: minarets, col: "#FFFFFF", w: 0.24 }], nDrones);
+      }
+
+      if (id === "trishul") {
+        const centralBlade = [], outerProngs = [], tilak = [], damru = [];
+        for (let s = 0; s <= 70; s++) {
+          const u = s / 70;
+          const z = 82 + u * 26;
+          const halfW = u < 0.25 ? (u / 0.25) * 4.5 : 4.5 * (1 - (u - 0.25) / 0.75);
+          centralBlade.push([-halfW, 1, z, "#FFFFFF"], [halfW, 1, z, "#FFFFFF"]);
+        }
+        for (let z = 32; z <= 82; z += 1.0) centralBlade.push([-1.3, 0, z, "#FFFFFF"], [1.3, 0, z, "#FFFFFF"]);
+        [-1, 1].forEach(side => {
+          for (let s = 0; s <= 85; s++) {
+            const u = s / 85;
+            const x = side * (3.5 + Math.sin(u * Math.PI * 0.85) * 16.5 - (u > 0.75 ? (u - 0.75) * 12 : 0));
+            const z = 75 + u * 27 - Math.sin(u * Math.PI) * 4.5;
+            outerProngs.push([x, 1, z, "#FFB703"], [x - side * 2.2, 1.5, z + 0.8, "#00E5FF"]);
+          }
+        });
+        [86.5, 88.8, 91.1].forEach(tz => {
+          for (let x = -7.5; x <= 7.5; x += 0.85) tilak.push([x, 3, tz, "#FFFFFF"]);
+        });
+        tilak.push([0, 3.8, 88.8, "#FF2A85"]);
+        const tilt = -0.32;
+        const rotD = (dx, dz) => [dx * Math.cos(tilt) - dz * Math.sin(tilt), dx * Math.sin(tilt) + dz * Math.cos(tilt) + 60];
+        for (let s = -10; s <= 10; s += 0.7) {
+          const r = 2.6 + Math.abs(s) * 0.65;
+          const [xTop, zTop] = rotD(s, r), [xBot, zBot] = rotD(s, -r);
+          damru.push([xTop, 3, zTop, "#FFB703"], [xBot, 3, zBot, "#FFB703"]);
+        }
+        return allocateParts([{ pts: centralBlade, col: "#FFFFFF", w: 0.28 }, { pts: outerProngs, col: "#FFB703", w: 0.34 }, { pts: tilak, col: "#FFFFFF", w: 0.14 }, { pts: damru, col: "#FFB703", w: 0.24 }], nDrones);
+      }
+
+      if (id === "heart") {
+        const pts = [];
+        for (let layer = 0; layer < 8; layer++) {
+          const sc = 1.65 - layer * 0.16;
+          for (let k = 0; k <= 120; k++) {
+            const t = (k / 120) * Math.PI * 2;
+            const hx = 16 * Math.pow(Math.sin(t), 3) * sc;
+            const hz = (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * sc + 68;
+            const hy = (layer - 3.5) * 2.2;
+            pts.push([hx, hy, hz, layer < 3 ? "#FF2A85" : (layer < 6 ? "#FF6D00" : "#FFD700")]);
+          }
+        }
+        return allocateParts([{ pts, col: "#FF2A85", w: 1.0 }], nDrones);
+      }
+
+      if (id === "rings") {
+        const r1 = [], r2 = [], diamond = [];
+        for (let k = 0; k < 420; k++) {
+          const th = (k / 420) * Math.PI * 2;
+          for (let w = -2; w <= 2; w += 2) {
+            r1.push([-12 + 21 * Math.cos(th), w + 6 * Math.sin(th), 66 + 21 * Math.sin(th), "#FFD700"]);
+            r2.push([12 + 21 * Math.cos(th), w - 6 * Math.sin(th), 66 + 21 * Math.sin(th), "#00E5FF"]);
+          }
+        }
+        for (let i = 0; i < 140; i++) {
+          const a = (i / 140) * Math.PI * 2, r = (i % 5) * 1.1;
+          diamond.push([-12 + r * Math.cos(a), r * Math.sin(a), 89 + (4 - (i % 5)) * 1.3, "#FFFFFF"]);
+        }
+        return allocateParts([{ pts: r1, col: "#FFD700", w: 0.44 }, { pts: r2, col: "#00E5FF", w: 0.44 }, { pts: diamond, col: "#FFFFFF", w: 0.12 }], nDrones);
+      }
+
+      if (id === "globe") {
+        const pts = [];
+        for (let i = 0; i < nDrones; i++) {
+          const phi = Math.acos(1 - 2 * (i + 0.5) / nDrones);
+          const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+          const R = 32;
+          const x = R * Math.sin(phi) * Math.cos(theta);
+          const y = R * Math.sin(phi) * Math.sin(theta);
+          const z = R * Math.cos(phi) + 66;
+          const isLand = Math.sin(theta * 2.5) * Math.cos(phi * 3.0) > 0.15;
+          const isPolar = Math.abs(Math.cos(phi)) > 0.86;
+          pts.push([x, y, z, isPolar ? "#FFFFFF" : (isLand ? "#10B981" : "#0284C7")]);
+        }
+        return pts;
+      }
+
+      // ISRO Rocket
+      const body = [], fins = [], flame = [];
+      for (let z = 44; z <= 98; z += 1.4) {
+        const u = (z - 44) / 54;
+        const r = u > 0.72 ? 6.5 * (1 - (u - 0.72) / 0.28) : 6.5;
+        const col = u > 0.72 ? "#FF9933" : (u > 0.48 ? "#FFFFFF" : (u > 0.34 ? "#10B981" : "#E2E8F0"));
+        for (let k = 0; k < 22; k++) {
+          const a = (k / 22) * Math.PI * 2;
+          body.push([r * Math.cos(a), r * Math.sin(a), z, col]);
         }
       }
-
-      // Clean Instant Synthesizer when no API key is entered yet
-      tag.textContent = geminiKey ? "FALLBACK" : "ADD PRO KEY";
-      tag.className = "text-amber-300";
-      document.getElementById('statusToast').textContent = geminiKey
-        ? "⚠️ Check Gemini API Key validity or internet connection"
-        : "🔑 Click 'Pro Key' in top bar & paste your free Google AI Studio key for unlimited AI shapes!";
-      return synthesizeFallbackArtCanvas(userPrompt, styleTheme);
-    }
-
-    function loadImageAsync(src) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
-        img.onload = () => resolve(img);
-        img.onerror = reject;
-        img.src = src;
+      [0, Math.PI / 2, Math.PI, Math.PI * 1.5].forEach(ang => {
+        for (let s = 0; s <= 12; s++) {
+          const r = 6.5 + s * 0.7, z = 44 + (12 - s) * 1.3;
+          fins.push([r * Math.cos(ang), r * Math.sin(ang), z, "#38BDF8"]);
+        }
       });
-    }
-
-    function loadImageWithTimeout(url, ms) {
-      return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error("Timeout")), ms);
-        loadImageAsync(url).then(img => { clearTimeout(timer); resolve(img); }).catch(e => { clearTimeout(timer); reject(e); });
-      });
-    }
-
-    // Zero-Error Procedural Light-Art Canvas Fallback (Guarantees NO crash even offline)
-    function synthesizeFallbackArtCanvas(label, styleTheme) {
-      const c = document.createElement('canvas');
-      c.width = 480; c.height = 360;
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#000';
-      ctx.fillRect(0, 0, c.width, c.height);
-
-      // Draw ornamental glowing mandala halo + bold typography emblem
-      const cx = 240, cy = 180;
-      ctx.strokeStyle = styleTheme === "tricolour" ? "#FF9933" : "#FFD700";
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      for (let a = 0; a <= Math.PI * 2; a += 0.04) {
-        const r = 132 + Math.sin(a * 16) * 8;
-        const x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
-        a === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      for (let z = 24; z < 44; z += 1.2) {
+        const r = ((z - 24) / 20) * 6.0;
+        for (let k = 0; k < 14; k++) {
+          const a = (k / 14) * Math.PI * 2;
+          flame.push([r * Math.cos(a), r * Math.sin(a), z, z > 36 ? "#FFFFFF" : "#FF5500"]);
+        }
       }
-      ctx.closePath();
-      ctx.stroke();
+      return allocateParts([{ pts: body, col: "#FFFFFF", w: 0.62 }, { pts: fins, col: "#38BDF8", w: 0.16 }, { pts: flame, col: "#FF5500", w: 0.22 }], nDrones);
+    }
+    // --------------------------------------------------------------------------
+    // 2. SYMMETRY SKY DRAW PAD & 3D TYPOGRAPHY
+    // --------------------------------------------------------------------------
+    function initSkyDrawPad() {
+      const c = document.getElementById('skyDrawCanvas');
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, c.width, c.height);
+      drawCenterGuide(ctx, c.width, c.height);
 
-      ctx.strokeStyle = styleTheme === "tricolour" ? "#10B981" : "#00E5FF";
-      ctx.lineWidth = 2.5;
+      const getPos = (e) => {
+        const rect = c.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: ((clientX - rect.left) / rect.width) * c.width,
+          y: ((clientY - rect.top) / rect.height) * c.height
+        };
+      };
+
+      const startDraw = (e) => { isDrawingPad = true; lastPadPt = getPos(e); };
+      const moveDraw = (e) => {
+        if (!isDrawingPad) return;
+        e.preventDefault();
+        const pt = getPos(e);
+        ctx.strokeStyle = drawColor;
+        ctx.lineWidth = 4;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(lastPadPt.x, lastPadPt.y);
+        ctx.lineTo(pt.x, pt.y);
+        ctx.stroke();
+
+        if (document.getElementById('mirrorDrawChk').checked) {
+          ctx.beginPath();
+          ctx.moveTo(c.width - lastPadPt.x, lastPadPt.y);
+          ctx.lineTo(c.width - pt.x, pt.y);
+          ctx.stroke();
+        }
+        lastPadPt = pt;
+      };
+      const endDraw = () => { isDrawingPad = false; lastPadPt = null; };
+
+      c.addEventListener('mousedown', startDraw);
+      c.addEventListener('mousemove', moveDraw);
+      window.addEventListener('mouseup', endDraw);
+      c.addEventListener('touchstart', startDraw, { passive: false });
+      c.addEventListener('touchmove', moveDraw, { passive: false });
+      c.addEventListener('touchend', endDraw);
+    }
+
+    function drawCenterGuide(ctx, w, h) {
+      ctx.save();
+      ctx.strokeStyle = "#0f172a";
+      ctx.setLineDash([4, 4]);
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(cx, cy, 114, 0, Math.PI * 2);
+      ctx.moveTo(w / 2, 0);
+      ctx.lineTo(w / 2, h);
       ctx.stroke();
+      ctx.restore();
+    }
 
-      const words = label.toUpperCase().slice(0, 16);
-      ctx.font = "900 44px Arial, sans-serif";
-      ctx.fillStyle = "#FFFFFF";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(words, cx, cy);
+    function setDrawColor(hex) { drawColor = hex; }
 
-      const thumb = document.getElementById('aiPreviewThumb');
-      const ph = document.getElementById('aiPreviewPlaceholder');
-      thumb.src = c.toDataURL();
-      thumb.classList.remove('hidden');
-      ph.classList.add('hidden');
-      return c;
+    function clearSkyDrawPad() {
+      const c = document.getElementById('skyDrawCanvas');
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, c.width, c.height);
+      drawCenterGuide(ctx, c.width, c.height);
+    }
+
+    function sendSkyDrawingToDrones() {
+      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 2200;
+      const drawC = document.getElementById('skyDrawCanvas');
+      // Copy drawing to Blueprint Preview as well
+      const bpC = document.getElementById('blueprintCanvas');
+      const bpCtx = bpC.getContext('2d');
+      bpCtx.fillStyle = "#000000";
+      bpCtx.fillRect(0, 0, bpC.width, bpC.height);
+      bpCtx.drawImage(drawC, 0, 0, bpC.width, bpC.height);
+
+      const cloud = compileImageTo3DCloud(drawC, drones, "gold_cyan", 10);
+      slides[activeSlideIdx] = {
+        ...slides[activeSlideIdx],
+        type: "custom",
+        label: "Custom Sky Art",
+        cloud
+      };
+      activateSlide(activeSlideIdx, false);
     }
 
     function build3DTextCloud(textStr, nDrones, colorTheme = "tricolour", fontCss = "900 Arial, sans-serif") {
@@ -746,7 +1065,7 @@
     }
 
     // --------------------------------------------------------------------------
-    // 2. THREE.JS ENGINE + HDR UNREAL BLOOM + MIRROR LAKE REFLECTION
+    // 3. THREE.JS ENGINE + HDR UNREAL BLOOM + MIRROR LAKE REFLECTION
     // --------------------------------------------------------------------------
     function createGlowSprite() {
       const c = document.createElement('canvas');
@@ -769,7 +1088,7 @@
       scene.fog = new THREE.FogExp2(0x02040a, 0.0018);
 
       camera = new THREE.PerspectiveCamera(48, container.clientWidth / container.clientHeight, 0.1, 1000);
-      camera.position.set(0, 34, 150);
+      camera.position.set(0, 24, 165);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
       renderer.setSize(container.clientWidth, container.clientHeight);
@@ -777,20 +1096,19 @@
       renderer.toneMapping = THREE.ReinhardToneMapping;
       container.appendChild(renderer.domElement);
 
-      // HDR UnrealBloom Post-Processing Pipeline
       const renderScene = new THREE.RenderPass(scene, camera);
       bloomPass = new THREE.UnrealBloomPass(
         new THREE.Vector2(container.clientWidth, container.clientHeight),
-        1.15, // strength
-        0.55, // radius
-        0.18  // threshold
+        1.10,
+        0.52,
+        0.20
       );
       composer = new THREE.EffectComposer(renderer);
       composer.addPass(renderScene);
       composer.addPass(bloomPass);
 
       controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.target.set(0, 26, 0);
+      controls.target.set(0, 14, 0);
       controls.enableDamping = true;
       controls.dampingFactor = 0.06;
       controls.minDistance = 30;
@@ -809,36 +1127,29 @@
       starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starVerts, 3));
       scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x64748b, size: 0.9 })));
 
-      if (localStorage.getItem('aerogrid_gemini_key')) {
-        document.getElementById('apiKeyBtn').textContent = '🔑 Pro Active';
-      }
+      // Populate Hero Vault Grid
+      document.getElementById('heroGrid').innerHTML = HERO_VAULT.map(h => `
+        <div onclick="loadHeroToSlide('${h.id}', '${h.name}')"
+          class="hero-card p-3 rounded-xl bg-[#050914] border border-slate-800 flex flex-col items-center text-center gap-1">
+          <span class="text-xl">${h.icon}</span>
+          <span class="text-[11px] font-semibold text-white">${h.name}</span>
+          <span class="text-[9px] font-mono text-slate-400">${h.tag}</span>
+        </div>
+      `).join('');
 
+      initSkyDrawPad();
+      generateBlueprintPreview();
       setupDroneParticles(2200);
-      initInitialShow();
+
+      slides = [
+        { type: "hero", id: "taj", label: "Taj Mahal", dur: 15, trans: "spiral", cloud: buildHeroFormation("taj", 2200) },
+        { type: "hero", id: "trishul", label: "Shiva Trishul", dur: 15, trans: "burst", cloud: buildHeroFormation("trishul", 2200) },
+        { type: "text", text: "INDIA 2026", color: "tricolour", font: "900 Arial, sans-serif", label: '"INDIA 2026"', dur: 20, trans: "wave", cloud: build3DTextCloud("INDIA 2026", 2200, "tricolour") }
+      ];
+      activateSlide(0, true);
 
       window.addEventListener('resize', handleResize);
       animateThree();
-    }
-
-    async function initInitialShow() {
-      const drones = 2200;
-      const slide1 = {
-        type: "text", text: "INDIA 2026", color: "tricolour", font: "900 Arial, sans-serif",
-        label: '"INDIA 2026"', dur: 15, trans: "spiral",
-        cloud: build3DTextCloud("INDIA 2026", drones, "tricolour")
-      };
-      const slide2 = {
-        type: "text", text: "AEROGRID", color: "gold", font: "900 Arial, sans-serif",
-        label: '"AEROGRID"', dur: 15, trans: "burst",
-        cloud: build3DTextCloud("AEROGRID", drones, "gold")
-      };
-      slides = [slide1, slide2];
-      activateSlide(0, true);
-      if (localStorage.getItem('aerogrid_gemini_key')) {
-        document.getElementById('statusToast').textContent = "✓ Gemini Pro AI Active • Type any prompt & click Generate!";
-      } else {
-        document.getElementById('statusToast').textContent = "🔑 Click 'Pro Key' (top right) to connect your Google AI Studio key!";
-      }
     }
 
     function handleResize() {
@@ -859,7 +1170,6 @@
         );
         lake.rotation.x = -Math.PI / 2;
         venueGroup.add(lake);
-
         const shoreRing = new THREE.Mesh(
           new THREE.RingGeometry(105, 106.5, 64),
           new THREE.MeshBasicMaterial({ color: 0x0ea5e9, transparent: true, opacity: 0.25, side: THREE.DoubleSide })
@@ -1090,10 +1400,10 @@
     }
 
     // --------------------------------------------------------------------------
-    // 3. UI, STORYBOARD & GENERATIVE ACTIONS
+    // 4. UI, STORYBOARD, UPLOADS & KTC GST INVOICE ENGINE
     // --------------------------------------------------------------------------
     function switchSidebarTab(tabName) {
-      ['ai', 'text', 'uploads'].forEach(t => {
+      ['blueprint', 'vault', 'draw', 'text', 'uploads'].forEach(t => {
         document.getElementById('panel-' + t).classList.toggle('hidden', t !== tabName);
         document.getElementById('tabBtn-' + t).classList.toggle('active', t === tabName);
       });
@@ -1120,81 +1430,41 @@
       setTimeout(handleResize, 30);
     }
 
-    async function generateSingleSlideFromAI() {
-      const promptText = document.getElementById('singleAiPrompt').value.trim();
-      if (!promptText) return;
-      const styleTheme = document.getElementById('aiStyleSelect').value;
-      const depthAmp = parseFloat(document.getElementById('aiDepthSelect').value);
+    function loadHeroToSlide(id, name) {
       const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 2200;
-
-      const btn = document.getElementById('genSingleBtn');
-      btn.disabled = true;
-      btn.textContent = "⏳ Synthesizing 3D Swarm...";
-      document.getElementById('statusToast').textContent = `⏳ Generating "${promptText.slice(0, 26)}"...`;
-
-      const img = await fetchGeneratedLightArt(promptText, styleTheme);
-      const cloud = compileImageTo3DCloud(img, drones, styleTheme, depthAmp);
-
       slides[activeSlideIdx] = {
         ...slides[activeSlideIdx],
-        type: "ai",
-        prompt: promptText,
-        styleTheme,
-        depthAmp,
-        label: promptText.slice(0, 20),
-        cloud
+        type: "hero", id, label: name,
+        cloud: buildHeroFormation(id, drones)
       };
       activateSlide(activeSlideIdx, false);
-      btn.disabled = false;
-      btn.textContent = "✦ Generate onto Active Slide";
     }
 
-    async function runMagicSequence() {
+    function runInstantSequence() {
       const raw = document.getElementById('magicPrompt').value.trim();
       if (!raw) return;
       const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 2200;
-      const goBtn = document.getElementById('magicGoBtn');
-      goBtn.disabled = true;
-      goBtn.textContent = "⏳ Building...";
-
       let parts = raw.split(/->|→/).map(s => s.trim()).filter(Boolean);
-      if (parts.length === 1) parts = [parts[0]];
-
       const transCycle = ["spiral", "burst", "wave"];
-      const placeholderCloud = build3DTextCloud("LOADING", drones, "cyan");
 
-      slides = parts.slice(0, 5).map((seg, i) => {
+      slides = parts.slice(0, 6).map((seg, i) => {
         const isQuoted = /^["'].*["']$/.test(seg);
         const clean = seg.replace(/^["']|["']$/g, "");
+        const low = clean.toLowerCase();
         if (isQuoted) {
-          const col = clean.toLowerCase().includes("india") ? "tricolour" : "gold";
-          return {
-            type: "text", text: clean.toUpperCase(), color: col, font: "900 Arial, sans-serif",
-            label: `"${clean.toUpperCase()}"`, dur: 18, trans: transCycle[i % 3],
-            cloud: build3DTextCloud(clean.toUpperCase(), drones, col)
-          };
+          const col = low.includes("india") ? "tricolour" : "gold";
+          return { type: "text", text: clean.toUpperCase(), color: col, font: "900 Arial, sans-serif", label: `"${clean.toUpperCase()}"`, dur: 18, trans: transCycle[i % 3], cloud: build3DTextCloud(clean.toUpperCase(), drones, col) };
         }
-        return {
-          type: "ai", prompt: clean, styleTheme: clean.toLowerCase().includes("india") ? "tricolour" : "gold_cyan",
-          depthAmp: 14, label: clean.slice(0, 20), dur: 15, trans: transCycle[i % 3],
-          cloud: placeholderCloud
-        };
+        const heroMatch = HERO_VAULT.find(h => low.includes(h.id) || low.includes(h.name.toLowerCase()));
+        if (heroMatch) {
+          return { type: "hero", id: heroMatch.id, label: heroMatch.name, dur: 15, trans: transCycle[i % 3], cloud: buildHeroFormation(heroMatch.id, drones) };
+        }
+        document.getElementById('bpPromptInput').value = clean;
+        generateBlueprintPreview();
+        const cloud = compileImageTo3DCloud(document.getElementById('blueprintCanvas'), drones, low.includes("india") ? "tricolour" : "gold_cyan", 14);
+        return { type: "blueprint", label: clean.slice(0, 20), dur: 15, trans: transCycle[i % 3], cloud };
       });
-
-      activateSlide(0, true);
-
-      for (let i = 0; i < slides.length; i++) {
-        if (slides[i].type === "ai") {
-          document.getElementById('statusToast').textContent = `⏳ AI Generating Slide 0${i + 1}: ${slides[i].label}...`;
-          const img = await fetchGeneratedLightArt(slides[i].prompt, slides[i].styleTheme);
-          slides[i].cloud = compileImageTo3DCloud(img, drones, slides[i].styleTheme, 14);
-          if (activeSlideIdx === i) activateSlide(i, false);
-        }
-      }
-
-      goBtn.disabled = false;
-      goBtn.textContent = "Generate Show";
-      document.getElementById('statusToast').textContent = `✓ Show Ready (${slides.length} Slides • ${drones} UAVs)`;
+      activateSlide(0, false);
     }
 
     function applyCustomTextToSlide() {
@@ -1240,16 +1510,9 @@
     }
 
     function addNewSlide() {
-      if (slides.length >= 6) {
-        document.getElementById('statusToast').textContent = "⚠️ Max 6 slides in storyboard";
-        return;
-      }
+      if (slides.length >= 6) return;
       const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 2200;
-      slides.push({
-        type: "text", text: "NEW SLIDE", color: "cyan", font: "900 Arial, sans-serif",
-        label: '"NEW SLIDE"', dur: 15, trans: "spiral",
-        cloud: build3DTextCloud("NEW SLIDE", drones, "cyan")
-      });
+      slides.push({ type: "hero", id: "heart", label: "Beating 3D Heart", dur: 15, trans: "spiral", cloud: buildHeroFormation("heart", drones) });
       activateSlide(slides.length - 1, false);
     }
 
@@ -1281,14 +1544,10 @@
       document.getElementById('droneManualInput').value = n;
       document.getElementById('modalDroneInput').value = n;
       slides = slides.map(s => {
-        if (s.type === "text") {
-          return { ...s, cloud: build3DTextCloud(s.text, n, s.color, s.font) };
-        }
-        // Resample existing cloud cleanly to new UAV count
+        if (s.type === "hero") return { ...s, cloud: buildHeroFormation(s.id, n) };
+        if (s.type === "text") return { ...s, cloud: build3DTextCloud(s.text, n, s.color, s.font) };
         const resampled = [];
-        for (let i = 0; i < n; i++) {
-          resampled.push([...s.cloud[i % s.cloud.length]]);
-        }
+        for (let i = 0; i < n; i++) resampled.push([...s.cloud[i % s.cloud.length]]);
         return { ...s, cloud: resampled };
       });
       setupDroneParticles(n);
@@ -1299,7 +1558,7 @@
     function setCamPreset(mode) {
       controls.autoRotate = false;
       document.getElementById('orbitBtn').classList.remove('bg-amber-400', 'text-slate-950');
-      if (mode === 'audience') { camera.position.set(0, 34, 150); controls.target.set(0, 26, 0); }
+      if (mode === 'audience') { camera.position.set(0, 24, 165); controls.target.set(0, 14, 0); }
       else if (mode === 'side') { camera.position.set(112, 62, 52); controls.target.set(0, 56, 0); }
       else if (mode === 'top') { camera.position.set(0, 175, 22); controls.target.set(0, 56, 0); }
       controls.update();
@@ -1347,15 +1606,21 @@
 
     function uploadReferenceImage(input) {
       if (!input.files || !input.files[0]) return;
-      const drones = parseInt(document.getElementById('droneManualInput').value, 10) || 2200;
       const file = input.files[0];
       const reader = new FileReader();
       reader.onload = (ev) => {
         const img = new Image();
         img.onload = () => {
-          const cloud = compileImageTo3DCloud(img, drones, "gold_cyan", 14);
-          slides[activeSlideIdx] = { ...slides[activeSlideIdx], type: "custom", label: file.name.slice(0, 16), cloud };
-          activateSlide(activeSlideIdx, false);
+          const c = document.getElementById('blueprintCanvas');
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = "#000000";
+          ctx.fillRect(0, 0, c.width, c.height);
+          const fit = Math.min((c.width - 16) / img.width, (c.height - 16) / img.height);
+          const dw = img.width * fit, dh = img.height * fit;
+          ctx.drawImage(img, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
+          switchSidebarTab('blueprint');
+          document.getElementById('bpPromptInput').value = file.name.slice(0, 18);
+          approveBlueprintToDrones();
         };
         img.src = ev.target.result;
       };
@@ -1417,9 +1682,6 @@
       activateSlide(activeSlideIdx, false);
     }
 
-    // --------------------------------------------------------------------------
-    // 4. EXPORT & KTC GST INVOICE ENGINE
-    // --------------------------------------------------------------------------
     function toggleExportModal(open) {
       document.getElementById('exportModal').classList.toggle('hidden', !open);
       if (open) updateQuote();
