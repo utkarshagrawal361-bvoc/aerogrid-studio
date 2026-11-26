@@ -1,5 +1,5 @@
 // =============================================================================
-// billing.js — AeroGrid Studio v6.0
+// billing.js — AeroGrid Studio v7.0
 // KTC GST Invoice Engine, GSTR-1 Ledger Export, and Skybrush .SKYC / .CSV
 // Multi-Slide Flight Trajectory Compiler (supports 500–5,000 UAVs).
 // Depends on: three-engine.js, formations.js
@@ -258,7 +258,7 @@ window.downloadSkycFile = async function downloadSkycFile() {
   const zip = new JSZip();
   zip.file('show.json', JSON.stringify({
     version: 2,
-    generator: 'AeroGrid Studio v6.0',
+    generator: 'AeroGrid Studio v7.0',
     fleetCount: drones,
     slides: slides.length,
     dgcaCompliant: true,

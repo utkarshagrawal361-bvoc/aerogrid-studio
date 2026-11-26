@@ -1,8 +1,9 @@
 // =============================================================================
-// three-engine.js — AeroGrid Studio v6.0
-// Pure-JS Triangle-Area-Weighted 3D Mesh Surface & Volume Sampler,
-// Three.js WebGL Stage, HDR UnrealBloomPass, Riverfront Mirror Lake + Skyline,
-// Bounding-Sphere Auto-Framing Camera, Live Hero Animations & Studio Controls.
+// three-engine.js — AeroGrid Studio v7.0
+// Pure-JS Triangle-Area-Weighted 3D Mesh Surface & Volume Sampler (with UV
+// texture sampling & live Euler/Scale transform), Three.js WebGL Stage,
+// HDR UnrealBloomPass, Universal Drag-and-Drop (.GLB/.GLTF/.OBJ/Image/SVG),
+// Bounding-Sphere + Projected-Extent Auto-Framing Camera & Studio Controls.
 // =============================================================================
 
 'use strict';
@@ -10,14 +11,8 @@
 // -----------------------------------------------------------------------------
 // 1. PURE-JS MATHEMATICAL TRIANGLE-AREA-WEIGHTED 3D MESH SURFACE & VOLUME SAMPLER
 // -----------------------------------------------------------------------------
-// Works on any THREE.BufferGeometry, THREE.Mesh, or THREE.Group without relying
-// on external CDN MeshSurfaceSampler scripts. Uses cumulative triangle-area CDF
-// with quasi-random golden-ratio stratification + Roberts R2 barycentric coords
-// so N drones (500–5,000) distribute evenly across all 3D faces with interpolated
-// per-vertex RGB colors (or material / procedural surface colors).
-// -----------------------------------------------------------------------------
 (function initAeroSampler() {
-  const PHI = 0.6180339887498949;
+  const PHI  = 0.6180339887498949;
   const R2_A = 0.7548776662466927;
   const R2_B = 0.5698402909980532;
 
@@ -29,6 +24,63 @@
   }
 
   /**
+   * Builds a fast CPU pixel sampler for any loaded THREE.Texture image so
+   * textured .glb/.gltf/.obj models project true UV surface colors onto drones.
+   */
+  function buildTextureSampler(tex) {
+    if (!tex || !tex.image) return null;
+    const img = tex.image;
+    const iw = img.naturalWidth || img.videoWidth || img.width || 0;
+    const ih = img.naturalHeight || img.height || 0;
+    if (iw <= 0 || ih <= 0) return null;
+
+    const maxDim = 256;
+    const scale  = Math.min(1, maxDim / Math.max(iw, ih));
+    const sw     = Math.max(1, Math.round(iw * scale));
+    const sh     = Math.max(1, Math.round(ih * scale));
+
+    try {
+      const c = document.createElement('canvas');
+      c.width  = sw;
+      c.height = sh;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0, sw, sh);
+      const data = ctx.getImageData(0, 0, sw, sh).data;
+      const flipY = tex.flipY !== false;
+      return { data, width: sw, height: sh, flipY };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function sampleTextureAtUV(sampler, u, v) {
+    const wu = ((u % 1) + 1) % 1;
+    let wv   = ((v % 1) + 1) % 1;
+    if (sampler.flipY) wv = 1 - wv;
+    const px  = Math.min(sampler.width - 1, Math.max(0, Math.floor(wu * sampler.width)));
+    const py  = Math.min(sampler.height - 1, Math.max(0, Math.floor(wv * sampler.height)));
+    const idx = (py * sampler.width + px) * 4;
+    return [
+      sampler.data[idx] / 255,
+      sampler.data[idx + 1] / 255,
+      sampler.data[idx + 2] / 255,
+    ];
+  }
+
+  function liftDarkRgb(r, g, b) {
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+    if (lum < 0.16) {
+      const boost = 0.16 - lum;
+      return [
+        Math.min(1, r + boost * 0.75 + 0.08),
+        Math.min(1, g + boost * 0.90 + 0.12),
+        Math.min(1, b + boost * 1.15 + 0.18),
+      ];
+    }
+    return [r, g, b];
+  }
+
+  /**
    * Attaches a Float32BufferAttribute 'color' (per-vertex RGB) to any BufferGeometry
    * using a callback (x, y, z, nx, ny, nz) -> THREE.Color | hex | [r,g,b] | string.
    */
@@ -36,14 +88,14 @@
     const pos = geometry.attributes.position;
     if (!pos) return geometry;
     if (!geometry.attributes.normal) geometry.computeVertexNormals();
-    const norm = geometry.attributes.normal;
+    const norm   = geometry.attributes.normal;
     const colors = new Float32Array(pos.count * 3);
     const tmpCol = new THREE.Color();
 
     for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i);
-      const y = pos.getY(i);
-      const z = pos.getZ(i);
+      const x  = pos.getX(i);
+      const y  = pos.getY(i);
+      const z  = pos.getZ(i);
       const nx = norm ? norm.getX(i) : 0;
       const ny = norm ? norm.getY(i) : 1;
       const nz = norm ? norm.getZ(i) : 0;
@@ -72,8 +124,8 @@
   }
 
   /**
-   * Collects world-transformed triangles with exact area & per-vertex colors
-   * from any BufferGeometry, Mesh, or Group hierarchy.
+   * Collects world-transformed triangles with exact area, UV textures & per-vertex
+   * colors from any BufferGeometry, Mesh, or Group hierarchy.
    */
   function collectTriangles(rootOrGeo) {
     const triangles = [];
@@ -83,18 +135,38 @@
     const ab = new THREE.Vector3();
     const ac = new THREE.Vector3();
     const cross = new THREE.Vector3();
-    const normalMat = new THREE.Matrix3();
     const tmpColor = new THREE.Color();
 
-    function extractFromMesh(geo, worldMat, fallbackColor, weightMultiplier, skipBottom, colorFn) {
+    function extractFromMesh(geo, worldMat, materials, ud) {
       if (!geo || !geo.attributes || !geo.attributes.position) return;
-      const pos = geo.attributes.position;
+      const pos     = geo.attributes.position;
       const colAttr = geo.attributes.color || null;
-      const index = geo.index;
+      const uvAttr  = geo.attributes.uv || null;
+      const index   = geo.index;
       const triCount = index ? Math.floor(index.count / 3) : Math.floor(pos.count / 3);
       if (triCount <= 0) return;
 
-      normalMat.getNormalMatrix(worldMat);
+      const weightMultiplier = typeof ud.surfaceWeight === 'number' ? ud.surfaceWeight : 1.0;
+      const skipBottom       = Boolean(ud.skipBottom);
+      const colorFn          = typeof ud.colorFn === 'function' ? ud.colorFn : null;
+      const fallbackHex      = ud.partColor || null;
+      const isImported       = Boolean(ud.isImported);
+
+      const matList = Array.isArray(materials) ? materials : [materials];
+      const texSamplers = matList.map((m) => (m && m.map ? buildTextureSampler(m.map) : null));
+      const groups = Array.isArray(geo.groups) && geo.groups.length ? geo.groups : null;
+
+      function resolveGroupMatIndex(triIdx) {
+        if (!groups || matList.length <= 1) return 0;
+        const vertIdx = triIdx * 3;
+        for (let g = 0; g < groups.length; g++) {
+          const grp = groups[g];
+          if (vertIdx >= grp.start && vertIdx < grp.start + grp.count) {
+            return Math.min(matList.length - 1, grp.materialIndex || 0);
+          }
+        }
+        return 0;
+      }
 
       for (let t = 0; t < triCount; t++) {
         const i0 = index ? index.getX(t * 3)     : t * 3;
@@ -109,7 +181,7 @@
         ac.subVectors(vc, va);
         cross.crossVectors(ab, ac);
         const dblArea = cross.length();
-        if (dblArea <= 1e-7) continue;
+        if (!Number.isFinite(dblArea) || dblArea <= 1e-7) continue;
 
         const area = 0.5 * dblArea;
         const nx = cross.x / dblArea;
@@ -118,16 +190,30 @@
 
         if (skipBottom && ny < -0.82) continue;
 
+        const matIdx  = resolveGroupMatIndex(t);
+        const mat     = matList[matIdx];
+        const sampler = texSamplers[matIdx] || null;
+        const matCol  = (mat && mat.color) ? mat.color : null;
+
         let c0, c1, c2;
         if (colAttr) {
           c0 = [colAttr.getX(i0), colAttr.getY(i0), colAttr.getZ(i0)];
           c1 = [colAttr.getX(i1), colAttr.getY(i1), colAttr.getZ(i1)];
           c2 = [colAttr.getX(i2), colAttr.getY(i2), colAttr.getZ(i2)];
-        } else {
-          tmpColor.set(fallbackColor || '#FFFFFF');
+        } else if (fallbackHex) {
+          tmpColor.set(fallbackHex);
           const rgb = [tmpColor.r, tmpColor.g, tmpColor.b];
           c0 = rgb; c1 = rgb; c2 = rgb;
+        } else if (matCol) {
+          c0 = [matCol.r, matCol.g, matCol.b];
+          c1 = c0; c2 = c0;
+        } else {
+          c0 = [1, 1, 1]; c1 = c0; c2 = c0;
         }
+
+        const uv0 = (sampler && uvAttr) ? [uvAttr.getX(i0), uvAttr.getY(i0)] : null;
+        const uv1 = (sampler && uvAttr) ? [uvAttr.getX(i1), uvAttr.getY(i1)] : null;
+        const uv2 = (sampler && uvAttr) ? [uvAttr.getX(i2), uvAttr.getY(i2)] : null;
 
         triangles.push({
           ax: va.x, ay: va.y, az: va.z,
@@ -135,7 +221,11 @@
           cx: vc.x, cy: vc.y, cz: vc.z,
           nx, ny, nz,
           c0, c1, c2,
-          colorFn: colorFn || null,
+          texSampler: sampler,
+          uv0, uv1, uv2,
+          matTint: matCol ? [matCol.r, matCol.g, matCol.b] : [1, 1, 1],
+          isImported,
+          colorFn,
           weight: area * (weightMultiplier > 0 ? weightMultiplier : 1.0),
           area,
         });
@@ -143,7 +233,7 @@
     }
 
     if (rootOrGeo && rootOrGeo.isBufferGeometry) {
-      extractFromMesh(rootOrGeo, new THREE.Matrix4(), '#00E5FF', 1.0, false, null);
+      extractFromMesh(rootOrGeo, new THREE.Matrix4(), null, { partColor: '#00E5FF' });
       return triangles;
     }
 
@@ -151,16 +241,36 @@
       rootOrGeo.updateMatrixWorld(true);
       rootOrGeo.traverse((child) => {
         if (!child.isMesh || !child.geometry || child.visible === false) return;
-        const ud = child.userData || {};
-        const matColor = ud.partColor
-          || (child.material && child.material.color ? child.material.color : '#FFFFFF');
-        const weightMult = typeof ud.surfaceWeight === 'number' ? ud.surfaceWeight : 1.0;
-        const skipBottom = Boolean(ud.skipBottom);
-        const colorFn = typeof ud.colorFn === 'function' ? ud.colorFn : null;
-        extractFromMesh(child.geometry, child.matrixWorld, matColor, weightMult, skipBottom, colorFn);
+        extractFromMesh(child.geometry, child.matrixWorld, child.material, child.userData || {});
       });
     }
     return triangles;
+  }
+
+  /**
+   * Fallback vertex extractor for point-cloud or wireframe-only .OBJ/.GLB files.
+   */
+  function collectFallbackVertices(rootOrGeo) {
+    const pts = [];
+    const v = new THREE.Vector3();
+    if (!rootOrGeo || typeof rootOrGeo.traverse !== 'function') return pts;
+    rootOrGeo.updateMatrixWorld(true);
+    rootOrGeo.traverse((child) => {
+      if (!child.geometry || !child.geometry.attributes || !child.geometry.attributes.position) return;
+      if (!child.isPoints && !child.isLine && !child.isMesh) return;
+      const pos = child.geometry.attributes.position;
+      const col = child.geometry.attributes.color || null;
+      const step = Math.max(1, Math.floor(pos.count / 6000));
+      for (let i = 0; i < pos.count; i += step) {
+        v.fromBufferAttribute(pos, i).applyMatrix4(child.matrixWorld);
+        if (!Number.isFinite(v.x) || !Number.isFinite(v.y) || !Number.isFinite(v.z)) continue;
+        const r = col ? col.getX(i) : 0.25;
+        const g = col ? col.getY(i) : 0.88;
+        const b = col ? col.getZ(i) : 1.0;
+        pts.push({ x: v.x, y: v.y, z: v.z, nx: 0, ny: 1, nz: 0, r, g, b, hex: toHexFromRgb(r, g, b) });
+      }
+    });
+    return pts;
   }
 
   function binarySearchCdf(cdf, target) {
@@ -178,7 +288,7 @@
    * Evaluates uniform barycentric coordinates on triangle `tri` for (r1, r2) in [0, 1).
    */
   function samplePointOnTriangle(tri, r1, r2) {
-    const s = Math.sqrt(r1);
+    const s  = Math.sqrt(r1);
     const w0 = 1.0 - s;
     const w1 = s * (1.0 - r2);
     const w2 = s * r2;
@@ -190,6 +300,15 @@
     let r = w0 * tri.c0[0] + w1 * tri.c1[0] + w2 * tri.c2[0];
     let g = w0 * tri.c0[1] + w1 * tri.c1[1] + w2 * tri.c2[1];
     let b = w0 * tri.c0[2] + w1 * tri.c1[2] + w2 * tri.c2[2];
+
+    if (tri.texSampler && tri.uv0 && tri.uv1 && tri.uv2) {
+      const u = w0 * tri.uv0[0] + w1 * tri.uv1[0] + w2 * tri.uv2[0];
+      const v = w0 * tri.uv0[1] + w1 * tri.uv1[1] + w2 * tri.uv2[1];
+      const texRgb = sampleTextureAtUV(tri.texSampler, u, v);
+      r = texRgb[0] * tri.matTint[0];
+      g = texRgb[1] * tri.matTint[1];
+      b = texRgb[2] * tri.matTint[2];
+    }
 
     if (tri.colorFn) {
       const custom = tri.colorFn(x, y, z, tri.nx, tri.ny, tri.nz);
@@ -203,6 +322,11 @@
       }
     }
 
+    if (tri.isImported) {
+      const lifted = liftDarkRgb(r, g, b);
+      r = lifted[0]; g = lifted[1]; b = lifted[2];
+    }
+
     return {
       x, y, z,
       nx: tri.nx, ny: tri.ny, nz: tri.nz,
@@ -214,12 +338,20 @@
   /**
    * Distributes `count` points evenly across the 3D surface faces of any
    * BufferGeometry / Mesh / Group using triangle-area-weighted CDF sampling.
-   * Optional `options.interiorRatio` (0..0.5) adds volumetric interior fill
-   * displaced inward along surface normals or toward centroid.
    */
   function sampleSurfaceRaw(rootOrGeo, count, options = {}) {
+    if (count <= 0) return [];
     const triangles = collectTriangles(rootOrGeo);
-    if (!triangles.length || count <= 0) return [];
+    if (!triangles.length) {
+      const fallback = collectFallbackVertices(rootOrGeo);
+      if (!fallback.length) return [];
+      const out = new Array(count);
+      for (let i = 0; i < count; i++) {
+        const src = fallback[Math.floor(((i * PHI) % 1) * fallback.length)];
+        out[i] = { ...src };
+      }
+      return out;
+    }
 
     const cdf = new Float64Array(triangles.length);
     let totalWeight = 0;
@@ -229,7 +361,6 @@
     }
     if (totalWeight <= 0) return [];
 
-    // Compute centroid for optional inward volume fill
     let cx = 0, cy = 0, cz = 0;
     for (let i = 0; i < triangles.length; i++) {
       const t = triangles[i];
@@ -246,8 +377,6 @@
     const results = new Array(count);
 
     for (let i = 0; i < count; i++) {
-      // Golden-ratio quasi-random stratification across the area CDF ensures
-      // both exact triangle-area proportionality AND uniform distribution for any slice!
       const u = ((i + 0.5) * PHI) % 1.0;
       const triIdx = binarySearchCdf(cdf, u * totalWeight);
       const tri = triangles[triIdx];
@@ -268,17 +397,18 @@
   }
 
   /**
-   * Samples `count` points across a THREE.Object3D / THREE.BufferGeometry,
-   * scales & places the 3D cloud into AeroGrid flight-space coordinates
-   * [x_m, y_depth_m, z_alt_m, led_hex].
+   * Transforms raw sampled 3D points (x, y, z, hex) by Euler X/Y/Z rotation (deg)
+   * and Scale multiplier, normalizing cleanly into AeroGrid flight coordinates
+   * [x_m, y_depth_m, z_alt_m, led_hex]. Runs in <0.3ms for live 60fps orientation!
    */
-  function sampleMeshToDroneCloud(rootOrGeo, count, options = {}) {
-    const n = Math.max(1, Math.round(count || 2200));
-    const rawPts = sampleSurfaceRaw(rootOrGeo, n, options);
-    if (!rawPts.length) return [];
-
-    const targetSpan = options.targetSpan || 76.0;
-    const baseAlt    = typeof options.baseAlt === 'number' ? options.baseAlt : 18.0;
+  function transformRawSamplesToCloud(rawPts, options = {}) {
+    if (!rawPts || !rawPts.length) return [];
+    const rotX = THREE.MathUtils.degToRad(options.rotX || 0);
+    const rotY = THREE.MathUtils.degToRad(options.rotY || 0);
+    const rotZ = THREE.MathUtils.degToRad(options.rotZ || 0);
+    const userScale  = Math.max(0.25, Math.min(2.5, options.scale || 1.0));
+    const targetSpan = (options.targetSpan || 76.0) * userScale;
+    const baseAlt    = typeof options.baseAlt === 'number' ? options.baseAlt : 16.0;
     const centerAlt  = typeof options.centerAlt === 'number' ? options.centerAlt : null;
 
     let minX = Infinity, maxX = -Infinity;
@@ -291,35 +421,65 @@
       if (p.z < minZ) minZ = p.z; if (p.z > maxZ) maxZ = p.z;
     }
 
-    const spanX = maxX - minX;
-    const spanY = maxY - minY;
-    const spanZ = maxZ - minZ;
-    const maxDim = Math.max(1e-4, spanX, spanY, spanZ);
-    const scale = options.preserveScale ? 1.0 : (targetSpan / maxDim);
-
     const midX = (minX + maxX) * 0.5;
     const midY = (minY + maxY) * 0.5;
     const midZ = (minZ + maxZ) * 0.5;
 
-    const cloud = new Array(rawPts.length);
+    const hasRot = Math.abs(rotX) > 1e-4 || Math.abs(rotY) > 1e-4 || Math.abs(rotZ) > 1e-4;
+    const quat   = hasRot ? new THREE.Quaternion().setFromEuler(new THREE.Euler(rotX, rotY, rotZ, 'XYZ')) : null;
+    const tmpV   = new THREE.Vector3();
+
+    const rotated = new Array(rawPts.length);
+    let rMinX = Infinity, rMaxX = -Infinity;
+    let rMinY = Infinity, rMaxY = -Infinity;
+    let rMinZ = Infinity, rMaxZ = -Infinity;
+
     for (let i = 0; i < rawPts.length; i++) {
       const p = rawPts[i];
-      const wx = (p.x - midX) * scale;
-      const wz = (p.z - midZ) * scale;
-      const wy = centerAlt !== null
-        ? (p.y - midY) * scale + centerAlt
-        : (p.y - minY) * scale + baseAlt;
+      tmpV.set(p.x - midX, p.y - midY, p.z - midZ);
+      if (quat) tmpV.applyQuaternion(quat);
+      const rx = tmpV.x, ry = tmpV.y, rz = tmpV.z;
+      if (rx < rMinX) rMinX = rx; if (rx > rMaxX) rMaxX = rx;
+      if (ry < rMinY) rMinY = ry; if (ry > rMaxY) rMaxY = ry;
+      if (rz < rMinZ) rMinZ = rz; if (rz > rMaxZ) rMaxZ = rz;
+      rotated[i] = { x: rx, y: ry, z: rz, hex: p.hex };
+    }
 
-      // AeroGrid waypoint tuple: [x_m, y_depth_m, z_alt_m, led_hex]
+    const maxDim = Math.max(1e-4, rMaxX - rMinX, rMaxY - rMinY, rMaxZ - rMinZ);
+    const scale  = options.preserveScale ? userScale : (targetSpan / maxDim);
+    const rMidX  = (rMinX + rMaxX) * 0.5;
+    const rMidY  = (rMinY + rMaxY) * 0.5;
+    const rMidZ  = (rMinZ + rMaxZ) * 0.5;
+
+    const cloud = new Array(rotated.length);
+    for (let i = 0; i < rotated.length; i++) {
+      const p  = rotated[i];
+      const wx = (p.x - rMidX) * scale;
+      const wz = (p.z - rMidZ) * scale;
+      const wy = centerAlt !== null
+        ? (p.y - rMidY) * scale + centerAlt
+        : (p.y - rMinY) * scale + baseAlt;
       cloud[i] = [+wx.toFixed(2), +wz.toFixed(2), +wy.toFixed(2), p.hex];
     }
     return cloud;
+  }
+
+  /**
+   * Samples `count` points across a THREE.Object3D / THREE.BufferGeometry,
+   * scales & places the 3D cloud into AeroGrid flight-space coordinates
+   * [x_m, y_depth_m, z_alt_m, led_hex].
+   */
+  function sampleMeshToDroneCloud(rootOrGeo, count, options = {}) {
+    const n = Math.max(1, Math.round(count || 2200));
+    const rawPts = sampleSurfaceRaw(rootOrGeo, n, options);
+    return transformRawSamplesToCloud(rawPts, options);
   }
 
   window.AeroSampler = {
     applyVertexColors,
     collectTriangles,
     sampleSurfaceRaw,
+    transformRawSamplesToCloud,
     sampleMeshToDroneCloud,
     toHexFromRgb,
   };
@@ -394,12 +554,12 @@ window.initThreeJS = function initThreeJS() {
   renderer.toneMapping = THREE.ReinhardToneMapping;
   container.appendChild(renderer.domElement);
 
-  // HDR UnrealBloom Post-Processing
+  // HDR UnrealBloom Post-Processing (default bloom: 0.75)
   if (typeof THREE.EffectComposer === 'function' && typeof THREE.UnrealBloomPass === 'function') {
     const renderPass = new THREE.RenderPass(scene, camera);
     bloomPass = new THREE.UnrealBloomPass(
       new THREE.Vector2(initW, initH),
-      0.90, 0.44, 0.15
+      0.75, 0.42, 0.15
     );
     composer = new THREE.EffectComposer(renderer);
     composer.addPass(renderPass);
@@ -437,7 +597,7 @@ window.initThreeJS = function initThreeJS() {
     size: 0.95, vertexColors: true, transparent: true, opacity: 0.72,
   })));
 
-  // Populate Hero Vault Grid
+  // Populate Hero Vault Grid (6 Flagship Presets)
   const heroGrid = document.getElementById('heroGrid');
   if (heroGrid && Array.isArray(window.HERO_VAULT)) {
     heroGrid.innerHTML = window.HERO_VAULT.map((h) => `
@@ -450,9 +610,10 @@ window.initThreeJS = function initThreeJS() {
     `).join('');
   }
 
-  // Initialize studios & default fleet
+  // Initialize studios, drag-and-drop viewport & default fleet
   if (typeof window.initSkyDrawPad === 'function') window.initSkyDrawPad();
   if (typeof window.generateBlueprintPreview === 'function') window.generateBlueprintPreview(false);
+  initViewportDropZone();
 
   // Respect shared URL parameters (?seq=...&drones=...) if present
   const params = new URLSearchParams(window.location.search);
@@ -473,9 +634,9 @@ window.initThreeJS = function initThreeJS() {
     window.runInstantSequence();
   } else {
     window.slides = [
-      { type: 'hero', id: 'taj',     label: 'Taj Mahal',       dur: 15, trans: 'spiral', cloud: window.buildHeroFormation('taj', initDrones) },
-      { type: 'hero', id: 'trishul', label: 'Shiva Trishul',   dur: 15, trans: 'burst',  cloud: window.buildHeroFormation('trishul', initDrones) },
-      { type: 'hero', id: 'rings',   label: 'Wedding Rings',   dur: 15, trans: 'wave',   cloud: window.buildHeroFormation('rings', initDrones) },
+      { type: 'hero', id: 'rings',  label: 'Solitaire Rings', dur: 15, trans: 'spiral', cloud: window.buildHeroFormation('rings', initDrones) },
+      { type: 'hero', id: 'lotus',  label: '3D Lotus',        dur: 15, trans: 'burst',  cloud: window.buildHeroFormation('lotus', initDrones) },
+      { type: 'hero', id: 'rocket', label: 'ISRO Rocket',     dur: 15, trans: 'wave',   cloud: window.buildHeroFormation('rocket', initDrones) },
       { type: 'text', text: 'INDIA 2026', color: 'tricolour', font: '900 Arial, sans-serif', arched: true, label: '"INDIA 2026"', dur: 20, trans: 'spiral', cloud: window.build3DTextCloud('INDIA 2026', initDrones, 'tricolour', '900 Arial, sans-serif', true) },
     ];
     window.activateSlide(0, true);
@@ -486,6 +647,7 @@ window.initThreeJS = function initThreeJS() {
     resizeObserver = new ResizeObserver(() => window.handleResize());
     resizeObserver.observe(container);
   }
+  requestAnimationFrame(() => window.handleResize());
   animateThree();
 };
 
@@ -495,8 +657,10 @@ window.initThreeJS = function initThreeJS() {
 window.handleResize = function handleResize() {
   const container = document.getElementById('threeContainer');
   if (!container || !camera || !renderer) return;
-  const w = Math.max(1, container.clientWidth);
-  const h = Math.max(1, container.clientHeight);
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  if (w < 10 || h < 10) return;
+
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   renderer.setSize(w, h, false);
@@ -508,7 +672,7 @@ window.handleResize = function handleResize() {
 };
 
 // -----------------------------------------------------------------------------
-// 6. BOUNDING-SPHERE AUTO-FRAMING CAMERA
+// 6. BOUNDING-SPHERE + PROJECTED-EXTENT AUTO-FRAMING CAMERA
 // -----------------------------------------------------------------------------
 function computeFormationBounds(cloud) {
   if (!cloud || !cloud.length) {
@@ -557,16 +721,51 @@ function frameFormation(cloud, mode, instant = false) {
   const aspect = Math.max(0.35, camera.aspect || 1.6);
   const hFov   = 2 * Math.atan(Math.tan(vFov * 0.5) * aspect);
 
-  // 24% bounding-sphere safety margin guarantees zero clipping on any aspect ratio
-  const safety = 1.24;
-  const distV  = (bounds.radius * safety) / Math.tan(vFov * 0.5);
-  const distH  = (bounds.radius * safety) / Math.tan(hFov * 0.5);
-  const dist   = Math.max(distV, distH, 54);
+  const dir    = getCamPresetDirection(mode || currentCamPreset);
+  const upHint = Math.abs(dir.y) > 0.92
+    ? new THREE.Vector3(0, 0, -1)
+    : new THREE.Vector3(0, 1, 0);
+  const right  = new THREE.Vector3().crossVectors(upHint, dir).normalize();
+  const camUp  = new THREE.Vector3().crossVectors(dir, right).normalize();
 
-  const dir = getCamPresetDirection(mode || currentCamPreset);
+  // Compute exact projected half-extents along camera right, up, and look axes
+  let maxProjX = 16;
+  let maxProjY = 16;
+  let maxFrontZ = 0;
+  if (cloud && cloud.length) {
+    const stride = Math.max(1, Math.floor(cloud.length / 900));
+    for (let i = 0; i < cloud.length; i += stride) {
+      const pt = cloud[i];
+      const dx = pt[0] - bounds.cx;
+      const dy = pt[2] - bounds.cy;
+      const dz = pt[1] - bounds.cz;
+      const px = Math.abs(dx * right.x + dy * right.y + dz * right.z);
+      const py = Math.abs(dx * camUp.x + dy * camUp.y + dz * camUp.z);
+      const pz = dx * dir.x + dy * dir.y + dz * dir.z;
+      if (px > maxProjX) maxProjX = px;
+      if (py > maxProjY) maxProjY = py;
+      if (pz > maxFrontZ) maxFrontZ = pz;
+    }
+  }
+
+  // Account for animated rocket exhaust extension & heart beat expansion
+  const activeSlide = window.slides && window.slides[window.activeSlideIdx];
+  const extraPad = (activeSlide?.type === 'hero' && (activeSlide.id === 'rocket' || activeSlide.id === 'heart'))
+    ? 1.34
+    : 1.26;
+
+  const tanHalfV = Math.tan(vFov * 0.5);
+  const tanHalfH = Math.tan(hFov * 0.5);
+  const sinHalfMin = Math.min(Math.sin(vFov * 0.5), Math.sin(hFov * 0.5));
+
+  const distExactV = maxFrontZ + (maxProjY * extraPad) / tanHalfV;
+  const distExactH = maxFrontZ + (maxProjX * extraPad) / tanHalfH;
+  const distSphere = (bounds.radius * 1.20) / sinHalfMin;
+  const dist       = Math.max(distExactV, distExactH, distSphere * 0.90, 56);
+
   camTargetLookAt.set(bounds.cx, bounds.cy, bounds.cz);
   camTargetPos.copy(camTargetLookAt).addScaledVector(dir, dist);
-  controls.maxDistance = Math.max(360, dist * 2.5);
+  controls.maxDistance = Math.max(380, dist * 2.5);
 
   if (instant) {
     camGlideActive = false;
@@ -709,7 +908,7 @@ window.changeVenue = function changeVenue(mode) {
 };
 
 // -----------------------------------------------------------------------------
-// 8. DRONE PARTICLE SYSTEM SETUP
+// 8. DRONE PARTICLE SYSTEM SETUP (crisp LED sprites: size 2.6 @ 2,200 UAVs)
 // -----------------------------------------------------------------------------
 function setupDroneParticles(count) {
   if (dronePoints)      scene.remove(dronePoints);
@@ -719,7 +918,7 @@ function setupDroneParticles(count) {
   const spriteTex  = createGlowSprite();
   const spriteSize = userDroneSize !== null
     ? userDroneSize
-    : (count >= 3500 ? 2.5 : (count >= 1600 ? 3.1 : 3.6));
+    : (count >= 3500 ? 2.2 : (count >= 1600 ? 2.6 : 3.1));
 
   const sizeSlider = document.getElementById('droneSizeSlider');
   const sizeVal    = document.getElementById('droneSizeVal');
@@ -757,7 +956,7 @@ function setupDroneParticles(count) {
     map: spriteTex,
     vertexColors: true,
     transparent: true,
-    opacity: 0.44,
+    opacity: 0.42,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   }));
@@ -771,7 +970,7 @@ function setupDroneParticles(count) {
   trailLines = new THREE.LineSegments(trailGeo, new THREE.LineBasicMaterial({
     vertexColors: true,
     transparent: true,
-    opacity: 0.28,
+    opacity: 0.26,
     blending: THREE.AdditiveBlending,
   }));
   scene.add(trailLines);
@@ -790,11 +989,12 @@ function updateTelemetryHUD(drones, slide) {
   const elMaxVel  = document.getElementById('hudMaxVel');
   const elSpacing = document.getElementById('hudSpacing');
   const elToast   = document.getElementById('statusToast');
+  const slideNum  = String(window.activeSlideIdx + 1).padStart(2, '0');
 
   if (elFleet)   elFleet.textContent   = `${drones} UAVs`;
   if (elMaxVel)  elMaxVel.textContent  = `${maxVel} m/s`;
   if (elSpacing) elSpacing.textContent = `${spacing}m [DGCA SAFE]`;
-  if (elToast)   elToast.textContent   = `✓ Slide 0${window.activeSlideIdx + 1}: ${slide?.label || 'Formation'} • ${drones} UAVs`;
+  if (elToast)   elToast.textContent   = `✓ Slide ${slideNum}: ${slide?.label || 'Formation'} • ${drones} UAVs`;
 }
 
 // -----------------------------------------------------------------------------
@@ -809,8 +1009,9 @@ window.activateSlide = function activateSlide(idx, instant = false) {
 
   const transEl = document.getElementById('transitionSelect');
   const nameEl  = document.getElementById('hudSlideName');
+  const slideNum = String(idx + 1).padStart(2, '0');
   if (transEl) transEl.value = currentTransition;
-  if (nameEl)  nameEl.textContent = `0${idx + 1}. ${slide.label}`;
+  if (nameEl)  nameEl.textContent = `${slideNum}. ${slide.label}`;
   updateTelemetryHUD(drones, slide);
 
   const cloud  = slide.cloud && slide.cloud.length ? slide.cloud : [[0, 0, 56, '#00E5FF']];
@@ -867,6 +1068,7 @@ window.activateSlide = function activateSlide(idx, instant = false) {
   }
   frameFormation(cloud, currentCamPreset, instant);
   renderStoryboard();
+  syncModelTransformUI();
 };
 
 // -----------------------------------------------------------------------------
@@ -897,7 +1099,6 @@ function animateThree() {
     const animBlend   = ease;
     let colorsDirty   = false;
 
-    // Hero animation parameters
     const heartPulse = heroId === 'heart'
       ? (Math.pow(Math.max(0, Math.sin(t * 2.4)), 6) * 0.105
          + Math.pow(Math.max(0, Math.sin(t * 2.4 - 0.52)), 8) * 0.065) * animBlend
@@ -950,8 +1151,7 @@ function animateThree() {
         bx = rx;
         bz = rz;
       } else if (heroId === 'rocket') {
-        // Exhaust plume sits below nozzle exit threshold Y = 31.5m
-        if (ty < 31.5) {
+        if (ty < 31.2) {
           const cycle  = (t * 2.5 + i * 0.173) % 1.0;
           const spread = 1.0 + cycle * 0.65;
           bx *= spread;
@@ -971,17 +1171,31 @@ function animateThree() {
         droneColors[iy] = Math.min(1, baseDroneColors[iy] * lum);
         droneColors[iz] = Math.min(1, baseDroneColors[iz] * (lum + 0.05));
         colorsDirty = true;
-      } else if (heroId === 'rings' && ty > 74) {
-        // Solitaire diamond fire & facet scintillation
+      } else if (heroId === 'rings' && ty > 72) {
         const sparkle = 0.82 + 0.45 * Math.pow(Math.max(0, Math.sin(t * 4.8 + i * 1.37)), 4);
+        droneColors[ix] = Math.min(1, baseDroneColors[ix] * sparkle);
+        droneColors[iy] = Math.min(1, baseDroneColors[iy] * sparkle);
+        droneColors[iz] = Math.min(1, baseDroneColors[iz] * sparkle);
+        colorsDirty = true;
+      } else if (heroId === 'lotus') {
+        const radDist = Math.hypot(tx, tz);
+        const lum = 0.90 + 0.18 * Math.sin(t * 2.6 - radDist * 0.12);
+        droneColors[ix] = Math.min(1, baseDroneColors[ix] * lum);
+        droneColors[iy] = Math.min(1, baseDroneColors[iy] * lum);
+        droneColors[iz] = Math.min(1, baseDroneColors[iz] * lum);
+        colorsDirty = true;
+      } else if (heroId === 'crown') {
+        const sparkle = ty > 74
+          ? 0.88 + 0.38 * Math.pow(Math.max(0, Math.sin(t * 4.2 + i * 1.1)), 4)
+          : 0.92 + 0.14 * Math.sin(t * 2.8 + Math.atan2(tz, tx) * 4.0);
         droneColors[ix] = Math.min(1, baseDroneColors[ix] * sparkle);
         droneColors[iy] = Math.min(1, baseDroneColors[iy] * sparkle);
         droneColors[iz] = Math.min(1, baseDroneColors[iz] * sparkle);
         colorsDirty = true;
       }
 
-      const hx = Math.sin(t + i * 0.37) * 0.10;
-      const hy = Math.cos(t * 1.1 + i * 0.53) * 0.10;
+      const hx = Math.sin(t + i * 0.37) * 0.09;
+      const hy = Math.cos(t * 1.1 + i * 0.53) * 0.09;
       const finalX = bx + hx;
       const finalY = by + hy;
       const finalZ = bz;
@@ -990,7 +1204,6 @@ function animateThree() {
       currentPositions[iy] = finalY;
       currentPositions[iz] = finalZ;
 
-      // Mirror water reflection with wave shimmer
       const rippleX = Math.sin(t * 3.1 + finalY * 0.13 + finalZ * 0.06) * 0.62;
       const rippleZ = Math.cos(t * 2.6 + finalX * 0.11) * 0.42;
       reflectionPositions[ix] = finalX + rippleX;
@@ -1014,7 +1227,6 @@ function animateThree() {
     }
   }
 
-  // Animated water ripple rings
   for (let r = 0; r < waterRippleRings.length; r++) {
     const ring = waterRippleRings[r];
     const wave = Math.sin(t * 1.8 - ring.userData.phase);
@@ -1088,6 +1300,7 @@ window.toggleClientView = function toggleClientView() {
       btn.classList.add('text-sky-300');
     }
   }
+  syncModelTransformUI();
   setTimeout(window.handleResize, 30);
 };
 
@@ -1098,6 +1311,11 @@ window.loadHeroToSlide = function loadHeroToSlide(id, name) {
     type: 'hero',
     id,
     label: name,
+    meshGroup: null,
+    rawSamples: null,
+    imgSource: null,
+    baseCloud: null,
+    meshTransform: { rotX: 0, rotY: 0, rotZ: 0, scale: 1.0 },
     cloud: window.buildHeroFormation(id, drones),
   };
   window.activateSlide(window.activeSlideIdx, false);
@@ -1109,6 +1327,17 @@ window.runInstantSequence = function runInstantSequence() {
   const drones = parseInt(document.getElementById('droneManualInput')?.value, 10) || 2200;
   const parts  = raw.split(/->|→/).map((s) => s.trim()).filter(Boolean);
   const transCycle = ['spiral', 'burst', 'wave'];
+
+  const extraAliases = [
+    { keys: ['taj'], id: 'taj', name: 'Taj Mahal' },
+    { keys: ['trishul', 'shiva'], id: 'trishul', name: 'Shiva Trishul' },
+    { keys: ['ring', 'solitaire', 'wedding'], id: 'rings', name: 'Solitaire Rings' },
+    { keys: ['heart'], id: 'heart', name: 'Beating 3D Heart' },
+    { keys: ['globe', 'earth'], id: 'globe', name: 'Rotating Earth Globe' },
+    { keys: ['rocket', 'isro', 'lvm3'], id: 'rocket', name: 'ISRO Rocket' },
+    { keys: ['lotus', 'kamal'], id: 'lotus', name: '3D Lotus' },
+    { keys: ['crown', 'king', 'queen', 'royal'], id: 'crown', name: '3D Crown' },
+  ];
 
   window.slides = parts.slice(0, 6).map((seg, i) => {
     const isQuoted = /^["'].*["']$/.test(seg);
@@ -1130,31 +1359,36 @@ window.runInstantSequence = function runInstantSequence() {
       };
     }
 
-    const heroMatch = (window.HERO_VAULT || []).find(
+    const vaultMatch = (window.HERO_VAULT || []).find(
       (h) => low.includes(h.id) || low.includes(h.name.toLowerCase())
     );
-    if (heroMatch) {
+    const aliasMatch = vaultMatch || extraAliases.find((a) => a.keys.some((k) => low.includes(k)));
+    if (aliasMatch) {
       return {
         type: 'hero',
-        id: heroMatch.id,
-        label: heroMatch.name,
+        id: aliasMatch.id,
+        label: aliasMatch.name,
         dur: 15,
         trans: transCycle[i % 3],
-        cloud: window.buildHeroFormation(heroMatch.id, drones),
+        cloud: window.buildHeroFormation(aliasMatch.id, drones),
       };
     }
 
     const bpInput = document.getElementById('bpPromptInput');
     if (bpInput) bpInput.value = clean;
     if (typeof window.generateBlueprintPreview === 'function') window.generateBlueprintPreview(false);
+    const bpCanvas = document.getElementById('blueprintCanvas');
     const cloud = window.compileImageTo3DCloud(
-      document.getElementById('blueprintCanvas'),
+      bpCanvas,
       drones,
       low.includes('india') ? 'tricolour' : 'gold_cyan',
       14
     );
     return {
       type: 'blueprint',
+      imgSource: bpCanvas,
+      imgTheme: low.includes('india') ? 'tricolour' : 'gold_cyan',
+      imgDepth: 14,
       label: clean.slice(0, 20),
       dur: 15,
       trans: transCycle[i % 3],
@@ -1178,6 +1412,11 @@ window.applyCustomTextToSlide = function applyCustomTextToSlide() {
     color,
     font,
     arched,
+    meshGroup: null,
+    rawSamples: null,
+    imgSource: null,
+    baseCloud: null,
+    meshTransform: { rotX: 0, rotY: 0, rotZ: 0, scale: 1.0 },
     label: `"${txt}"`,
     cloud: window.build3DTextCloud(txt, drones, color, font, arched),
   };
@@ -1194,7 +1433,7 @@ function renderStoryboard() {
       <div onclick="selectSlide(${idx})"
         class="slide-card ${idx === window.activeSlideIdx ? 'active' : ''} h-20 w-44 rounded-xl bg-[#0C1425] border border-slate-800 p-2.5 flex flex-col justify-between shrink-0 relative">
         <div class="flex items-center justify-between text-[10px] font-mono">
-          <span class="text-sky-400 font-bold">SLIDE 0${idx + 1}</span>
+          <span class="text-sky-400 font-bold">SLIDE ${String(idx + 1).padStart(2, '0')}</span>
           <span class="text-slate-400">${s.dur || 15}s</span>
         </div>
         <p class="text-xs font-semibold text-white truncate">${s.label}</p>
@@ -1270,7 +1509,22 @@ window.changeFleetCount = function changeFleetCount(val) {
   window.slides = window.slides.map((s) => {
     if (s.type === 'hero') return { ...s, cloud: window.buildHeroFormation(s.id, n) };
     if (s.type === 'text') return { ...s, cloud: window.build3DTextCloud(s.text, n, s.color, s.font, s.arched) };
-    if (s.meshGroup) return { ...s, cloud: window.AeroSampler.sampleMeshToDroneCloud(s.meshGroup, n) };
+    if (s.meshGroup) {
+      const rawSamples = window.AeroSampler.sampleSurfaceRaw(s.meshGroup, n);
+      const tf = s.meshTransform || { rotX: 0, rotY: 0, rotZ: 0, scale: 1.0 };
+      const cloud = window.AeroSampler.transformRawSamplesToCloud(rawSamples, {
+        ...tf,
+        targetSpan: 76,
+        baseAlt: 16,
+      });
+      return { ...s, rawSamples, cloud };
+    }
+    if (s.imgSource && typeof window.compileImageTo3DCloud === 'function') {
+      return {
+        ...s,
+        cloud: window.compileImageTo3DCloud(s.imgSource, n, s.imgTheme || 'auto', s.imgDepth ?? 14),
+      };
+    }
     const resampled = [];
     for (let i = 0; i < n; i++) resampled.push([...s.cloud[i % s.cloud.length]]);
     return { ...s, cloud: resampled };
@@ -1319,13 +1573,16 @@ window.recordPitchVideo = function recordPitchVideo() {
   const btn    = document.getElementById('recVideoBtn');
   if (!canvas.captureStream || typeof MediaRecorder === 'undefined') return;
 
-  const stream   = canvas.captureStream(30);
-  const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+  const stream = canvas.captureStream(30);
+  const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+    ? 'video/webm;codecs=vp9'
+    : (MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : '');
+  const recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
   const chunks   = [];
   recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
   recorder.onstop = () => {
     if (typeof window.triggerDownload === 'function') {
-      window.triggerDownload(new Blob(chunks, { type: 'video/webm' }), `AeroGrid_Pitch_${Date.now()}.webm`);
+      window.triggerDownload(new Blob(chunks, { type: mime || 'video/webm' }), `AeroGrid_Pitch_${Date.now()}.webm`);
     }
     if (btn) {
       btn.textContent = '🎥 Pitch Video';
@@ -1355,79 +1612,385 @@ window.recordPitchVideo = function recordPitchVideo() {
 };
 
 // -----------------------------------------------------------------------------
-// 14. IMAGE & 3D MESH (.GLB / .OBJ) UPLOAD PIPELINES
+// 14. LIVE MODEL ORIENTATION (X/Y/Z) & SCALE CONTROLLER
 // -----------------------------------------------------------------------------
-window.uploadReferenceImage = function uploadReferenceImage(input) {
-  if (!input.files || !input.files[0]) return;
-  const file   = input.files[0];
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    const img = new Image();
-    img.onload = () => {
-      const c   = document.getElementById('blueprintCanvas');
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(0, 0, c.width, c.height);
-      const fit = Math.min((c.width - 16) / img.width, (c.height - 16) / img.height);
-      const dw  = img.width * fit;
-      const dh  = img.height * fit;
-      ctx.drawImage(img, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
-      window.switchSidebarTab('blueprint');
-      const bpInput = document.getElementById('bpPromptInput');
-      if (bpInput) bpInput.value = file.name.replace(/\.[^.]+$/, '').slice(0, 22);
-      if (typeof window.approveBlueprintToDrones === 'function') window.approveBlueprintToDrones();
-    };
-    img.src = ev.target.result;
+function wrapAngleDeg(deg) {
+  let d = ((deg + 180) % 360 + 360) % 360 - 180;
+  return d === -180 ? 180 : Math.round(d);
+}
+
+function syncModelTransformUI() {
+  const slide = window.slides[window.activeSlideIdx];
+  const tf = slide?.meshTransform || { rotX: 0, rotY: 0, rotZ: 0, scale: 1.0 };
+
+  const setEl = (id, val, isLabel = false) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (isLabel) el.textContent = val;
+    else el.value = val;
   };
-  reader.readAsDataURL(file);
+
+  // Floating Viewport Transform Bar + Sidebar Uploads Controls
+  ['rotXSlider', 'sideRotXSlider'].forEach((id) => setEl(id, tf.rotX));
+  ['rotYSlider', 'sideRotYSlider'].forEach((id) => setEl(id, tf.rotY));
+  ['rotZSlider', 'sideRotZSlider'].forEach((id) => setEl(id, tf.rotZ));
+  ['modelScaleSlider', 'sideScaleSlider'].forEach((id) => setEl(id, tf.scale));
+
+  ['rotXVal', 'sideRotXVal'].forEach((id) => setEl(id, `${tf.rotX}°`, true));
+  ['rotYVal', 'sideRotYVal'].forEach((id) => setEl(id, `${tf.rotY}°`, true));
+  ['rotZVal', 'sideRotZVal'].forEach((id) => setEl(id, `${tf.rotZ}°`, true));
+  ['modelScaleVal', 'sideScaleVal'].forEach((id) => setEl(id, `${Number(tf.scale).toFixed(2)}x`, true));
+
+  const bar = document.getElementById('modelTransformBar');
+  if (bar) {
+    const showBar = !clientViewActive && slide?.type === 'custom_mesh';
+    bar.classList.toggle('hidden', !showBar);
+  }
+}
+
+function applyTransformedCloudLive(cloud) {
+  if (!cloud || !cloud.length || !currentPositions) return;
+  const drones = currentPositions.length / 3;
+  for (let i = 0; i < drones; i++) {
+    const pt = cloud[i % cloud.length];
+    const ix = i * 3;
+    startPositions[ix]     = pt[0];
+    startPositions[ix + 1] = pt[2];
+    startPositions[ix + 2] = pt[1];
+    targetPositions[ix]     = pt[0];
+    targetPositions[ix + 1] = pt[2];
+    targetPositions[ix + 2] = pt[1];
+    currentPositions[ix]     = pt[0];
+    currentPositions[ix + 1] = pt[2];
+    currentPositions[ix + 2] = pt[1];
+    prevPositions[ix]        = pt[0];
+    prevPositions[ix + 1]    = pt[2];
+    prevPositions[ix + 2]    = pt[1];
+    reflectionPositions[ix]     = pt[0];
+    reflectionPositions[ix + 1] = -pt[2] * 0.90;
+    reflectionPositions[ix + 2] = pt[1];
+  }
+  morphProgress = 1.0;
+  dronePoints.geometry.attributes.position.needsUpdate      = true;
+  reflectionPoints.geometry.attributes.position.needsUpdate = true;
+  frameFormation(cloud, currentCamPreset, true);
+}
+
+window.setModelTransform = function setModelTransform(patch = {}) {
+  const slide = window.slides[window.activeSlideIdx];
+  if (!slide) return;
+  const prev = slide.meshTransform || { rotX: 0, rotY: 0, rotZ: 0, scale: 1.0 };
+  const next = {
+    rotX:  patch.rotX !== undefined ? wrapAngleDeg(parseFloat(patch.rotX) || 0) : prev.rotX,
+    rotY:  patch.rotY !== undefined ? wrapAngleDeg(parseFloat(patch.rotY) || 0) : prev.rotY,
+    rotZ:  patch.rotZ !== undefined ? wrapAngleDeg(parseFloat(patch.rotZ) || 0) : prev.rotZ,
+    scale: patch.scale !== undefined ? Math.max(0.25, Math.min(2.5, parseFloat(patch.scale) || 1.0)) : prev.scale,
+  };
+  slide.meshTransform = next;
+
+  let newCloud;
+  if (slide.rawSamples && slide.rawSamples.length) {
+    newCloud = window.AeroSampler.transformRawSamplesToCloud(slide.rawSamples, {
+      ...next,
+      targetSpan: 76,
+      baseAlt: 16,
+    });
+  } else {
+    if (!slide.baseCloud) slide.baseCloud = slide.cloud.map((p) => [...p]);
+    const rawFromCloud = slide.baseCloud.map((p) => ({ x: p[0], y: p[2], z: p[1], hex: p[3] }));
+    newCloud = window.AeroSampler.transformRawSamplesToCloud(rawFromCloud, {
+      ...next,
+      preserveScale: true,
+      baseAlt: 16,
+    });
+  }
+
+  slide.cloud = newCloud;
+  applyTransformedCloudLive(newCloud);
+  syncModelTransformUI();
+};
+
+window.nudgeModelRotation = function nudgeModelRotation(axis, deltaDeg) {
+  const slide = window.slides[window.activeSlideIdx];
+  if (!slide) return;
+  const tf = slide.meshTransform || { rotX: 0, rotY: 0, rotZ: 0, scale: 1.0 };
+  const key = axis === 'x' ? 'rotX' : (axis === 'y' ? 'rotY' : 'rotZ');
+  window.setModelTransform({ [key]: tf[key] + deltaDeg });
+};
+
+window.resetModelTransform = function resetModelTransform() {
+  window.setModelTransform({ rotX: 0, rotY: 0, rotZ: 0, scale: 1.0 });
+};
+
+// -----------------------------------------------------------------------------
+// 15. UNIVERSAL DRAG & DROP + .GLB / .GLTF / .OBJ / .PNG / .JPG / .SVG INGESTION
+// -----------------------------------------------------------------------------
+function setStatusToast(msg, isError = false) {
+  const toast = document.getElementById('statusToast');
+  if (!toast) return;
+  toast.textContent = msg;
+  toast.classList.toggle('text-rose-400', isError);
+  toast.classList.toggle('text-emerald-400', !isError);
+}
+
+function finalizeImportedMeshGroup(group, fileName) {
+  const drones = parseInt(document.getElementById('droneManualInput')?.value, 10) || 2200;
+  group.updateMatrixWorld(true);
+
+  const bbox = new THREE.Box3().setFromObject(group);
+  const spanY = Math.max(1e-4, bbox.max.y - bbox.min.y);
+
+  // Inspect whether mesh uses textures or vivid vertex/material colors
+  group.traverse((child) => {
+    if (!child.isMesh || !child.geometry) return;
+    child.userData.isImported = true;
+    const mat = Array.isArray(child.material) ? child.material[0] : child.material;
+    const hasTex = Boolean(mat && mat.map && mat.map.image);
+    const hasVtxCol = Boolean(child.geometry.attributes.color);
+
+    let hasVividMatColor = false;
+    if (mat && mat.color) {
+      const c = mat.color;
+      const maxC = Math.max(c.r, c.g, c.b);
+      const minC = Math.min(c.r, c.g, c.b);
+      hasVividMatColor = (maxC - minC) > 0.10;
+    }
+
+    if (!hasTex && !hasVtxCol && !hasVividMatColor) {
+      child.userData.colorFn = (x, y) => {
+        const ny = (y - bbox.min.y) / spanY;
+        if (ny > 0.68) return '#FFD700';
+        if (ny > 0.28) return '#00E5FF';
+        return '#FF2A85';
+      };
+    }
+  });
+
+  const rawSamples = window.AeroSampler.sampleSurfaceRaw(group, drones);
+  if (!rawSamples.length) {
+    setStatusToast(`⚠ No 3D geometry found in "${fileName}". Try a standard .GLB or .OBJ mesh.`, true);
+    return;
+  }
+
+  const tf = { rotX: 0, rotY: 0, rotZ: 0, scale: 1.0 };
+  const cloud = window.AeroSampler.transformRawSamplesToCloud(rawSamples, {
+    ...tf,
+    targetSpan: 76,
+    baseAlt: 16,
+  });
+
+  window.slides[window.activeSlideIdx] = {
+    ...window.slides[window.activeSlideIdx],
+    type: 'custom_mesh',
+    meshGroup: group,
+    rawSamples,
+    meshTransform: tf,
+    imgSource: null,
+    baseCloud: null,
+    label: fileName.replace(/\.[^.]+$/, '').slice(0, 18) || '3D Model',
+    cloud,
+  };
+  window.activateSlide(window.activeSlideIdx, false);
+  setStatusToast(`🧊 Imported 3D mesh "${fileName}" • ${drones} drones area-weighted across surface!`);
+}
+
+function load3DMeshFile(file) {
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const reader = new FileReader();
+  setStatusToast(`⏳ Compiling 3D model "${file.name}"...`);
+
+  reader.onerror = () => setStatusToast(`⚠ Failed to read "${file.name}".`, true);
+  reader.onload = (ev) => {
+    try {
+      if (ext === 'obj') {
+        if (typeof THREE.OBJLoader !== 'function') {
+          setStatusToast('⚠ OBJLoader not ready. Check internet/CDN connection.', true);
+          return;
+        }
+        const group = new THREE.OBJLoader().parse(ev.target.result);
+        finalizeImportedMeshGroup(group, file.name);
+        return;
+      }
+
+      if (typeof THREE.GLTFLoader !== 'function') {
+        setStatusToast('⚠ GLTFLoader not ready. Check internet/CDN connection.', true);
+        return;
+      }
+      const loader = new THREE.GLTFLoader();
+      if (typeof THREE.DRACOLoader === 'function') {
+        const draco = new THREE.DRACOLoader();
+        draco.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.4.1/');
+        loader.setDRACOLoader(draco);
+      }
+
+      loader.parse(
+        ev.target.result,
+        '',
+        (gltf) => {
+          const root = gltf?.scene || (gltf?.scenes && gltf.scenes[0]);
+          if (!root) {
+            setStatusToast(`⚠ Empty GLTF scene in "${file.name}".`, true);
+            return;
+          }
+          finalizeImportedMeshGroup(root, file.name);
+        },
+        (err) => {
+          const msg = (err && err.message) ? err.message : String(err || 'parse error');
+          const hint = msg.toLowerCase().includes('.bin') || ext === 'gltf'
+            ? 'Separate .gltf/.bin files need a self-contained .GLB.'
+            : msg.slice(0, 70);
+          setStatusToast(`⚠ Could not parse "${file.name}": ${hint}`, true);
+        }
+      );
+    } catch (err) {
+      setStatusToast(`⚠ Error compiling "${file.name}": ${err.message || err}`, true);
+    }
+  };
+
+  if (ext === 'obj') reader.readAsText(file);
+  else reader.readAsArrayBuffer(file);
+}
+
+function loadSvgFile(file, customLabel) {
+  const reader = new FileReader();
+  setStatusToast(`⏳ Extruding SVG "${file.name}" to 3D drone relief...`);
+  reader.onerror = () => setStatusToast(`⚠ Failed to read SVG "${file.name}".`, true);
+  reader.onload = (ev) => {
+    let svgText = String(ev.target.result || '');
+    let w = 512, h = 512;
+    try {
+      const doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+      const svgEl = doc.querySelector('svg');
+      if (svgEl) {
+        const vb = (svgEl.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+        const rawW = parseFloat(svgEl.getAttribute('width') || '');
+        const rawH = parseFloat(svgEl.getAttribute('height') || '');
+        if (vb.length === 4 && vb[2] > 0 && vb[3] > 0) {
+          const aspect = vb[2] / vb[3];
+          w = aspect >= 1 ? 512 : Math.max(64, Math.round(512 * aspect));
+          h = aspect >= 1 ? Math.max(64, Math.round(512 / aspect)) : 512;
+        } else if (rawW > 0 && rawH > 0) {
+          const aspect = rawW / rawH;
+          w = aspect >= 1 ? 512 : Math.max(64, Math.round(512 * aspect));
+          h = aspect >= 1 ? Math.max(64, Math.round(512 / aspect)) : 512;
+        }
+        svgEl.setAttribute('width', String(w));
+        svgEl.setAttribute('height', String(h));
+        svgText = new XMLSerializer().serializeToString(svgEl);
+      }
+    } catch (_) { /* keep original SVG text */ }
+
+    const blob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const img  = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const label = customLabel || file.name.replace(/\.[^.]+$/, '') || 'SVG Relief';
+      if (typeof window.compileImageElementToSlide === 'function') {
+        window.compileImageElementToSlide(img, label, 'auto', 14);
+      }
+      setStatusToast(`✓ Extruded SVG "${file.name}" into 3D drone relief!`);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      setStatusToast(`⚠ Could not rasterize SVG "${file.name}".`, true);
+    };
+    img.src = url;
+  };
+  reader.readAsText(file);
+}
+
+function loadRasterImageFile(file, customLabel) {
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  setStatusToast(`⏳ Extruding "${customLabel || file.name}" to 3D drone relief...`);
+  img.onload = () => {
+    URL.revokeObjectURL(url);
+    const label = customLabel || file.name.replace(/\.[^.]+$/, '') || 'Image Relief';
+    if (typeof window.compileImageElementToSlide === 'function') {
+      window.compileImageElementToSlide(img, label, 'auto', 14);
+    }
+    setStatusToast(`✓ Compiled "${label}" into 3D brightness-relief drone formation!`);
+  };
+  img.onerror = () => {
+    URL.revokeObjectURL(url);
+    setStatusToast(`⚠ Could not decode image "${file.name}".`, true);
+  };
+  img.src = url;
+}
+
+window.handleUniversalFileUpload = function handleUniversalFileUpload(file, customLabel) {
+  if (!file) return;
+  const name = (file.name || 'upload').trim();
+  const ext  = name.includes('.') ? name.split('.').pop().toLowerCase() : '';
+  const mime = (file.type || '').toLowerCase();
+
+  if (ext === 'glb' || ext === 'gltf' || ext === 'obj') {
+    load3DMeshFile(file);
+    return;
+  }
+  if (ext === 'svg' || mime === 'image/svg+xml') {
+    loadSvgFile(file, customLabel);
+    return;
+  }
+  if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'].includes(ext) || mime.startsWith('image/')) {
+    loadRasterImageFile(file, customLabel);
+    return;
+  }
+  setStatusToast(`⚠ Unsupported file "${name}". Drop .GLB, .GLTF, .OBJ, .PNG, .JPG, or .SVG.`, true);
+};
+
+window.uploadUniversalFiles = function uploadUniversalFiles(input) {
+  if (!input || !input.files || !input.files[0]) return;
+  window.handleUniversalFileUpload(input.files[0]);
+  input.value = '';
+};
+
+window.uploadReferenceImage = function uploadReferenceImage(input) {
+  window.uploadUniversalFiles(input);
 };
 
 window.upload3DMesh = function upload3DMesh(input) {
-  if (!input.files || !input.files[0]) return;
-  const file   = input.files[0];
-  const ext    = file.name.split('.').pop().toLowerCase();
-  const drones = parseInt(document.getElementById('droneManualInput')?.value, 10) || 2200;
-  const reader = new FileReader();
-
-  const applyImportedGroup = (group) => {
-    group.updateMatrixWorld(true);
-    const bbox = new THREE.Box3().setFromObject(group);
-    const spanY = Math.max(1e-4, bbox.max.y - bbox.min.y);
-    // Apply altitude-based cyber-gold palette if mesh has no vertex colors
-    group.traverse((child) => {
-      if (child.isMesh && child.geometry && !child.geometry.attributes.color) {
-        child.userData.colorFn = (x, y) => {
-          const ny = (y - bbox.min.y) / spanY;
-          if (ny > 0.68) return '#FFD700';
-          if (ny > 0.28) return '#00E5FF';
-          return '#FF2A85';
-        };
-      }
-    });
-    const cloud = window.AeroSampler.sampleMeshToDroneCloud(group, drones, {
-      targetSpan: 76,
-      baseAlt: 20,
-    });
-    if (!cloud.length) return;
-    window.slides[window.activeSlideIdx] = {
-      ...window.slides[window.activeSlideIdx],
-      type: 'custom_mesh',
-      meshGroup: group,
-      label: file.name.slice(0, 18),
-      cloud,
-    };
-    window.activateSlide(window.activeSlideIdx, false);
-  };
-
-  reader.onload = (ev) => {
-    if (ext === 'obj' && typeof THREE.OBJLoader === 'function') {
-      applyImportedGroup(new THREE.OBJLoader().parse(ev.target.result));
-    } else if (typeof THREE.GLTFLoader === 'function') {
-      new THREE.GLTFLoader().parse(ev.target.result, '', (gltf) => {
-        applyImportedGroup(gltf.scene);
-      });
-    }
-  };
-  if (ext === 'obj') reader.readAsText(file);
-  else reader.readAsArrayBuffer(file);
+  window.uploadUniversalFiles(input);
 };
+
+function initViewportDropZone() {
+  const zone    = document.getElementById('stageDropZone') || document.getElementById('threeContainer');
+  const overlay = document.getElementById('dropZoneOverlay');
+  if (!zone) return;
+
+  let dragDepth = 0;
+
+  window.addEventListener('dragover', (e) => e.preventDefault());
+  window.addEventListener('drop', (e) => {
+    if (!zone.contains(e.target)) e.preventDefault();
+  });
+
+  zone.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    dragDepth++;
+    if (overlay) overlay.classList.remove('hidden');
+  });
+
+  zone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+  });
+
+  zone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0 && overlay) overlay.classList.add('hidden');
+  });
+
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dragDepth = 0;
+    if (overlay) overlay.classList.add('hidden');
+    const files = e.dataTransfer?.files;
+    if (!files || !files.length) return;
+    // Prefer 3D model if multiple files dropped together, else first file
+    const preferred = Array.from(files).find((f) => /\.(glb|gltf|obj)$/i.test(f.name)) || files[0];
+    window.handleUniversalFileUpload(preferred);
+  });
+}

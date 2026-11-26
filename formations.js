@@ -1,26 +1,26 @@
 // =============================================================================
-// formations.js — AeroGrid Studio v6.0
-// 6 Flagship 3D Mesh-Sampled Hero Sculptures (via AeroSampler),
+// formations.js — AeroGrid Studio v7.0
+// 6 Flagship 3D Parametric Hero Sculptures (via AeroSampler),
 // Puter.js AI Blueprint Generator + Offline Silhouette Fallback Library,
-// Distance-Field 3D Extrusion Compiler, 3D Arched Typography, Symmetry Sky Draw,
-// and Global Ctrl+V Clipboard Paste Compiler.
+// Brightness-Relief + Distance-Field 3D Extrusion Compiler, 3D Typography,
+// Symmetry Sky Draw, and Global Ctrl+V Clipboard Paste Compiler.
 // =============================================================================
 
 'use strict';
 
 // -----------------------------------------------------------------------------
-// 1. SHARED STUDIO STATE & HERO VAULT REGISTRY
+// 1. SHARED STUDIO STATE & HERO VAULT REGISTRY (6 FLAGSHIP PRESETS)
 // -----------------------------------------------------------------------------
 window.slides         = [];
 window.activeSlideIdx = 0;
 
 window.HERO_VAULT = [
-  { id: 'taj',     name: 'Taj Mahal',       tag: '3D MESH',   icon: '🕌' },
-  { id: 'trishul', name: 'Shiva Trishul',   tag: '3D MESH',   icon: '🔱' },
-  { id: 'rings',   name: 'Wedding Rings',   tag: 'SOLITAIRE', icon: '💍' },
-  { id: 'heart',   name: 'Beating 3D Heart',tag: 'VOLUMETRIC',icon: '❤️' },
-  { id: 'globe',   name: '3D Earth Globe',  tag: 'PLANETARY', icon: '🌍' },
-  { id: 'rocket',  name: 'ISRO LVM3 Rocket',tag: 'AEROSPACE', icon: '🚀' },
+  { id: 'rings',  name: 'Solitaire Rings',      tag: 'SOLITAIRE',  icon: '💍' },
+  { id: 'heart',  name: 'Beating 3D Heart',     tag: 'VOLUMETRIC', icon: '❤️' },
+  { id: 'globe',  name: 'Rotating Earth Globe', tag: 'PLANETARY',  icon: '🌍' },
+  { id: 'rocket', name: 'ISRO Rocket',          tag: 'AEROSPACE',  icon: '🚀' },
+  { id: 'lotus',  name: '3D Lotus',             tag: '3D PETALS',  icon: '🪷' },
+  { id: 'crown',  name: '3D Crown',             tag: 'IMPERIAL',   icon: '👑' },
 ];
 
 // -----------------------------------------------------------------------------
@@ -507,7 +507,7 @@ function buildShivaTrishulGroup() {
 
 // -----------------------------------------------------------------------------
 // 2C. SOLITAIRE WEDDING RINGS — Two thick, beveled 3D TorusGeometry bands
-//     interlocked at 35° (rose-gold #FFB74D & platinum #E2E8F0) + 4-prong
+//     interlocked cleanly (rose-gold #FFB74D & platinum #E2E8F0) + 4-prong
 //     cathedral setting + upright brilliant-cut solitaire diamond (#00F0FF)
 // -----------------------------------------------------------------------------
 function buildWeddingRingsGroup() {
@@ -515,64 +515,64 @@ function buildWeddingRingsGroup() {
 
   // Ring 1: Thick beveled Platinum band (#E2E8F0) standing upright
   const ring1Group = new THREE.Group();
-  ring1Group.position.set(-7.0, 22.0, 0);
+  ring1Group.position.set(-7.6, 22.0, 0);
   ring1Group.rotation.y = THREE.MathUtils.degToRad(14);
 
   ring1Group.add(makeMeshPart(
-    new THREE.TorusGeometry(18.0, 3.0, 22, 72),
-    (x, y, z) => (Math.abs(z) > 1.7 ? '#FFFFFF' : '#E2E8F0'),
-    { scale: [1.0, 1.0, 1.35], surfaceWeight: 1.0 }
+    new THREE.TorusGeometry(18.0, 2.8, 22, 72),
+    (x, y, z) => (Math.abs(z) > 1.55 ? '#FFFFFF' : '#E2E8F0'),
+    { scale: [1.0, 1.0, 1.32], surfaceWeight: 1.0 }
   ));
   // Crisp outer & inner chamfered bevel rims on platinum band
-  [-2.5, 2.5].forEach((zOff) => {
+  [-2.35, 2.35].forEach((zOff) => {
     ring1Group.add(makeMeshPart(
-      new THREE.TorusGeometry(20.6, 0.55, 10, 72),
+      new THREE.TorusGeometry(20.4, 0.52, 10, 72),
       '#FFFFFF',
       { pos: [0, 0, zOff], surfaceWeight: 0.55 }
     ));
     ring1Group.add(makeMeshPart(
-      new THREE.TorusGeometry(15.4, 0.55, 10, 72),
+      new THREE.TorusGeometry(15.5, 0.52, 10, 72),
       '#F8FAFC',
       { pos: [0, 0, zOff], surfaceWeight: 0.45 }
     ));
   });
   group.add(ring1Group);
 
-  // Ring 2: Thick beveled Rose-Gold band (#FFB74D) interlocked at 35°
+  // Ring 2: Thick beveled Rose-Gold band (#FFB74D) interlocked at 54° tilt
   const ring2Group = new THREE.Group();
-  ring2Group.position.set(6.5, 19.5, 0);
-  ring2Group.rotation.x = THREE.MathUtils.degToRad(35);
-  ring2Group.rotation.y = THREE.MathUtils.degToRad(-21);
+  ring2Group.position.set(7.6, 19.8, 0);
+  ring2Group.rotation.x = THREE.MathUtils.degToRad(54);
+  ring2Group.rotation.y = THREE.MathUtils.degToRad(-22);
 
   ring2Group.add(makeMeshPart(
-    new THREE.TorusGeometry(18.0, 3.0, 22, 72),
-    (x, y, z) => (Math.abs(z) > 1.7 ? '#FFE0B2' : '#FFB74D'),
-    { scale: [1.0, 1.0, 1.35], surfaceWeight: 1.0 }
+    new THREE.TorusGeometry(18.0, 2.8, 22, 72),
+    (x, y, z) => (Math.abs(z) > 1.55 ? '#FFE0B2' : '#FFB74D'),
+    { scale: [1.0, 1.0, 1.32], surfaceWeight: 1.0 }
   ));
-  [-2.5, 2.5].forEach((zOff) => {
+  [-2.35, 2.35].forEach((zOff) => {
     ring2Group.add(makeMeshPart(
-      new THREE.TorusGeometry(20.6, 0.55, 10, 72),
+      new THREE.TorusGeometry(20.4, 0.52, 10, 72),
       '#FFE0B2',
       { pos: [0, 0, zOff], surfaceWeight: 0.55 }
     ));
     ring2Group.add(makeMeshPart(
-      new THREE.TorusGeometry(15.4, 0.55, 10, 72),
+      new THREE.TorusGeometry(15.5, 0.52, 10, 72),
       '#FFCC80',
       { pos: [0, 0, zOff], surfaceWeight: 0.45 }
     ));
   });
   group.add(ring2Group);
 
-  // Crown Setting + Solitaire Diamond anchored directly atop Ring 1
+  // Crown Setting + Upright Solitaire Diamond anchored directly atop Ring 1
   const crown = new THREE.Group();
-  crown.position.set(-7.0, 40.0, 0);
+  crown.position.set(-7.6, 40.2, 0);
   crown.rotation.y = THREE.MathUtils.degToRad(14);
 
   // Cathedral shoulders curving up from platinum ring rim into gallery
   [-1, 1].forEach((dir) => {
     const shCurve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(dir * 9.5, -2.5, 0),
-      new THREE.Vector3(dir * 6.5,  1.2, 0),
+      new THREE.Vector3(dir * 9.5, -2.3, 0),
+      new THREE.Vector3(dir * 6.5,  1.3, 0),
       new THREE.Vector3(dir * 4.4,  4.2, 0),
     ]);
     crown.add(makeMeshPart(
@@ -589,15 +589,15 @@ function buildWeddingRingsGroup() {
     { pos: [0, 4.4, 0], rot: [Math.PI / 2, 0, 0], surfaceWeight: 2.1 }
   ));
 
-  // 4 Curved Prongs clutching the solitaire diamond
+  // 4 Curved Prongs clutching the upright solitaire diamond
   for (let p = 0; p < 4; p++) {
     const a = (p * Math.PI) / 2 + Math.PI / 4;
     const ca = Math.cos(a), sa = Math.sin(a);
     const prongCurve = new THREE.CatmullRomCurve3([
       new THREE.Vector3(ca * 2.2,  0.4, sa * 2.2),
       new THREE.Vector3(ca * 5.0,  4.6, sa * 5.0),
-      new THREE.Vector3(ca * 8.1,  9.2, sa * 8.1),
-      new THREE.Vector3(ca * 6.5, 11.4, sa * 6.5),
+      new THREE.Vector3(ca * 8.2,  9.3, sa * 8.2),
+      new THREE.Vector3(ca * 6.5, 11.6, sa * 6.5),
     ]);
     crown.add(makeMeshPart(
       new THREE.TubeGeometry(prongCurve, 18, 0.56, 8, false),
@@ -607,30 +607,35 @@ function buildWeddingRingsGroup() {
   }
 
   // Upright Brilliant-Cut Solitaire Diamond:
-  // Pointed pavilion cone pointing DOWN (y = 0.8), flat wide table facing UP (y = 13.0)
+  // Pointed pavilion culet pointing DOWN (y = 0.8), flat wide table facing UP (y = 13.4)
   const diamondPts = [
     new THREE.Vector2(0.0,  0.0), // sharp culet point facing DOWN into ring band
-    new THREE.Vector2(4.2,  4.3), // lower pavilion facets
-    new THREE.Vector2(8.0,  8.4), // sharp girdle edge
-    new THREE.Vector2(8.0,  9.2), // girdle band
-    new THREE.Vector2(5.0, 12.2), // upper crown bevel facets
-    new THREE.Vector2(0.0, 12.2), // flat wide table facing UP
+    new THREE.Vector2(4.4,  4.4), // lower pavilion facets
+    new THREE.Vector2(8.2,  8.5), // sharp girdle edge
+    new THREE.Vector2(8.2,  9.4), // girdle band
+    new THREE.Vector2(5.1, 12.6), // upper crown bevel facets
+    new THREE.Vector2(0.0, 12.6), // flat wide table facing UP
   ];
   crown.add(makeMeshPart(
     new THREE.LatheGeometry(diamondPts, 16),
     (x, y) => {
-      if (y > 11.9) return '#FFFFFF'; // crisp flat top table
-      if (y > 8.1 && y < 9.4) return '#E0FFFF'; // brilliant girdle flash
+      if (y > 12.2) return '#FFFFFF'; // crisp flat top table
+      if (y > 8.2 && y < 9.6) return '#E0FFFF'; // brilliant girdle flash
       return '#00F0FF'; // cyan-white pavilion & crown facets
     },
-    { pos: [0, 0.8, 0], surfaceWeight: 2.5 }
+    { pos: [0, 0.8, 0], surfaceWeight: 2.6 }
   ));
 
-  // Subtle crisp rim highlight around the flat top diamond table
+  // Crisp girdle & flat-top table rim highlights for unmistakable diamond silhouette
   crown.add(makeMeshPart(
-    new THREE.TorusGeometry(5.0, 0.30, 8, 16),
+    new THREE.TorusGeometry(8.2, 0.28, 8, 16),
+    '#E0FFFF',
+    { pos: [0, 9.7, 0], rot: [Math.PI / 2, 0, 0], surfaceWeight: 2.4 }
+  ));
+  crown.add(makeMeshPart(
+    new THREE.TorusGeometry(5.1, 0.30, 8, 16),
     '#FFFFFF',
-    { pos: [0, 13.0, 0], rot: [Math.PI / 2, 0, 0], surfaceWeight: 2.8 }
+    { pos: [0, 13.4, 0], rot: [Math.PI / 2, 0, 0], surfaceWeight: 2.8 }
   ));
 
   group.add(crown);
@@ -718,10 +723,10 @@ const CONTINENT_POLYGONS = [
   { color: '#34D399', pts: [[-9,37],[6,38],[26,40],[42,46],[46,66],[26,71],[6,62],[-4,52]] },
   // Africa
   { color: '#FBBF24', pts: [[-17,15],[-6,35],[12,35],[32,31],[42,12],[50,11],[40,-10],[28,-33],[18,-34],[12,-14],[8,4],[-8,6]] },
+  // Indian Subcontinent (distinctive peninsula highlight — checked before Asia)
+  { color: '#FFD700', pts: [[68,24],[78,34],[88,26],[86,18],[77,8],[72,18]] },
   // Asia & Eurasia
   { color: '#10B981', pts: [[36,42],[56,56],[90,74],[145,70],[172,66],[142,46],[122,36],[110,20],[100,12],[88,22],[66,26],[46,30]] },
-  // Indian Subcontinent (distinctive peninsula highlight)
-  { color: '#FFD700', pts: [[68,24],[78,34],[88,26],[86,18],[77,8],[72,18]] },
   // Australia
   { color: '#F59E0B', pts: [[114,-22],[130,-12],[144,-14],[153,-27],[148,-38],[132,-32],[115,-34]] },
   // Antarctica
@@ -998,23 +1003,302 @@ function buildIsroRocketGroup() {
 }
 
 // -----------------------------------------------------------------------------
+// 2G. 3D SACRED LOTUS — 3 concentric tiers of double-curved parametric petals,
+//     golden seed pod (pericarp), glowing stamen pearls & emerald lotus pad
+// -----------------------------------------------------------------------------
+function createLotusPetalGeometry(length, maxWidth, cupDepth, tiltAngle, baseRadius, baseY, theta, palette) {
+  const uSteps = 10;
+  const vSteps = 16;
+  const positions = [];
+  const colors = [];
+  const indices = [];
+
+  const cBase = new THREE.Color(palette.base);
+  const cMid  = new THREE.Color(palette.mid);
+  const cTip  = new THREE.Color(palette.tip);
+  const cRim  = new THREE.Color(palette.rim);
+
+  const cosT = Math.cos(theta);
+  const sinT = Math.sin(theta);
+  const cosA = Math.cos(tiltAngle);
+  const sinA = Math.sin(tiltAngle);
+
+  for (let iv = 0; iv <= vSteps; iv++) {
+    const v = iv / vSteps;
+    const width = maxWidth * Math.sin(Math.pow(v, 0.62) * Math.PI);
+    const spineY = length * (v - 0.10 * Math.sin(v * Math.PI));
+    const spineZ = length * (0.20 * Math.sin(v * Math.PI) - 0.16 * v * v);
+
+    for (let iu = 0; iu <= uSteps; iu++) {
+      const u = -1 + (iu / uSteps) * 2;
+      const px = u * width;
+      const cup = cupDepth * Math.sin(v * Math.PI) * (1 - u * u);
+
+      const radZ = baseRadius + spineY * sinA + (spineZ - cup) * cosA;
+      const altY = baseY + spineY * cosA - (spineZ - cup) * sinA;
+
+      const wx = px * cosT + radZ * sinT;
+      const wz = -px * sinT + radZ * cosT;
+      positions.push(wx, altY, wz);
+
+      const col = cBase.clone().lerp(cMid, Math.min(1, v * 1.35));
+      if (v > 0.65) col.lerp(cTip, (v - 0.65) / 0.35);
+      const rimMix = Math.max(0, (Math.abs(u) - 0.68) / 0.32);
+      if (rimMix > 0) col.lerp(cRim, rimMix * 0.85);
+      colors.push(col.r, col.g, col.b);
+    }
+  }
+
+  const stride = uSteps + 1;
+  for (let iv = 0; iv < vSteps; iv++) {
+    for (let iu = 0; iu < uSteps; iu++) {
+      const a = iv * stride + iu;
+      const b = a + 1;
+      const c = (iv + 1) * stride + iu;
+      const d = c + 1;
+      indices.push(a, c, b);
+      indices.push(b, c, d);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('color',    new THREE.Float32BufferAttribute(colors, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+function buildLotusGroup() {
+  const group = new THREE.Group();
+
+  // Emerald floating lotus pad + turquoise water halo
+  group.add(makeMeshPart(
+    new THREE.CylinderGeometry(31.0, 31.0, 0.9, 48),
+    (x, y, z) => {
+      const r = Math.hypot(x, z);
+      return r > 28.0 ? '#34D399' : (r > 18.0 ? '#10B981' : '#059669');
+    },
+    { pos: [0, 1.2, 0], surfaceWeight: 0.42, skipBottom: true }
+  ));
+  group.add(makeMeshPart(
+    new THREE.TorusGeometry(33.4, 0.52, 10, 64),
+    '#00E5FF',
+    { pos: [0, 1.4, 0], rot: [Math.PI / 2, 0, 0], surfaceWeight: 0.85 }
+  ));
+
+  // Central golden seed pod (pericarp) + glowing stamen pearls
+  const podPts = [
+    new THREE.Vector2(0.0,  0.0),
+    new THREE.Vector2(3.0,  0.6),
+    new THREE.Vector2(3.4,  4.0),
+    new THREE.Vector2(5.4,  9.2),
+    new THREE.Vector2(6.5, 11.4),
+    new THREE.Vector2(0.0, 11.4),
+  ];
+  group.add(makeMeshPart(
+    new THREE.LatheGeometry(podPts, 24),
+    (x, y) => (y > 10.6 ? '#FFFBEB' : '#FFD700'),
+    { pos: [0, 3.2, 0], surfaceWeight: 1.55 }
+  ));
+
+  group.add(makeMeshPart(
+    new THREE.SphereGeometry(0.95, 10, 8),
+    '#FFFFFF',
+    { pos: [0, 15.2, 0], surfaceWeight: 2.0 }
+  ));
+  for (let s = 0; s < 6; s++) {
+    const a = (s / 6) * Math.PI * 2;
+    group.add(makeMeshPart(
+      new THREE.SphereGeometry(0.75, 10, 8),
+      '#FFFBEB',
+      { pos: [Math.cos(a) * 3.8, 15.0, Math.sin(a) * 3.8], surfaceWeight: 1.8 }
+    ));
+  }
+
+  // 3 Concentric tiers of double-curved parametric petals (sculptural upright bloom)
+  const tiers = [
+    {
+      count: 8, offset: 0, length: 28.0, maxWidth: 6.0, cup: 2.8, tilt: 0.16, baseR: 4.5, baseY: 6.2, weight: 1.45,
+      palette: { base: '#FDE68A', mid: '#FF80AB', tip: '#FFFFFF', rim: '#FFFFFF' },
+    },
+    {
+      count: 10, offset: Math.PI / 10, length: 32.0, maxWidth: 7.6, cup: 3.3, tilt: 0.46, baseR: 5.8, baseY: 4.8, weight: 1.25,
+      palette: { base: '#FFD700', mid: '#FF2A85', tip: '#FFE4E6', rim: '#FFFFFF' },
+    },
+    {
+      count: 12, offset: Math.PI / 12, length: 34.0, maxWidth: 8.8, cup: 3.5, tilt: 0.78, baseR: 7.0, baseY: 3.4, weight: 1.05,
+      palette: { base: '#F59E0B', mid: '#EC4899', tip: '#FF80AB', rim: '#FDE68A' },
+    },
+  ];
+
+  tiers.forEach((tier) => {
+    for (let k = 0; k < tier.count; k++) {
+      const theta = (k / tier.count) * Math.PI * 2 + tier.offset;
+      const geo = createLotusPetalGeometry(
+        tier.length, tier.maxWidth, tier.cup, tier.tilt,
+        tier.baseR, tier.baseY, theta, tier.palette
+      );
+      const petalMesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true }));
+      petalMesh.userData.surfaceWeight = tier.weight;
+      group.add(petalMesh);
+    }
+  });
+
+  return group;
+}
+
+// -----------------------------------------------------------------------------
+// 2H. 3D ROYAL IMPERIAL CROWN — Flared golden circlet, 8 bezel-set jewels,
+//     8 fleur-de-lis spires, 4 S-curved imperial arches, velvet dome & finial
+// -----------------------------------------------------------------------------
+function buildCrownGroup() {
+  const group = new THREE.Group();
+
+  // Flared Imperial Base Circlet Band
+  const bandPts = [
+    new THREE.Vector2(21.2, 0.0),
+    new THREE.Vector2(21.9, 3.2),
+    new THREE.Vector2(23.1, 6.8),
+    new THREE.Vector2(24.8, 10.2),
+  ];
+  group.add(makeMeshPart(
+    new THREE.LatheGeometry(bandPts, 48),
+    (x, y) => (y > 8.6 || y < 1.4 ? '#FFFBEB' : '#FFD700'),
+    { surfaceWeight: 0.95 }
+  ));
+
+  // Beaded Upper & Lower Gold Rim Moldings
+  group.add(makeMeshPart(
+    new THREE.TorusGeometry(21.2, 0.72, 10, 56),
+    '#FFFBEB',
+    { pos: [0, 0.6, 0], rot: [Math.PI / 2, 0, 0], surfaceWeight: 1.4 }
+  ));
+  group.add(makeMeshPart(
+    new THREE.TorusGeometry(24.9, 0.85, 10, 56),
+    '#FFFBEB',
+    { pos: [0, 10.2, 0], rot: [Math.PI / 2, 0, 0], surfaceWeight: 1.5 }
+  ));
+
+  // Subtle Royal Velvet Inner Cushion Dome
+  const cushionPts = [
+    new THREE.Vector2(21.5,  8.5),
+    new THREE.Vector2(22.6, 16.0),
+    new THREE.Vector2(18.5, 24.5),
+    new THREE.Vector2(10.0, 29.8),
+    new THREE.Vector2( 0.0, 31.6),
+  ];
+  group.add(makeMeshPart(
+    new THREE.LatheGeometry(cushionPts, 32),
+    (x, y) => (y > 25.0 ? '#A855F7' : '#7E22CE'),
+    { surfaceWeight: 0.28, skipBottom: true }
+  ));
+
+  // 8 Bezel-Set Gemstones around Circlet + 8 Sculpted Rim Spires
+  const gemPalette = ['#FF2A85', '#00E5FF', '#10B981', '#FFFFFF'];
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    const ca = Math.cos(a), sa = Math.sin(a);
+    const isCardinal = (i % 2 === 0);
+
+    // Circlet Jewel + Gold Bezel
+    group.add(makeMeshPart(
+      new THREE.OctahedronGeometry(isCardinal ? 2.1 : 1.65, 0),
+      gemPalette[i % gemPalette.length],
+      { pos: [ca * 23.6, 5.3, sa * 23.6], rot: [0, -a, 0], surfaceWeight: 2.3 }
+    ));
+    group.add(makeMeshPart(
+      new THREE.TorusGeometry(isCardinal ? 2.2 : 1.75, 0.34, 8, 18),
+      '#FFD700',
+      { pos: [ca * 23.3, 5.3, sa * 23.3], rot: [0, Math.PI / 2 - a, 0], surfaceWeight: 1.9 }
+    ));
+
+    // Rim Fleur-de-Lis Spires
+    const spireH = isCardinal ? 14.2 : 10.2;
+    const spireR = isCardinal ? 25.5 : 25.1;
+    group.add(makeMeshPart(
+      new THREE.ConeGeometry(isCardinal ? 2.4 : 1.75, spireH, 12),
+      (x, y) => (y > spireH * 0.25 ? '#FFD700' : '#F59E0B'),
+      {
+        pos: [ca * spireR, 10.0 + spireH * 0.5, sa * spireR],
+        rot: [sa * 0.14, 0, -ca * 0.14],
+        surfaceWeight: 1.5,
+      }
+    ));
+    // Glowing Pearl Finial on each spire tip
+    group.add(makeMeshPart(
+      new THREE.SphereGeometry(isCardinal ? 1.75 : 1.30, 12, 10),
+      isCardinal ? '#FFFFFF' : '#7DD3FC',
+      { pos: [ca * (spireR + 0.9), 10.2 + spireH, sa * (spireR + 0.9)], surfaceWeight: 2.2 }
+    ));
+  }
+
+  // 4 Intersecting Imperial S-Curved Arches + Pearl Studs
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2;
+    const ca = Math.cos(a), sa = Math.sin(a);
+    const archCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(ca * 25.8, 22.8, sa * 25.8),
+      new THREE.Vector3(ca * 24.4, 31.8, sa * 24.4),
+      new THREE.Vector3(ca * 15.2, 37.8, sa * 15.2),
+      new THREE.Vector3(ca *  6.0, 36.8, sa *  6.0),
+      new THREE.Vector3(0.0,       35.2, 0.0),
+    ]);
+    group.add(makeMeshPart(
+      new THREE.TubeGeometry(archCurve, 28, 1.05, 10, false),
+      (x, y) => (y > 35.5 ? '#FFFBEB' : '#FFD700'),
+      { surfaceWeight: 1.85 }
+    ));
+
+    // Pearl beads along each imperial arch
+    [0.24, 0.48, 0.72].forEach((t) => {
+      const pt = archCurve.getPoint(t);
+      group.add(makeMeshPart(
+        new THREE.SphereGeometry(0.95, 10, 8),
+        '#FFFFFF',
+        { pos: [pt.x, pt.y + 0.75, pt.z], surfaceWeight: 2.4 }
+      ));
+    });
+  }
+
+  // Central Monde Orb + Upright Royal Cross-Diamond Finial
+  group.add(makeMeshPart(
+    new THREE.SphereGeometry(3.1, 16, 12),
+    '#FFD700',
+    { pos: [0, 38.2, 0], surfaceWeight: 2.0 }
+  ));
+  group.add(makeMeshPart(
+    new THREE.TorusGeometry(3.25, 0.36, 8, 24),
+    '#FFFFFF',
+    { pos: [0, 38.2, 0], rot: [Math.PI / 2, 0, 0], surfaceWeight: 2.2 }
+  ));
+
+  // Upright Royal Cross / Faceted Diamond Finial at Crown Apex
+  group.add(makeMeshPart(
+    new THREE.BoxGeometry(1.4, 7.6, 1.4),
+    '#FFFBEB',
+    { pos: [0, 44.8, 0], surfaceWeight: 2.4 }
+  ));
+  group.add(makeMeshPart(
+    new THREE.BoxGeometry(6.2, 1.4, 1.4),
+    '#FFD700',
+    { pos: [0, 45.4, 0], surfaceWeight: 2.4 }
+  ));
+  group.add(makeMeshPart(
+    new THREE.OctahedronGeometry(2.1, 0),
+    '#00F0FF',
+    { pos: [0, 45.4, 0], surfaceWeight: 2.8 }
+  ));
+
+  return group;
+}
+
+// -----------------------------------------------------------------------------
 // 3. MASTER HERO FORMATION BUILDER (runs through AeroSampler!)
 // -----------------------------------------------------------------------------
 window.buildHeroFormation = function buildHeroFormation(id, nDrones = 2200) {
   const n = Math.max(500, Math.min(5000, Math.round(nDrones || 2200)));
 
-  if (id === 'taj') {
-    return window.AeroSampler.sampleMeshToDroneCloud(buildTajMahalGroup(), n, {
-      targetSpan: 78,
-      baseAlt: 16,
-    });
-  }
-  if (id === 'trishul') {
-    return window.AeroSampler.sampleMeshToDroneCloud(buildShivaTrishulGroup(), n, {
-      targetSpan: 80,
-      baseAlt: 15,
-    });
-  }
   if (id === 'rings') {
     return window.AeroSampler.sampleMeshToDroneCloud(buildWeddingRingsGroup(), n, {
       targetSpan: 76,
@@ -1025,8 +1309,8 @@ window.buildHeroFormation = function buildHeroFormation(id, nDrones = 2200) {
     return window.AeroSampler.sampleMeshToDroneCloud(buildHeartGroup(), n, {
       targetSpan: 68,
       centerAlt: 56,
-      interiorRatio: 0.24,
-      interiorDepth: 0.42,
+      interiorRatio: 0.14,
+      interiorDepth: 0.35,
     });
   }
   if (id === 'globe') {
@@ -1041,10 +1325,34 @@ window.buildHeroFormation = function buildHeroFormation(id, nDrones = 2200) {
       baseAlt: 14,
     });
   }
+  if (id === 'lotus') {
+    return window.AeroSampler.sampleMeshToDroneCloud(buildLotusGroup(), n, {
+      targetSpan: 76,
+      baseAlt: 22,
+    });
+  }
+  if (id === 'crown') {
+    return window.AeroSampler.sampleMeshToDroneCloud(buildCrownGroup(), n, {
+      targetSpan: 76,
+      baseAlt: 18,
+    });
+  }
+  if (id === 'taj') {
+    return window.AeroSampler.sampleMeshToDroneCloud(buildTajMahalGroup(), n, {
+      targetSpan: 78,
+      baseAlt: 16,
+    });
+  }
+  if (id === 'trishul') {
+    return window.AeroSampler.sampleMeshToDroneCloud(buildShivaTrishulGroup(), n, {
+      targetSpan: 80,
+      baseAlt: 15,
+    });
+  }
 
-  return window.AeroSampler.sampleMeshToDroneCloud(buildTajMahalGroup(), n, {
-    targetSpan: 78,
-    baseAlt: 16,
+  return window.AeroSampler.sampleMeshToDroneCloud(buildWeddingRingsGroup(), n, {
+    targetSpan: 76,
+    baseAlt: 18,
   });
 };
 
@@ -1584,51 +1892,100 @@ function sampleStratifiedPoints(pts, targetCount, minX, maxX, minY, maxY) {
   return out;
 }
 
-window.compileImageTo3DCloud = function compileImageTo3DCloud(imgSource, nDrones = 2200, styleTheme = 'gold_cyan', depthAmp = 14) {
+window.compileImageTo3DCloud = function compileImageTo3DCloud(imgSource, nDrones = 2200, styleTheme = 'auto', depthAmp = 14) {
   const n = Math.max(500, Math.min(5000, Math.round(nDrones || 2200)));
-  const W = 200;
-  const H = 150;
+  const W = 220;
+  const H = 165;
 
   const off = document.createElement('canvas');
-  off.width = W;
+  off.width  = W;
   off.height = H;
   const ctx = off.getContext('2d');
-  ctx.fillStyle = '#000000';
-  ctx.fillRect(0, 0, W, H);
-  if (imgSource) ctx.drawImage(imgSource, 0, 0, W, H);
+  ctx.clearRect(0, 0, W, H);
+
+  // Preserve source aspect ratio inside (W, H) without stretching
+  if (imgSource) {
+    const iw = imgSource.naturalWidth || imgSource.videoWidth || imgSource.width || W;
+    const ih = imgSource.naturalHeight || imgSource.height || H;
+    const fit = Math.min((W - 8) / Math.max(1, iw), (H - 8) / Math.max(1, ih));
+    const dw  = Math.max(1, iw * fit);
+    const dh  = Math.max(1, ih * fit);
+    ctx.drawImage(imgSource, (W - dw) / 2, (H - dh) / 2, dw, dh);
+  }
 
   const rgba = ctx.getImageData(0, 0, W, H).data;
   const lum  = new Float32Array(W * H);
 
-  // Check if pasted image has bright background
-  let borderLum = 0;
-  for (let x = 0; x < W; x++) {
-    const iTop = x * 4;
-    const iBot = ((H - 1) * W + x) * 4;
-    borderLum += (rgba[iTop] + rgba[iTop + 1] + rgba[iTop + 2]) / 3;
-    borderLum += (rgba[iBot] + rgba[iBot + 1] + rgba[iBot + 2]) / 3;
+  // Detect transparent-background images/SVGs vs opaque light/dark backgrounds
+  let transparentPx = 0;
+  for (let i = 0; i < W * H; i++) {
+    if (rgba[i * 4 + 3] < 40) transparentPx++;
   }
-  const invert = (borderLum / (2 * W)) > 150;
+  const useAlphaMask = transparentPx > (W * H * 0.08);
+
+  let invert = false;
+  if (!useAlphaMask) {
+    let borderLum = 0;
+    let borderCnt = 0;
+    for (let x = 0; x < W; x++) {
+      const iTop = x * 4;
+      const iBot = ((H - 1) * W + x) * 4;
+      borderLum += (rgba[iTop] + rgba[iTop + 1] + rgba[iTop + 2]) / 3;
+      borderLum += (rgba[iBot] + rgba[iBot + 1] + rgba[iBot + 2]) / 3;
+      borderCnt += 2;
+    }
+    for (let y = 0; y < H; y += 2) {
+      const iLeft  = (y * W) * 4;
+      const iRight = (y * W + (W - 1)) * 4;
+      borderLum += (rgba[iLeft] + rgba[iLeft + 1] + rgba[iLeft + 2]) / 3;
+      borderLum += (rgba[iRight] + rgba[iRight + 1] + rgba[iRight + 2]) / 3;
+      borderCnt += 2;
+    }
+    invert = (borderLum / Math.max(1, borderCnt)) > 148;
+  }
 
   let minX = W, maxX = 0, minY = H, maxY = 0;
+  let colorSatSum = 0;
+  let maskCount = 0;
   const mask = new Uint8Array(W * H);
+
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
-      const idx = y * W + x;
-      const p   = idx * 4;
-      const rawL = 0.299 * rgba[p] + 0.587 * rgba[p + 1] + 0.114 * rgba[p + 2];
-      const v    = invert ? 255 - rawL : rawL;
-      lum[idx]   = v;
-      if (v > 42) {
+      const idx  = y * W + x;
+      const p    = idx * 4;
+      const r    = rgba[p];
+      const g    = rgba[p + 1];
+      const b    = rgba[p + 2];
+      const a    = rgba[p + 3];
+      const rawL = 0.299 * r + 0.587 * g + 0.114 * b;
+
+      let active = false;
+      let reliefLum = rawL;
+      if (useAlphaMask) {
+        active = a > 38;
+        // Dark strokes on transparent PNG/SVG get strong relief so they shine bright
+        reliefLum = active ? Math.max(rawL, 140) * (a / 255) : 0;
+      } else {
+        const v = invert ? (255 - rawL) : rawL;
+        active = v > 38;
+        reliefLum = v;
+      }
+
+      lum[idx] = reliefLum;
+      if (active) {
         mask[idx] = 1;
+        maskCount++;
+        const maxC = Math.max(r, g, b);
+        const minC = Math.min(r, g, b);
+        colorSatSum += (maxC - minC) / Math.max(1, maxC);
         if (x < minX) minX = x; if (x > maxX) maxX = x;
         if (y < minY) minY = y; if (y > maxY) maxY = y;
       }
     }
   }
 
-  if (maxX <= minX || maxY <= minY) {
-    return window.buildHeroFormation('taj', n);
+  if (maskCount < 8 || maxX <= minX || maxY <= minY) {
+    return window.buildHeroFormation('lotus', n);
   }
 
   // 2-Pass Chamfer Distance Transform for smooth 3D volumetric depth extrusion
@@ -1653,23 +2010,24 @@ window.compileImageTo3DCloud = function compileImageTo3DCloud(imgSource, nDrones
     }
   }
 
-  // Separate sharp Sobel edges (45%) & volumetric interior (55%)
+  // Separate sharp Sobel edges (45%) & brightness-relief interior (55%)
   const edgePts = [];
   const fillPts = [];
   for (let y = minY; y <= maxY; y++) {
     for (let x = minX; x <= maxX; x++) {
       const idx = y * W + x;
       if (!mask[idx]) continue;
-      const gx = (x < W - 1 ? lum[idx + 1] : 0) - (x > 0 ? lum[idx - 1] : 0);
-      const gy = (y < H - 1 ? lum[idx + W] : 0) - (y > 0 ? lum[idx - W] : 0);
+      const gx   = (x < W - 1 ? lum[idx + 1] : 0) - (x > 0 ? lum[idx - 1] : 0);
+      const gy   = (y < H - 1 ? lum[idx + W] : 0) - (y > 0 ? lum[idx - W] : 0);
       const grad = Math.hypot(gx, gy);
-      const p = idx * 4;
+      const p    = idx * 4;
       const pt = {
         x, y,
-        dNorm: Math.sqrt(dist[idx] / maxDist),
+        dNorm:   Math.sqrt(dist[idx] / maxDist),
+        lumNorm: Math.min(1, lum[idx] / 255),
         r: rgba[p], g: rgba[p + 1], b: rgba[p + 2],
       };
-      if (grad > 65 || dist[idx] <= 1.8) edgePts.push(pt);
+      if (grad > 58 || dist[idx] <= 1.8) edgePts.push(pt);
       else fillPts.push(pt);
     }
   }
@@ -1681,10 +2039,15 @@ window.compileImageTo3DCloud = function compileImageTo3DCloud(imgSource, nDrones
     ...sampleStratifiedPoints(fillPts.length ? fillPts : edgePts, fillTarget, minX, maxX, minY, maxY),
   ];
 
-  const cx = (minX + maxX) * 0.5;
-  const cy = (minY + maxY) * 0.5;
+  const cx   = (minX + maxX) * 0.5;
+  const cy   = (minY + maxY) * 0.5;
   const span = Math.max(1, maxX - minX, maxY - minY);
   const scale = 72.0 / span;
+
+  const avgSat = colorSatSum / Math.max(1, maskCount);
+  const resolvedMode = styleTheme === 'auto'
+    ? (avgSat > 0.14 ? 'original' : 'diamond')
+    : styleTheme;
 
   return chosen.slice(0, n).map((pt, idx) => {
     const wx = (pt.x - cx) * scale;
@@ -1692,20 +2055,83 @@ window.compileImageTo3DCloud = function compileImageTo3DCloud(imgSource, nDrones
     const nx = (pt.x - cx) / Math.max(1, (maxX - minX) * 0.5);
     const ny = (cy - pt.y) / Math.max(1, (maxY - minY) * 0.5);
 
-    // Front/back symmetric 3D relief extrusion based on Chamfer distance field
-    const sign = (idx % 2 === 0) ? 1 : -1;
-    const wz = depthAmp > 0
-      ? sign * depthAmp * (0.20 + 0.80 * pt.dNorm)
-      : 0;
+    // Brightness-relief + Chamfer distance 3D depth extrusion
+    const relief = 0.62 * pt.dNorm + 0.38 * pt.lumNorm;
+    const sign   = (idx % 2 === 0) ? 1 : -1;
+    const wz     = depthAmp > 0 ? sign * depthAmp * (0.18 + 0.82 * relief) : 0;
 
     let hex;
-    if (styleTheme === 'original') {
-      hex = window.AeroSampler.toHexFromRgb(pt.r / 255, pt.g / 255, pt.b / 255);
+    if (resolvedMode === 'original') {
+      let r = pt.r / 255;
+      let g = pt.g / 255;
+      let b = pt.b / 255;
+      const pLum = 0.299 * r + 0.587 * g + 0.114 * b;
+      if (useAlphaMask && pLum < 0.25) {
+        // Dark/black strokes on transparent PNG/SVG become crisp luminous white-cyan
+        r = 0.92; g = 0.97; b = 1.0;
+      } else if (invert && pLum > 0.72) {
+        r = 1.0 - r * 0.1; g = 1.0 - g * 0.1; b = 1.0 - b * 0.1;
+      } else if (pLum < 0.22) {
+        const boost = (0.22 - pLum) + 0.14;
+        r = Math.min(1, r + boost);
+        g = Math.min(1, g + boost);
+        b = Math.min(1, b + boost);
+      }
+      hex = window.AeroSampler.toHexFromRgb(r, g, b);
     } else {
-      hex = paletteColorAt(styleTheme, nx, ny);
+      hex = paletteColorAt(resolvedMode, nx, ny);
     }
     return [+wx.toFixed(2), +wz.toFixed(2), +wy.toFixed(2), hex];
   });
+};
+
+window.compileImageElementToSlide = function compileImageElementToSlide(imgSource, label = 'Image Relief', theme = 'auto', depthAmp = 14) {
+  const drones = parseInt(document.getElementById('droneManualInput')?.value, 10) || 2200;
+
+  // Snapshot into an offscreen high-res canvas so fleet resizes re-compile cleanly
+  const snap = document.createElement('canvas');
+  const iw = imgSource.naturalWidth || imgSource.width || 320;
+  const ih = imgSource.naturalHeight || imgSource.height || 240;
+  const sc = Math.min(1, 512 / Math.max(1, iw, ih));
+  snap.width  = Math.max(1, Math.round(iw * sc));
+  snap.height = Math.max(1, Math.round(ih * sc));
+  snap.getContext('2d').drawImage(imgSource, 0, 0, snap.width, snap.height);
+
+  // Sync Stage 1 Blueprint Preview Canvas for visual inspection
+  const bpCanvas = document.getElementById('blueprintCanvas');
+  if (bpCanvas) {
+    const bctx = bpCanvas.getContext('2d');
+    bctx.fillStyle = '#000000';
+    bctx.fillRect(0, 0, bpCanvas.width, bpCanvas.height);
+    const fit = Math.min((bpCanvas.width - 14) / snap.width, (bpCanvas.height - 14) / snap.height);
+    const dw  = snap.width * fit;
+    const dh  = snap.height * fit;
+    bctx.drawImage(snap, (bpCanvas.width - dw) / 2, (bpCanvas.height - dh) / 2, dw, dh);
+  }
+
+  const bpInput = document.getElementById('bpPromptInput');
+  if (bpInput) bpInput.value = label.slice(0, 22);
+  const badge = document.getElementById('bpStatusBadge');
+  if (badge) {
+    badge.textContent = '3D RELIEF COMPILED ✓';
+    badge.className   = 'text-emerald-400 font-bold';
+  }
+
+  const cloud = window.compileImageTo3DCloud(snap, drones, theme, depthAmp);
+  window.slides[window.activeSlideIdx] = {
+    ...window.slides[window.activeSlideIdx],
+    type: 'blueprint',
+    imgSource: snap,
+    imgTheme: theme,
+    imgDepth: depthAmp,
+    meshTransform: { rotX: 0, rotY: 0, rotZ: 0, scale: 1.0 },
+    baseCloud: null,
+    meshGroup: null,
+    rawSamples: null,
+    label: label.slice(0, 20),
+    cloud,
+  };
+  if (typeof window.activateSlide === 'function') window.activateSlide(window.activeSlideIdx, false);
 };
 
 window.approveBlueprintToDrones = function approveBlueprintToDrones() {
@@ -1719,6 +2145,13 @@ window.approveBlueprintToDrones = function approveBlueprintToDrones() {
   window.slides[window.activeSlideIdx] = {
     ...window.slides[window.activeSlideIdx],
     type: 'blueprint',
+    imgSource: canvas,
+    imgTheme: pal,
+    imgDepth: depthAmp,
+    meshTransform: { rotX: 0, rotY: 0, rotZ: 0, scale: 1.0 },
+    baseCloud: null,
+    meshGroup: null,
+    rawSamples: null,
     label,
     cloud,
   };
@@ -1935,38 +2368,52 @@ window.sendSkyDrawingToDrones = function sendSkyDrawingToDrones() {
   window.slides[window.activeSlideIdx] = {
     ...window.slides[window.activeSlideIdx],
     type: 'custom_draw',
+    imgSource: c,
+    imgTheme: 'original',
+    imgDepth: 10,
+    meshTransform: { rotX: 0, rotY: 0, rotZ: 0, scale: 1.0 },
+    baseCloud: null,
+    meshGroup: null,
+    rawSamples: null,
     label: 'Custom Sky Art',
     cloud,
   };
   if (typeof window.activateSlide === 'function') window.activateSlide(window.activeSlideIdx, false);
 };
 
-// Global Ctrl+V Clipboard Image-to-3D-Drone Compiler
+// Global Ctrl+V Clipboard Image/SVG-to-3D-Drone Compiler
 window.addEventListener('paste', (e) => {
   const items = e.clipboardData?.items;
   if (!items) return;
+
   for (const item of items) {
     if (item.type && item.type.startsWith('image/')) {
-      const blob = item.getAsFile();
-      if (!blob) continue;
-      const img = new Image();
-      img.onload = () => {
-        const c = document.getElementById('blueprintCanvas');
-        if (!c) return;
-        const ctx = c.getContext('2d');
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, c.width, c.height);
-        const fit = Math.min((c.width - 14) / img.width, (c.height - 14) / img.height);
-        const dw  = img.width * fit;
-        const dh  = img.height * fit;
-        ctx.drawImage(img, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
-        if (typeof window.switchSidebarTab === 'function') window.switchSidebarTab('blueprint');
-        const bpInput = document.getElementById('bpPromptInput');
-        if (bpInput) bpInput.value = 'Pasted AI Blueprint';
-        window.approveBlueprintToDrones();
-      };
-      img.src = URL.createObjectURL(blob);
-      break;
+      const file = item.getAsFile();
+      if (!file) continue;
+      if (typeof window.handleUniversalFileUpload === 'function') {
+        window.handleUniversalFileUpload(file, 'Pasted Image');
+      } else {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          window.compileImageElementToSlide(img, 'Pasted Image', 'auto', 14);
+        };
+        img.src = url;
+      }
+      return;
+    }
+  }
+
+  // Also support pasting raw <svg> markup when not typing inside an input
+  const activeTag = document.activeElement?.tagName;
+  if (activeTag !== 'INPUT' && activeTag !== 'TEXTAREA') {
+    const plain = e.clipboardData.getData('text/plain') || '';
+    if (plain.trim().startsWith('<svg')) {
+      const svgFile = new File([plain], 'pasted_vector.svg', { type: 'image/svg+xml' });
+      if (typeof window.handleUniversalFileUpload === 'function') {
+        window.handleUniversalFileUpload(svgFile, 'Pasted SVG');
+      }
     }
   }
 });

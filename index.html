@@ -1,14 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="dark h-full overflow-hidden">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AeroGrid Studio v6.0 — True 3D Drone Choreography &amp; Swarm Compiler</title>
+  <title>AeroGrid Studio v7.0 — Universal 3D Drone Choreography &amp; Swarm Compiler</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
   <!-- HDR UnrealBloom Post-Processing -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
@@ -20,14 +21,15 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://js.puter.com/v2/"></script>
 
-  <!-- AeroGrid v6.0 Modular Engine (three-engine → formations → billing) -->
+  <!-- AeroGrid v7.0 Modular Engine (three-engine → formations → billing) -->
   <script src="three-engine.js"></script>
   <script src="formations.js"></script>
   <script src="billing.js"></script>
 
   <style>
     * { box-sizing: border-box; }
-    body { background: #02050C; color: #F8FAFC; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; }
+    html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+    body { background: #02050C; color: #F8FAFC; font-family: 'Inter', system-ui, sans-serif; }
     .studio-panel { background: #090F1D; border-color: rgba(56,189,248,0.16); }
     .nav-btn.active { background: rgba(56,189,248,0.16); color: #38BDF8; border-left: 3px solid #38BDF8; }
     .slide-card { transition: all 0.18s ease; cursor: pointer; }
@@ -45,32 +47,42 @@
     }
   </style>
 </head>
-<body class="h-screen flex flex-col select-none overflow-hidden">
+<body class="h-screen w-screen flex flex-col select-none overflow-hidden min-h-0">
+
+  <!-- UNIVERSAL HIDDEN FILE PICKER (.GLB / .GLTF / .OBJ / .PNG / .JPG / .SVG) -->
+  <input id="universalFileInput" type="file"
+    accept=".glb,.gltf,.obj,.png,.jpg,.jpeg,.webp,.gif,.bmp,.svg,image/*"
+    class="hidden" onchange="uploadUniversalFiles(this)" />
 
   <!-- TOP STUDIO HEADER -->
-  <header class="min-h-[56px] border-b border-slate-800 bg-[#050914] px-3 sm:px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 sm:gap-3 shrink-0 z-30">
-    <div class="flex items-center gap-2.5 shrink-0">
+  <header class="min-h-[56px] border-b border-slate-800 bg-[#050914] px-3 sm:px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 sm:gap-2.5 shrink-0 z-30">
+    <div class="flex items-center gap-2 shrink-0">
       <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 flex items-center justify-center font-black text-slate-950 text-sm">AG</div>
       <div class="leading-tight">
         <span class="font-bold text-white text-sm tracking-tight">AeroGrid Studio</span>
-        <span class="hidden lg:inline text-[11px] text-emerald-400 font-mono ml-2">● v6.0 3D Mesh Engine</span>
+        <span class="hidden xl:inline text-[11px] text-emerald-400 font-mono ml-2">● v7.0 Production</span>
       </div>
     </div>
 
     <!-- Quick Show Sequence Bar -->
-    <div id="magicPromptWrap" class="hidden md:flex flex-1 min-w-[200px] max-w-xl items-center gap-2 bg-[#0C1425] border border-slate-700/80 rounded-xl px-3 py-1.5">
+    <div id="magicPromptWrap" class="hidden md:flex flex-1 min-w-[160px] max-w-lg items-center gap-2 bg-[#0C1425] border border-slate-700/80 rounded-xl px-2.5 py-1.5">
       <span class="text-sky-400 text-xs">✦</span>
-      <input id="magicPrompt" type="text" value='Taj Mahal -> Shiva Trishul -> Wedding Rings -> "INDIA 2026"'
+      <input id="magicPrompt" type="text" value='Solitaire Rings -> 3D Lotus -> ISRO Rocket -> "INDIA 2026"'
         onkeydown="if(event.key==='Enter') runInstantSequence()"
-        placeholder='Sequence: e.g. Taj Mahal -> Heart -> Wedding Rings -> "FOREVER"'
+        placeholder='Sequence: e.g. Solitaire Rings -> 3D Lotus -> 3D Crown -> "FOREVER"'
         class="w-full bg-transparent text-xs text-white focus:outline-none" />
-      <button onclick="runInstantSequence()" class="px-3 py-1 rounded-lg bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-[11px] whitespace-nowrap">
+      <button onclick="runInstantSequence()" class="px-2.5 py-1 rounded-lg bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-[11px] whitespace-nowrap">
         Build Show
       </button>
     </div>
 
     <!-- Right Action Controls -->
     <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <button id="topUploadBtn" onclick="document.getElementById('universalFileInput').click()"
+        title="Upload or Drag &amp; Drop .GLB, .GLTF, .OBJ, .PNG, .JPG, or .SVG"
+        class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-500/30 to-sky-500/30 hover:from-purple-500/45 hover:to-sky-500/45 border border-sky-400/50 text-white text-[11px] font-bold shadow-md shadow-sky-500/10 whitespace-nowrap">
+        ⬆ Upload 3D Model (.GLB/.OBJ) or Image
+      </button>
       <div class="hidden sm:flex items-center gap-1.5 bg-[#0C1425] border border-slate-700/80 rounded-xl px-2.5 py-1 text-xs font-mono">
         <span class="text-slate-400">UAVs:</span>
         <input id="droneManualInput" type="number" min="500" max="5000" step="50" value="2200"
@@ -79,15 +91,15 @@
           class="w-14 bg-transparent text-sky-400 font-bold text-right focus:outline-none" />
       </div>
       <button id="clientViewBtn" onclick="toggleClientView()"
-        class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-sky-300 text-xs font-semibold whitespace-nowrap">
+        class="px-2.5 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-sky-300 text-xs font-semibold whitespace-nowrap">
         👁️ Client View
       </button>
       <button id="recVideoBtn" onclick="recordPitchVideo()"
-        class="hidden sm:inline-flex px-3 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-xs font-semibold whitespace-nowrap">
+        class="hidden lg:inline-flex px-2.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-xs font-semibold whitespace-nowrap">
         🎥 Pitch Video
       </button>
       <button onclick="toggleExportModal(true)"
-        class="px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20 whitespace-nowrap">
+        class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-semibold shadow-lg shadow-indigo-500/20 whitespace-nowrap">
         Export &amp; GST →
       </button>
     </div>
@@ -111,7 +123,7 @@
         <span class="text-base">🎨</span><span>Sky Draw</span>
       </button>
       <button id="tabBtn-uploads" onclick="switchSidebarTab('uploads')" class="nav-btn w-full py-2.5 flex flex-col items-center gap-1 text-[10px] font-medium text-slate-400 hover:text-white">
-        <span class="text-base">☁️</span><span>Paste / 3D</span>
+        <span class="text-base">🧊</span><span>3D / Orient</span>
       </button>
     </nav>
 
@@ -121,13 +133,45 @@
       <!-- TAB 1: HERO SHOW VAULT (DEFAULT ACTIVE) -->
       <div id="panel-vault" class="space-y-3.5">
         <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">3D Mesh Hero Sculptures</h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">Triangle-area-weighted 3D surface sampled formations</p>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">3D Parametric Hero Vault</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">Area-weighted surface sampled sculptures • LED 2.6</p>
         </div>
+
         <div id="heroGrid" class="grid grid-cols-2 gap-2.5"></div>
-        <div class="p-3 rounded-xl bg-[#050914] border border-slate-800 space-y-1.5 text-[11px] text-slate-400">
-          <p class="font-semibold text-sky-300">True 3D Mesh Sampling</p>
-          <p>Every sculpture builds composite Three.js geometry (Lathe, Tube, Torus, Extrude) sampled evenly across 3D faces with per-vertex colors.</p>
+
+        <!-- Prominent Upload Button Inside Hero Vault -->
+        <button id="vaultUploadBtn" onclick="document.getElementById('universalFileInput').click()"
+          class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-500/25 to-sky-500/25 hover:from-purple-500/40 hover:to-sky-500/40 border border-sky-400/50 text-white font-bold text-xs shadow-lg shadow-sky-500/10">
+          📦 Upload 3D Model (.GLB/.OBJ) or Image
+        </button>
+
+        <!-- Built-in Free .GLB Sources & Tips -->
+        <div class="p-3 rounded-xl bg-[#050914] border border-slate-800 space-y-2 text-[11px] text-slate-300">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-sky-300">Free .GLB 3D Models &amp; Tips</span>
+            <span class="text-[9px] font-mono text-emerald-400">DRAG &amp; DROP</span>
+          </div>
+          <p class="text-[10px] text-slate-400 leading-relaxed">
+            Drop any <b class="text-white">.GLB, .GLTF, .OBJ, .PNG, .JPG, or .SVG</b> onto the 3D sky, or press <code class="text-sky-300">Ctrl+V</code> to paste an image. Use <b class="text-purple-300">+90° X</b> in the Orient bar if a model lies flat.
+          </p>
+          <div class="grid grid-cols-2 gap-1.5 text-[10px] pt-0.5">
+            <a href="https://poly.pizza" target="_blank" rel="noopener noreferrer"
+              class="px-2 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-sky-300 font-semibold text-center truncate">
+              🍕 Poly Pizza (.glb) ↗
+            </a>
+            <a href="https://www.meshy.ai" target="_blank" rel="noopener noreferrer"
+              class="px-2 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-purple-300 font-semibold text-center truncate">
+              ✨ Meshy AI (.glb) ↗
+            </a>
+            <a href="https://sketchfab.com/features/free-3d-models" target="_blank" rel="noopener noreferrer"
+              class="px-2 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-emerald-300 font-semibold text-center truncate">
+              🧊 Sketchfab Free ↗
+            </a>
+            <a href="https://3d.si.edu" target="_blank" rel="noopener noreferrer"
+              class="px-2 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-amber-300 font-semibold text-center truncate">
+              🏛️ Smithsonian 3D ↗
+            </a>
+          </div>
         </div>
       </div>
 
@@ -179,7 +223,7 @@
           <div class="w-full h-40 rounded-lg bg-black border border-slate-800 flex items-center justify-center overflow-hidden relative">
             <canvas id="blueprintCanvas" width="320" height="240" class="w-full h-full object-contain"></canvas>
           </div>
-          <p class="text-[10px] text-slate-400 text-center">Press <b class="text-sky-300">Ctrl + V</b> anywhere to paste an image directly into Stage 1.</p>
+          <p class="text-[10px] text-slate-400 text-center">Press <b class="text-sky-300">Ctrl + V</b> or drop PNG/JPG/SVG onto the sky.</p>
         </div>
 
         <!-- Stage 2 Compile -->
@@ -277,35 +321,70 @@
         </div>
       </div>
 
-      <!-- TAB 5: PASTE / UPLOAD IMAGE & 3D MESH -->
-      <div id="panel-uploads" class="hidden space-y-4">
+      <!-- TAB 5: 3D IMPORT, ORIENTATION & SCALE STUDIO -->
+      <div id="panel-uploads" class="hidden space-y-3.5">
         <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">Paste Image / 3D Mesh</h3>
-          <p class="text-[11px] text-slate-400 mt-0.5">Instant clipboard image or Blender 3D import</p>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-sky-400">3D Model &amp; Image Studio</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">Area-weighted .GLB/.OBJ sampling &amp; live orientation</p>
         </div>
 
-        <div class="p-3.5 rounded-xl bg-[#050914] border border-sky-500/30 space-y-1.5">
-          <p class="text-xs font-semibold text-white">1-Click Clipboard Paste (<code class="text-sky-300">Ctrl + V</code>)</p>
-          <p class="text-[11px] text-slate-400">Copy any image and press <b class="text-sky-300">Ctrl + V</b> anywhere in Studio to compile it to 3D drones.</p>
-        </div>
-
-        <div class="p-3.5 rounded-xl bg-[#050914] border border-slate-800 space-y-2">
-          <p class="text-xs font-semibold text-white">Upload 2D Logo / Artwork (PNG/JPG)</p>
-          <input id="refFile" type="file" accept="image/*" class="hidden" onchange="uploadReferenceImage(this)" />
-          <button onclick="document.getElementById('refFile').click()"
-            class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-semibold text-sky-300">
-            ⬆ Choose Image File
-          </button>
-        </div>
-
-        <div class="p-3.5 rounded-xl bg-[#050914] border border-purple-500/30 space-y-2">
-          <p class="text-xs font-semibold text-white">Import 3D Mesh (.GLB / .OBJ)</p>
-          <p class="text-[11px] text-slate-400">Triangle-area-weighted 3D surface sampling.</p>
+        <div class="p-3 rounded-xl bg-[#050914] border border-purple-500/35 space-y-2">
+          <p class="text-xs font-semibold text-white">Universal 3D / Image Importer</p>
+          <p class="text-[10px] text-slate-400">Drag &amp; drop onto the 3D stage, press <b class="text-sky-300">Ctrl+V</b>, or pick a file:</p>
           <input id="meshFile" type="file" accept=".glb,.gltf,.obj" class="hidden" onchange="upload3DMesh(this)" />
-          <button onclick="document.getElementById('meshFile').click()"
-            class="w-full py-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/50 text-xs font-semibold text-purple-200">
-            🧊 Import 3D Sculpture
-          </button>
+          <input id="refFile" type="file" accept=".png,.jpg,.jpeg,.webp,.gif,.bmp,.svg,image/*" class="hidden" onchange="uploadReferenceImage(this)" />
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="document.getElementById('meshFile').click()"
+              class="py-2 px-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/50 text-[11px] font-semibold text-purple-200">
+              🧊 .GLB / .OBJ
+            </button>
+            <button onclick="document.getElementById('refFile').click()"
+              class="py-2 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-[11px] font-semibold text-sky-300">
+              🖼 PNG / SVG
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Model Rotation (X/Y/Z) & Scale Controls -->
+        <div class="p-3 rounded-xl bg-[#050914] border border-sky-500/30 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-sky-300">Model Rotation &amp; Scale</span>
+            <button onclick="resetModelTransform()" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">⟲ Reset</button>
+          </div>
+
+          <div class="grid grid-cols-4 gap-1 text-[10px] font-mono">
+            <button onclick="nudgeModelRotation('x', 90)"  class="py-1 rounded bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-sky-200 font-bold">+90° X</button>
+            <button onclick="nudgeModelRotation('x', -90)" class="py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200">-90° X</button>
+            <button onclick="nudgeModelRotation('y', 90)"  class="py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300">+90° Y</button>
+            <button onclick="nudgeModelRotation('z', 90)"  class="py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300">+90° Z</button>
+          </div>
+
+          <div class="space-y-1.5 text-[11px] font-mono">
+            <div class="flex items-center gap-2">
+              <span class="w-10 text-slate-400">Rot X</span>
+              <input id="sideRotXSlider" type="range" min="-180" max="180" step="5" value="0"
+                oninput="setModelTransform({rotX: this.value})" class="flex-1 accent-sky-400 cursor-pointer" />
+              <span id="sideRotXVal" class="w-10 text-right text-sky-300">0°</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-10 text-slate-400">Rot Y</span>
+              <input id="sideRotYSlider" type="range" min="-180" max="180" step="5" value="0"
+                oninput="setModelTransform({rotY: this.value})" class="flex-1 accent-emerald-400 cursor-pointer" />
+              <span id="sideRotYVal" class="w-10 text-right text-emerald-300">0°</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-10 text-slate-400">Rot Z</span>
+              <input id="sideRotZSlider" type="range" min="-180" max="180" step="5" value="0"
+                oninput="setModelTransform({rotZ: this.value})" class="flex-1 accent-amber-400 cursor-pointer" />
+              <span id="sideRotZVal" class="w-10 text-right text-amber-300">0°</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-10 text-slate-400">Scale</span>
+              <input id="sideScaleSlider" type="range" min="0.25" max="2.5" step="0.05" value="1.0"
+                oninput="setModelTransform({scale: this.value})" class="flex-1 accent-purple-400 cursor-pointer" />
+              <span id="sideScaleVal" class="w-10 text-right text-purple-300">1.00x</span>
+            </div>
+          </div>
         </div>
 
         <button onclick="shareClientLink()"
@@ -315,12 +394,12 @@
       </div>
     </aside>
 
-    <!-- CENTER 3D STAGE -->
-    <main class="flex-1 flex flex-col min-h-0 min-w-0 bg-[#02050C] relative overflow-hidden">
+    <!-- CENTER 3D STAGE (UNIVERSAL DRAG & DROP ZONE) -->
+    <main id="stageDropZone" class="flex-1 flex flex-col min-h-0 min-w-0 bg-[#02050C] relative overflow-hidden">
       <!-- Floating Stage Control Bar -->
-      <div class="min-h-[44px] bg-[#050914]/95 border-b border-slate-800/80 px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
+      <div class="min-h-[44px] bg-[#050914]/95 border-b border-slate-800/80 px-4 py-1.5 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0 z-20">
         <div class="flex items-center gap-2 min-w-0">
-          <span id="statusToast" class="font-mono text-[11px] text-emerald-400 truncate">✓ AeroGrid v6.0 Ready • 3D Mesh Surface Sampler Active</span>
+          <span id="statusToast" class="font-mono text-[11px] text-emerald-400 truncate">✓ AeroGrid v7.0 Ready • Drop .GLB / .OBJ / Image or Ctrl+V</span>
         </div>
 
         <div class="flex flex-wrap items-center gap-2 font-mono text-[11px] shrink-0">
@@ -354,27 +433,74 @@
           <button id="orbitBtn" onclick="toggleAutoOrbit()" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300">↻ Orbit</button>
 
           <span class="text-slate-500 ml-1">GLOW:</span>
-          <input id="bloomSlider" type="range" min="0.1" max="2.5" step="0.05" value="0.90"
+          <input id="bloomSlider" type="range" min="0.1" max="2.5" step="0.05" value="0.75"
             oninput="setBloomStrength(this.value)"
             title="HDR Bloom Glow Intensity"
             class="w-14 accent-sky-400 cursor-pointer" />
-          <span id="bloomVal" class="text-sky-300 w-7">0.90</span>
+          <span id="bloomVal" class="text-sky-300 w-7">0.75</span>
 
           <span class="text-slate-500 ml-1">SIZE:</span>
-          <input id="droneSizeSlider" type="range" min="1.2" max="8.0" step="0.1" value="3.1"
+          <input id="droneSizeSlider" type="range" min="1.2" max="8.0" step="0.1" value="2.6"
             oninput="setDroneSize(this.value)"
             title="Drone LED Sprite Size"
             class="w-14 accent-amber-400 cursor-pointer" />
-          <span id="droneSizeVal" class="text-amber-300 w-6">3.1</span>
+          <span id="droneSizeVal" class="text-amber-300 w-6">2.6</span>
         </div>
       </div>
 
       <!-- 3D Viewport Container -->
-      <div id="threeContainer" class="flex-1 w-full min-h-0 min-w-0 relative overflow-hidden"></div>
+      <div id="threeContainer" class="flex-1 w-full min-h-0 min-w-0 relative overflow-hidden">
+
+        <!-- Floating Live 3D Model Orientation & Scale Bar (auto-appears on .GLB/.OBJ import) -->
+        <div id="modelTransformBar"
+          class="hidden absolute bottom-3 left-3 z-20 bg-[#050914]/92 backdrop-blur-md border border-sky-400/40 rounded-2xl px-3.5 py-2.5 shadow-2xl shadow-black/70 max-w-md space-y-2">
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-[11px] font-bold text-sky-300 tracking-wide">🧭 Model Rotation (X/Y/Z) &amp; Scale</span>
+            <div class="flex items-center gap-1 text-[10px] font-mono">
+              <button onclick="nudgeModelRotation('x', 90)"  class="px-1.5 py-0.5 rounded bg-sky-500/25 hover:bg-sky-500/40 border border-sky-400/50 text-sky-200 font-bold" title="Stand Upright (+90° X)">↻ +90° X</button>
+              <button onclick="nudgeModelRotation('x', -90)" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200">-90° X</button>
+              <button onclick="nudgeModelRotation('y', 90)"  class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-emerald-300">+90° Y</button>
+              <button onclick="nudgeModelRotation('z', 90)"  class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-amber-300">+90° Z</button>
+              <button onclick="resetModelTransform()"        class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-rose-300">⟲</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px] font-mono">
+            <label class="flex flex-col gap-0.5">
+              <span class="flex justify-between text-slate-400"><span>X</span><b id="rotXVal" class="text-sky-300">0°</b></span>
+              <input id="rotXSlider" type="range" min="-180" max="180" step="5" value="0"
+                oninput="setModelTransform({rotX: this.value})" class="w-20 accent-sky-400 cursor-pointer" />
+            </label>
+            <label class="flex flex-col gap-0.5">
+              <span class="flex justify-between text-slate-400"><span>Y</span><b id="rotYVal" class="text-emerald-300">0°</b></span>
+              <input id="rotYSlider" type="range" min="-180" max="180" step="5" value="0"
+                oninput="setModelTransform({rotY: this.value})" class="w-20 accent-emerald-400 cursor-pointer" />
+            </label>
+            <label class="flex flex-col gap-0.5">
+              <span class="flex justify-between text-slate-400"><span>Z</span><b id="rotZVal" class="text-amber-300">0°</b></span>
+              <input id="rotZSlider" type="range" min="-180" max="180" step="5" value="0"
+                oninput="setModelTransform({rotZ: this.value})" class="w-20 accent-amber-400 cursor-pointer" />
+            </label>
+            <label class="flex flex-col gap-0.5">
+              <span class="flex justify-between text-slate-400"><span>Scale</span><b id="modelScaleVal" class="text-purple-300">1.00x</b></span>
+              <input id="modelScaleSlider" type="range" min="0.25" max="2.5" step="0.05" value="1.0"
+                oninput="setModelTransform({scale: this.value})" class="w-20 accent-purple-400 cursor-pointer" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Universal Drag & Drop Overlay -->
+      <div id="dropZoneOverlay"
+        class="hidden pointer-events-none absolute inset-3 z-40 rounded-2xl border-2 border-dashed border-sky-400 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center gap-2 text-center p-6">
+        <div class="text-4xl">🛸</div>
+        <p class="text-base font-bold text-white">Drop 3D Model or Image to Compile Swarm</p>
+        <p class="text-xs font-mono text-sky-300">.GLB &bull; .GLTF &bull; .OBJ &bull; .PNG &bull; .JPG &bull; .SVG</p>
+        <p class="text-[11px] text-slate-400">Compiles immediately into 2,200 evenly distributed 3D drones</p>
+      </div>
 
       <!-- Telemetry Strip -->
       <div class="h-8 bg-[#050914] border-t border-slate-800/80 px-4 flex items-center justify-between gap-2 text-[11px] font-mono text-slate-400 shrink-0 overflow-hidden whitespace-nowrap">
-        <div class="truncate">ACTIVE SLIDE: <span id="hudSlideName" class="text-white font-semibold">01. Taj Mahal</span></div>
+        <div class="truncate">ACTIVE SLIDE: <span id="hudSlideName" class="text-white font-semibold">01. Solitaire Rings</span></div>
         <div class="flex items-center gap-3 sm:gap-4 shrink-0">
           <span>FLEET: <b id="hudFleet" class="text-sky-400">2200 UAVs</b></span>
           <span class="hidden md:inline">MAX VEL: <b id="hudMaxVel" class="text-amber-300">5.1 m/s</b></span>
