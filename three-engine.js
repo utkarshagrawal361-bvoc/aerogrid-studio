@@ -26,19 +26,21 @@ const camTargetLookAt = new THREE.Vector3(0, 58, 0);
 let resizeObserver = null;
 
 // ---------------------------------------------------------------------------
-// Glow sprite texture
+// Crisp LED point sprite texture (white-hot core + tight colored halo)
 // ---------------------------------------------------------------------------
 function createGlowSprite() {
   const c = document.createElement('canvas');
   c.width = 64; c.height = 64;
   const ctx = c.getContext('2d');
-  const grad = ctx.createRadialGradient(32,32,0,32,32,32);
-  grad.addColorStop(0.00, 'rgba(255,255,255,1)');
-  grad.addColorStop(0.20, 'rgba(255,255,255,0.95)');
-  grad.addColorStop(0.48, 'rgba(255,255,255,0.38)');
-  grad.addColorStop(1.00, 'rgba(0,0,0,0)');
+  const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0.00, 'rgba(255,255,255,1.00)');
+  grad.addColorStop(0.16, 'rgba(255,255,255,0.98)');
+  grad.addColorStop(0.26, 'rgba(255,255,255,0.55)');
+  grad.addColorStop(0.42, 'rgba(255,255,255,0.14)');
+  grad.addColorStop(0.65, 'rgba(255,255,255,0.03)');
+  grad.addColorStop(1.00, 'rgba(0,0,0,0.00)');
   ctx.fillStyle = grad;
-  ctx.fillRect(0,0,64,64);
+  ctx.fillRect(0, 0, 64, 64);
   return new THREE.CanvasTexture(c);
 }
 
@@ -63,7 +65,7 @@ window.initThreeJS = function initThreeJS() {
   const renderScene = new THREE.RenderPass(scene, camera);
   bloomPass = new THREE.UnrealBloomPass(
     new THREE.Vector2(container.clientWidth, container.clientHeight),
-    1.10, 0.52, 0.20
+    0.75, 0.40, 0.22
   );
   composer = new THREE.EffectComposer(renderer);
   composer.addPass(renderScene);
@@ -101,7 +103,7 @@ window.initThreeJS = function initThreeJS() {
   `).join('');
 
   window.initSkyDrawPad();
-  window.generateBlueprintPreview();
+  window.generateBlueprintPreview(false);
   setupDroneParticles(2200);
 
   window.slides = [
@@ -322,7 +324,7 @@ function setupDroneParticles(count) {
   if (trailLines)       scene.remove(trailLines);
 
   const spriteTex  = createGlowSprite();
-  const spriteSize = userDroneSize !== null ? userDroneSize : (count >= 1500 ? 3.8 : 4.5);
+  const spriteSize = userDroneSize !== null ? userDroneSize : (count >= 1500 ? 2.6 : 3.2);
   const sizeSlider = document.getElementById('droneSizeSlider');
   const sizeVal    = document.getElementById('droneSizeVal');
   if (sizeSlider && userDroneSize === null) sizeSlider.value = spriteSize;
@@ -591,14 +593,14 @@ function animateThree() {
 // Live HDR Bloom & Drone Size controls
 // ---------------------------------------------------------------------------
 window.setBloomStrength = function setBloomStrength(val) {
-  const v = Math.max(0.1, Math.min(3.0, parseFloat(val) || 1.1));
+  const v = Math.max(0.1, Math.min(3.0, parseFloat(val) || 0.75));
   if (bloomPass) bloomPass.strength = v;
   const el = document.getElementById('bloomVal');
   if (el) el.textContent = v.toFixed(2);
 };
 
 window.setDroneSize = function setDroneSize(val) {
-  const v = Math.max(1.0, Math.min(10.0, parseFloat(val) || 3.8));
+  const v = Math.max(1.0, Math.min(10.0, parseFloat(val) || 2.6));
   userDroneSize = v;
   if (dronePoints)      dronePoints.material.size      = v;
   if (reflectionPoints) reflectionPoints.material.size = v * 1.15;
@@ -659,7 +661,7 @@ window.runInstantSequence = function runInstantSequence() {
     const heroMatch=window.HERO_VAULT.find(h=>low.includes(h.id)||low.includes(h.name.toLowerCase()));
     if (heroMatch) return {type:'hero',id:heroMatch.id,label:heroMatch.name,dur:15,trans:transCycle[i%3],cloud:window.buildHeroFormation(heroMatch.id,drones)};
     document.getElementById('bpPromptInput').value=clean;
-    window.generateBlueprintPreview();
+    window.generateBlueprintPreview(false);
     const cloud=window.compileImageTo3DCloud(document.getElementById('blueprintCanvas'),drones,low.includes('india')?'tricolour':'gold_cyan',14);
     return {type:'blueprint',label:clean.slice(0,20),dur:15,trans:transCycle[i%3],cloud};
   });

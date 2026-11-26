@@ -17,6 +17,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://js.puter.com/v2/"></script>
 
   <!-- Modular AeroGrid scripts (order matters: formations → engine → billing) -->
   <script src="formations.js"></script>
@@ -141,14 +142,14 @@
             <div>
               <label class="block text-[10px] text-slate-400 mb-1">3D Sculpture Depth</label>
               <select id="bpDepthSelect" class="w-full bg-[#050914] border border-slate-700 rounded-lg px-2 py-1.5 text-[11px] text-white">
-                <option value="14">Deep 3D Relief</option>
+                <option value="14" selected>Deep 3D Relief</option>
                 <option value="7">Curved Panorama</option>
                 <option value="0">Flat Stadium Banner</option>
               </select>
             </div>
           </div>
 
-          <button onclick="generateBlueprintPreview()"
+          <button onclick="generateBlueprintPreview(true)"
             class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-sky-400/40 text-sky-300 font-bold text-xs">
             1. 👁️ Generate / Refresh Visual Preview
           </button>
@@ -343,18 +344,18 @@
           <button id="orbitBtn" onclick="toggleAutoOrbit()" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300">↻ Orbit</button>
 
           <span class="text-slate-500 ml-1">GLOW:</span>
-          <input id="bloomSlider" type="range" min="0.2" max="2.5" step="0.05" value="1.10"
+          <input id="bloomSlider" type="range" min="0.2" max="2.5" step="0.05" value="0.75"
             oninput="setBloomStrength(this.value)"
             title="HDR Bloom Glow Intensity"
             class="w-14 accent-sky-400 cursor-pointer" />
-          <span id="bloomVal" class="text-sky-300 w-7">1.10</span>
+          <span id="bloomVal" class="text-sky-300 w-7">0.75</span>
 
           <span class="text-slate-500 ml-1">SIZE:</span>
-          <input id="droneSizeSlider" type="range" min="1.5" max="8.0" step="0.1" value="3.8"
+          <input id="droneSizeSlider" type="range" min="1.5" max="8.0" step="0.1" value="2.6"
             oninput="setDroneSize(this.value)"
             title="Drone LED Sprite Size"
             class="w-14 accent-amber-400 cursor-pointer" />
-          <span id="droneSizeVal" class="text-amber-300 w-6">3.8</span>
+          <span id="droneSizeVal" class="text-amber-300 w-6">2.6</span>
         </div>
       </div>
 
