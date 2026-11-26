@@ -1,44 +1,1065 @@
 // =============================================================================
-// formations.js — AeroGrid Studio
-// Blueprint preview, Sobel-edge 3D compiler, Hero Vault formations,
-// 3D typography builder, Sky-draw pad helpers.
-// All functions exposed on window so index.html inline handlers work.
+// formations.js — AeroGrid Studio v6.0
+// 6 Flagship 3D Mesh-Sampled Hero Sculptures (via AeroSampler),
+// Puter.js AI Blueprint Generator + Offline Silhouette Fallback Library,
+// Distance-Field 3D Extrusion Compiler, 3D Arched Typography, Symmetry Sky Draw,
+// and Global Ctrl+V Clipboard Paste Compiler.
 // =============================================================================
 
 'use strict';
 
-// ---------------------------------------------------------------------------
-// Shared state (declared here, consumed by three-engine.js)
-// ---------------------------------------------------------------------------
-window.slides        = [];
+// -----------------------------------------------------------------------------
+// 1. SHARED STUDIO STATE & HERO VAULT REGISTRY
+// -----------------------------------------------------------------------------
+window.slides         = [];
 window.activeSlideIdx = 0;
 
 window.HERO_VAULT = [
-  { id: 'taj',     name: 'Taj Mahal',       tag: 'HERITAGE',  icon: '🕌' },
-  { id: 'trishul', name: 'Shiva Trishul',   tag: 'DIVINE',    icon: '🔱' },
-  { id: 'heart',   name: 'Beating 3D Heart',tag: 'WEDDING',   icon: '❤️' },
-  { id: 'rings',   name: 'Wedding Rings',   tag: 'WEDDING',   icon: '💍' },
-  { id: 'globe',   name: '3D Earth Globe',  tag: 'GLOBAL',    icon: '🌍' },
-  { id: 'rocket',  name: 'ISRO Rocket',     tag: 'AEROSPACE', icon: '🚀' },
+  { id: 'taj',     name: 'Taj Mahal',       tag: '3D MESH',   icon: '🕌' },
+  { id: 'trishul', name: 'Shiva Trishul',   tag: '3D MESH',   icon: '🔱' },
+  { id: 'rings',   name: 'Wedding Rings',   tag: 'SOLITAIRE', icon: '💍' },
+  { id: 'heart',   name: 'Beating 3D Heart',tag: 'VOLUMETRIC',icon: '❤️' },
+  { id: 'globe',   name: '3D Earth Globe',  tag: 'PLANETARY', icon: '🌍' },
+  { id: 'rocket',  name: 'ISRO LVM3 Rocket',tag: 'AEROSPACE', icon: '🚀' },
 ];
 
-// ---------------------------------------------------------------------------
-// 1. MULTI-SOURCE VISUAL BLUEPRINT GENERATOR (Puter.js AI + 44+ Vector Blueprints)
-// ---------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 2. THREE.JS COMPOSITE 3D HERO SCULPTURE BUILDERS
+// -----------------------------------------------------------------------------
+function makeMeshPart(geometry, colorSource, options = {}) {
+  if (colorSource !== undefined) {
+    window.AeroSampler.applyVertexColors(geometry, colorSource);
+  }
+  const mat = new THREE.MeshBasicMaterial({ vertexColors: true });
+  const mesh = new THREE.Mesh(geometry, mat);
+  if (typeof options.surfaceWeight === 'number') mesh.userData.surfaceWeight = options.surfaceWeight;
+  if (options.skipBottom) mesh.userData.skipBottom = true;
+  if (typeof options.colorFn === 'function') mesh.userData.colorFn = options.colorFn;
+  if (options.pos) mesh.position.set(options.pos[0], options.pos[1], options.pos[2]);
+  if (options.rot) mesh.rotation.set(options.rot[0], options.rot[1], options.rot[2]);
+  if (options.scale) mesh.scale.set(options.scale[0], options.scale[1], options.scale[2]);
+  return mesh;
+}
+
+// -----------------------------------------------------------------------------
+// 2A. TAJ MAHAL — Multi-tiered plinth, octagonal chamber, Lathe onion dome,
+//     arched alcoves, 4 corner chhatris, 4 tapered minarets with balcony rings
+// -----------------------------------------------------------------------------
+function buildTajMahalGroup() {
+  const group = new THREE.Group();
+  const marbleColor = (x, y) => (y > 0 ? '#FFFFFF' : '#E2E8F0');
+
+  // Tier 1: Wide riverfront terrace plinth
+  group.add(makeMeshPart(
+    new THREE.BoxGeometry(78, 3.8, 78, 4, 1, 4),
+    (x, y, z) => (Math.abs(x) > 37 || Math.abs(z) > 37 ? '#FDE68A' : '#CBD5E1'),
+    { pos: [0, 1.9, 0], surfaceWeight: 0.34, skipBottom: true }
+  ));
+
+  // Tier 2: Upper white marble podium
+  group.add(makeMeshPart(
+    new THREE.BoxGeometry(58, 6.2, 58, 4, 1, 4),
+    (x, y, z) => (y > 2.4 && (Math.abs(x) > 27 || Math.abs(z) > 27) ? '#FFD700' : '#F8FAFC'),
+    { pos: [0, 6.9, 0], surfaceWeight: 0.44, skipBottom: true }
+  ));
+
+  // Ceremonial front approach apron (+Z)
+  group.add(makeMeshPart(
+    new THREE.BoxGeometry(16, 4.0, 8),
+    '#E2E8F0',
+    { pos: [0, 4.0, 32], surfaceWeight: 0.35, skipBottom: true }
+  ));
+
+  // Central Baghdadi octagonal chamber (wide cardinal facades, chamfered corners)
+  const w = 18.5;
+  const c = 11.8;
+  const octShape = new THREE.Shape();
+  octShape.moveTo(-c, -w); octShape.lineTo(c, -w);
+  octShape.lineTo(w, -c);  octShape.lineTo(w, c);
+  octShape.lineTo(c, w);   octShape.lineTo(-c, w);
+  octShape.lineTo(-w, c);  octShape.lineTo(-w, -c);
+  octShape.closePath();
+
+  const chamberGeo = new THREE.ExtrudeGeometry(octShape, {
+    depth: 22.0,
+    bevelEnabled: false,
+    curveSegments: 4,
+  });
+  chamberGeo.rotateX(-Math.PI / 2);
+  group.add(makeMeshPart(
+    chamberGeo,
+    (x, y) => (y > 20.5 ? '#FEF3C7' : '#FFFFFF'),
+    { pos: [0, 10.0, 0], surfaceWeight: 0.85, skipBottom: true }
+  ));
+
+  // 4 Grand Pishtaq portals + pointed Mughal arch alcoves + flanking double niches
+  for (let side = 0; side < 4; side++) {
+    const facade = new THREE.Group();
+    facade.rotation.y = side * (Math.PI / 2);
+
+    // Protruding Pishtaq frame
+    facade.add(makeMeshPart(
+      new THREE.BoxGeometry(14.5, 24.5, 2.2),
+      (x, y) => (y > 10.5 || Math.abs(x) > 5.8 ? '#FFD700' : '#FFFFFF'),
+      { pos: [0, 22.25, 19.0], surfaceWeight: 0.72, skipBottom: true }
+    ));
+
+    // Pointed central Mughal ogee arch rib
+    const archCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-4.8, 10.2, 20.2),
+      new THREE.Vector3(-4.8, 20.0, 20.2),
+      new THREE.Vector3(-2.8, 25.0, 20.2),
+      new THREE.Vector3( 0.0, 27.8, 20.2),
+      new THREE.Vector3( 2.8, 25.0, 20.2),
+      new THREE.Vector3( 4.8, 20.0, 20.2),
+      new THREE.Vector3( 4.8, 10.2, 20.2),
+    ]);
+    facade.add(makeMeshPart(
+      new THREE.TubeGeometry(archCurve, 28, 0.55, 8, false),
+      '#FFD700',
+      { surfaceWeight: 2.0 }
+    ));
+
+    // Flanking lower & upper side alcove arches
+    [-10.2, 10.2].forEach((ax) => {
+      [14.0, 23.5].forEach((ay) => {
+        const subCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(ax - 1.9, ay - 3.0, 19.0),
+          new THREE.Vector3(ax - 1.9, ay + 1.2, 19.0),
+          new THREE.Vector3(ax,       ay + 3.2, 19.0),
+          new THREE.Vector3(ax + 1.9, ay + 1.2, 19.0),
+          new THREE.Vector3(ax + 1.9, ay - 3.0, 19.0),
+        ]);
+        facade.add(makeMeshPart(
+          new THREE.TubeGeometry(subCurve, 14, 0.35, 6, false),
+          '#7DD3FC',
+          { surfaceWeight: 1.5 }
+        ));
+      });
+    });
+
+    // Twin parapet guldasta finials on Pishtaq corners
+    [-7.2, 7.2].forEach((gx) => {
+      facade.add(makeMeshPart(
+        new THREE.CylinderGeometry(0.32, 0.42, 4.5, 8),
+        '#FFD700',
+        { pos: [gx, 36.2, 19.2], surfaceWeight: 2.2 }
+      ));
+    });
+
+    group.add(facade);
+  }
+
+  // Drum base under main onion dome
+  group.add(makeMeshPart(
+    new THREE.CylinderGeometry(10.6, 11.4, 7.2, 28),
+    (x, y) => (y > 2.8 ? '#FEF3C7' : '#F8FAFC'),
+    { pos: [0, 35.6, 0], surfaceWeight: 1.05, skipBottom: true }
+  ));
+
+  // Golden lotus collar ring at dome base
+  group.add(makeMeshPart(
+    new THREE.TorusGeometry(10.8, 0.52, 10, 36),
+    '#FFD700',
+    { pos: [0, 39.2, 0], rot: [Math.PI / 2, 0, 0], surfaceWeight: 1.6 }
+  ));
+
+  // True 3D LatheGeometry Onion Dome
+  const domePts = [
+    new THREE.Vector2(10.6, 0.0),
+    new THREE.Vector2( 9.8, 1.8),  // authentic Mughal neck constriction
+    new THREE.Vector2(11.6, 5.0),
+    new THREE.Vector2(13.2, 8.8),  // bulbous onion belly
+    new THREE.Vector2(12.8, 12.6),
+    new THREE.Vector2(10.4, 16.5),
+    new THREE.Vector2( 6.6, 20.0),
+    new THREE.Vector2( 2.4, 22.4),
+    new THREE.Vector2( 0.0, 24.0), // inverted lotus apex
+  ];
+  group.add(makeMeshPart(
+    new THREE.LatheGeometry(domePts, 32),
+    (x, y) => (y > 20.5 ? '#FDE68A' : marbleColor(x, y)),
+    { pos: [0, 39.2, 0], surfaceWeight: 1.65 }
+  ));
+
+  // Golden Kalash Finial Spire + Orbs + Crescent
+  group.add(makeMeshPart(
+    new THREE.CylinderGeometry(0.18, 0.58, 10.2, 12),
+    '#FFD700',
+    { pos: [0, 68.2, 0], surfaceWeight: 3.4 }
+  ));
+  [64.4, 67.0, 69.4].forEach((ky, idx) => {
+    group.add(makeMeshPart(
+      new THREE.SphereGeometry(1.15 - idx * 0.25, 12, 10),
+      '#FFD700',
+      { pos: [0, ky, 0], surfaceWeight: 3.2 }
+    ));
+  });
+  group.add(makeMeshPart(
+    new THREE.TorusGeometry(1.3, 0.30, 8, 18, Math.PI * 1.25),
+    '#FFFFFF',
+    { pos: [0, 73.2, 0], rot: [0, 0, -Math.PI * 0.12], surfaceWeight: 3.5 }
+  ));
+
+  // 4 Corner Roof Chhatris (domed pavilions)
+  const chhatriCoords = [[-11.8, -11.8], [11.8, -11.8], [-11.8, 11.8], [11.8, 11.8]];
+  const miniDomePts = [
+    new THREE.Vector2(3.1, 0.0),
+    new THREE.Vector2(3.5, 1.8),
+    new THREE.Vector2(2.6, 3.8),
+    new THREE.Vector2(0.0, 5.2),
+  ];
+  chhatriCoords.forEach(([cx, cz]) => {
+    for (let p = 0; p < 6; p++) {
+      const a = (p / 6) * Math.PI * 2;
+      group.add(makeMeshPart(
+        new THREE.CylinderGeometry(0.24, 0.28, 5.0, 8),
+        '#E2E8F0',
+        { pos: [cx + Math.cos(a) * 2.5, 34.5, cz + Math.sin(a) * 2.5], surfaceWeight: 1.8 }
+      ));
+    }
+    group.add(makeMeshPart(
+      new THREE.CylinderGeometry(3.4, 3.6, 0.65, 8),
+      '#FFD700',
+      { pos: [cx, 37.2, cz], surfaceWeight: 1.8 }
+    ));
+    group.add(makeMeshPart(
+      new THREE.LatheGeometry(miniDomePts, 16),
+      '#FFFFFF',
+      { pos: [cx, 37.5, cz], surfaceWeight: 2.1 }
+    ));
+    group.add(makeMeshPart(
+      new THREE.CylinderGeometry(0.12, 0.28, 2.4, 8),
+      '#FFD700',
+      { pos: [cx, 43.8, cz], surfaceWeight: 2.8 }
+    ));
+  });
+
+  // 4 Tapered Cylindrical Minarets with Balcony Rings
+  const minaretCoords = [[-25.5, -25.5], [25.5, -25.5], [-25.5, 25.5], [25.5, 25.5]];
+  const minaretDomePts = [
+    new THREE.Vector2(1.85, 0.0),
+    new THREE.Vector2(2.10, 1.3),
+    new THREE.Vector2(1.40, 2.7),
+    new THREE.Vector2(0.0, 3.7),
+  ];
+  minaretCoords.forEach(([mx, mz]) => {
+    // Octagonal pedestal
+    group.add(makeMeshPart(
+      new THREE.CylinderGeometry(2.6, 3.0, 2.6, 8),
+      '#CBD5E1',
+      { pos: [mx, 11.3, mz], surfaceWeight: 1.1, skipBottom: true }
+    ));
+    // Tapered shaft
+    group.add(makeMeshPart(
+      new THREE.CylinderGeometry(1.35, 2.45, 34.0, 16),
+      '#F8FAFC',
+      { pos: [mx, 29.6, mz], surfaceWeight: 1.35, skipBottom: true }
+    ));
+    // 3 Balcony rings along shaft
+    [23.0, 34.2, 45.8].forEach((by, rIdx) => {
+      const rRad = 2.65 - rIdx * 0.35;
+      group.add(makeMeshPart(
+        new THREE.TorusGeometry(rRad, 0.42, 10, 22),
+        '#FFD700',
+        { pos: [mx, by, mz], rot: [Math.PI / 2, 0, 0], surfaceWeight: 2.2 }
+      ));
+    });
+    // Top chhatri pillars + mini dome + finial
+    for (let k = 0; k < 6; k++) {
+      const ang = (k / 6) * Math.PI * 2;
+      group.add(makeMeshPart(
+        new THREE.CylinderGeometry(0.16, 0.18, 3.6, 6),
+        '#E2E8F0',
+        { pos: [mx + Math.cos(ang) * 1.25, 48.4, mz + Math.sin(ang) * 1.25], surfaceWeight: 1.8 }
+      ));
+    }
+    group.add(makeMeshPart(
+      new THREE.LatheGeometry(minaretDomePts, 14),
+      '#FFFFFF',
+      { pos: [mx, 50.2, mz], surfaceWeight: 2.1 }
+    ));
+    group.add(makeMeshPart(
+      new THREE.CylinderGeometry(0.10, 0.22, 2.4, 8),
+      '#FFD700',
+      { pos: [mx, 54.9, mz], surfaceWeight: 2.8 }
+    ));
+  });
+
+  return group;
+}
+
+// -----------------------------------------------------------------------------
+// 2B. SHIVA TRISHUL — Diamond-section central blade, curved TubeGeometry outer
+//     prongs, crescent base guard, tilted 3D hourglass Damru, vertical staff
+// -----------------------------------------------------------------------------
+function createDiamondBladeGeometry(height, maxHalfW, maxHalfD) {
+  const stations = [
+    { t: 0.00, w: 0.26, d: 0.36 },
+    { t: 0.08, w: 0.62, d: 0.68 },
+    { t: 0.24, w: 1.00, d: 1.00 },
+    { t: 0.48, w: 0.84, d: 0.82 },
+    { t: 0.74, w: 0.48, d: 0.46 },
+    { t: 0.92, w: 0.16, d: 0.16 },
+    { t: 1.00, w: 0.00, d: 0.00 },
+  ];
+  const positions = [];
+  const colors = [];
+  const indices = [];
+  const cEdge = new THREE.Color('#00F0FF');
+  const cRidge = new THREE.Color('#FFFFFF');
+
+  stations.forEach((st) => {
+    const y = st.t * height;
+    const hw = st.w * maxHalfW;
+    const hd = st.d * maxHalfD;
+    // 4 diamond vertices: +X edge, +Z ridge, -X edge, -Z ridge
+    positions.push(
+       hw, y,  0,
+        0, y,  hd,
+      -hw, y,  0,
+        0, y, -hd
+    );
+    const tipMix = Math.min(1, st.t * 1.2);
+    const edgeC = cEdge.clone().lerp(cRidge, tipMix * 0.45);
+    colors.push(
+      edgeC.r, edgeC.g, edgeC.b,
+      cRidge.r, cRidge.g, cRidge.b,
+      edgeC.r, edgeC.g, edgeC.b,
+      cRidge.r, cRidge.g, cRidge.b
+    );
+  });
+
+  for (let s = 0; s < stations.length - 1; s++) {
+    const rowA = s * 4;
+    const rowB = (s + 1) * 4;
+    for (let k = 0; k < 4; k++) {
+      const kNext = (k + 1) % 4;
+      indices.push(rowA + k, rowA + kNext, rowB + kNext);
+      indices.push(rowA + k, rowB + kNext, rowB + k);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('color',    new THREE.Float32BufferAttribute(colors, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+function buildShivaTrishulGroup() {
+  const group = new THREE.Group();
+
+  // Vertical staff (Danda) with golden grip bands
+  group.add(makeMeshPart(
+    new THREE.CylinderGeometry(1.05, 1.32, 58, 16),
+    (x, y) => (y > 20 ? '#E2E8F0' : '#7DD3FC'),
+    { pos: [0, 29, 0], surfaceWeight: 0.95 }
+  ));
+  [4, 18, 32, 48, 55].forEach((ry) => {
+    group.add(makeMeshPart(
+      new THREE.TorusGeometry(1.55, 0.42, 10, 24),
+      '#FFD700',
+      { pos: [0, ry, 0], rot: [Math.PI / 2, 0, 0], surfaceWeight: 1.8 }
+    ));
+  });
+  // Butt spike at bottom of staff
+  group.add(makeMeshPart(
+    new THREE.ConeGeometry(1.45, 5.2, 14),
+    '#FFD700',
+    { pos: [0, -2.5, 0], rot: [Math.PI, 0, 0], surfaceWeight: 1.6 }
+  ));
+
+  // Ornate lotus collar at junction
+  const collarPts = [
+    new THREE.Vector2(1.4, 0.0),
+    new THREE.Vector2(3.2, 1.4),
+    new THREE.Vector2(2.4, 2.8),
+    new THREE.Vector2(4.0, 4.2),
+    new THREE.Vector2(1.8, 5.4),
+  ];
+  group.add(makeMeshPart(
+    new THREE.LatheGeometry(collarPts, 20),
+    '#FFD700',
+    { pos: [0, 53.5, 0], surfaceWeight: 1.6 }
+  ));
+
+  // Crescent Base Guard sweeping beneath both outer prongs
+  const guardCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-13.5, 62.5, 0),
+    new THREE.Vector3( -7.8, 57.5, 0),
+    new THREE.Vector3(  0.0, 56.2, 0),
+    new THREE.Vector3(  7.8, 57.5, 0),
+    new THREE.Vector3( 13.5, 62.5, 0),
+  ]);
+  group.add(makeMeshPart(
+    new THREE.TubeGeometry(guardCurve, 36, 0.92, 10, false),
+    (x) => (Math.abs(x) > 10 ? '#FFFFFF' : '#FFD700'),
+    { surfaceWeight: 1.45 }
+  ));
+
+  // Tall Central 3D Diamond-Section Spear Blade
+  const bladeGeo = createDiamondBladeGeometry(39.5, 4.6, 2.5);
+  const bladeMesh = new THREE.Mesh(bladeGeo, new THREE.MeshBasicMaterial({ vertexColors: true }));
+  bladeMesh.position.set(0, 57.5, 0);
+  bladeMesh.userData.surfaceWeight = 1.55;
+  group.add(bladeMesh);
+
+  // Two Symmetrical Curved Tubular Outer Prongs (TubeGeometry + sharp flared tips)
+  [-1, 1].forEach((dir) => {
+    const prongCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(dir *  1.8, 57.6, 0),
+      new THREE.Vector3(dir *  9.5, 59.5, 0),
+      new THREE.Vector3(dir * 16.2, 66.5, 0),
+      new THREE.Vector3(dir * 15.6, 75.5, 0),
+      new THREE.Vector3(dir * 11.4, 82.0, 0),
+      new THREE.Vector3(dir * 13.6, 86.2, 0),
+    ]);
+    group.add(makeMeshPart(
+      new THREE.TubeGeometry(prongCurve, 44, 1.15, 12, false),
+      (x, y) => (y > 80 ? '#FFFFFF' : (y > 68 ? '#00F0FF' : '#FFD700')),
+      { surfaceWeight: 1.45 }
+    ));
+
+    // Flared razor tip on each curved prong
+    group.add(makeMeshPart(
+      new THREE.ConeGeometry(1.55, 6.2, 12),
+      (x, y) => (y > 0.5 ? '#FFFFFF' : '#00F0FF'),
+      { pos: [dir * 14.3, 88.2, 0], rot: [0, 0, -dir * 0.36], surfaceWeight: 2.1 }
+    ));
+  });
+
+  // Tilted 3D Hourglass Damru with Crimson/Gold Cord
+  const damru = new THREE.Group();
+  damru.position.set(3.2, 43.5, 0);
+  damru.rotation.z = -0.46; // ~26 deg tilt
+
+  const damruPts = [
+    new THREE.Vector2(0.0, -7.2),
+    new THREE.Vector2(5.8, -7.2),
+    new THREE.Vector2(4.2, -3.6),
+    new THREE.Vector2(1.4,  0.0),
+    new THREE.Vector2(4.2,  3.6),
+    new THREE.Vector2(5.8,  7.2),
+    new THREE.Vector2(0.0,  7.2),
+  ];
+  damru.add(makeMeshPart(
+    new THREE.LatheGeometry(damruPts, 24),
+    (x, y) => {
+      if (Math.abs(y) > 7.0) return '#FFFBEB'; // parchment drumhead
+      if (Math.abs(y) < 1.6) return '#FFD700'; // waist sash
+      return Math.abs(y) > 4.5 ? '#FF2A85' : '#FF6D00';
+    },
+    { surfaceWeight: 1.75 }
+  ));
+
+  // Drumhead golden rims & crimson waist collar
+  [-7.1, 7.1].forEach((hy) => {
+    damru.add(makeMeshPart(
+      new THREE.TorusGeometry(5.85, 0.42, 8, 28),
+      '#FFD700',
+      { pos: [0, hy, 0], rot: [Math.PI / 2, 0, 0], surfaceWeight: 2.0 }
+    ));
+  });
+  damru.add(makeMeshPart(
+    new THREE.TorusGeometry(1.65, 0.48, 8, 20),
+    '#FF1744',
+    { pos: [0, 0, 0], rot: [Math.PI / 2, 0, 0], surfaceWeight: 2.2 }
+  ));
+
+  // Zigzag golden & crimson tension cords around Damru body
+  const cordPts = [];
+  const laces = 8;
+  for (let i = 0; i <= laces * 2; i++) {
+    const a = (i / (laces * 2)) * Math.PI * 2;
+    const top = i % 2 === 0;
+    cordPts.push(new THREE.Vector3(Math.cos(a) * 5.7, top ? 6.8 : -6.8, Math.sin(a) * 5.7));
+  }
+  damru.add(makeMeshPart(
+    new THREE.TubeGeometry(new THREE.CatmullRomCurve3(cordPts, true), 48, 0.24, 6, true),
+    '#FFD700',
+    { surfaceWeight: 2.0 }
+  ));
+
+  // Twin knotted striker cords & beads swinging from Damru waist
+  [-1, 1].forEach((side) => {
+    const beatCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(side * 1.6, 0.0, 0),
+      new THREE.Vector3(side * 4.5, -2.5, side * 1.4),
+      new THREE.Vector3(side * 6.4, -5.2, side * 2.0),
+    ]);
+    damru.add(makeMeshPart(
+      new THREE.TubeGeometry(beatCurve, 14, 0.22, 6, false),
+      '#FF2A85',
+      { surfaceWeight: 2.4 }
+    ));
+    damru.add(makeMeshPart(
+      new THREE.SphereGeometry(0.85, 10, 8),
+      '#FFD700',
+      { pos: [side * 6.4, -5.2, side * 2.0], surfaceWeight: 2.8 }
+    ));
+  });
+
+  group.add(damru);
+  return group;
+}
+
+// -----------------------------------------------------------------------------
+// 2C. SOLITAIRE WEDDING RINGS — Two thick, beveled 3D TorusGeometry bands
+//     interlocked at 35° (rose-gold #FFB74D & platinum #E2E8F0) + 4-prong
+//     cathedral setting + upright brilliant-cut solitaire diamond (#00F0FF)
+// -----------------------------------------------------------------------------
+function buildWeddingRingsGroup() {
+  const group = new THREE.Group();
+
+  // Ring 1: Thick beveled Platinum band (#E2E8F0) standing upright
+  const ring1Group = new THREE.Group();
+  ring1Group.position.set(-7.0, 22.0, 0);
+  ring1Group.rotation.y = THREE.MathUtils.degToRad(14);
+
+  ring1Group.add(makeMeshPart(
+    new THREE.TorusGeometry(18.0, 3.0, 22, 72),
+    (x, y, z) => (Math.abs(z) > 1.7 ? '#FFFFFF' : '#E2E8F0'),
+    { scale: [1.0, 1.0, 1.35], surfaceWeight: 1.0 }
+  ));
+  // Crisp outer & inner chamfered bevel rims on platinum band
+  [-2.5, 2.5].forEach((zOff) => {
+    ring1Group.add(makeMeshPart(
+      new THREE.TorusGeometry(20.6, 0.55, 10, 72),
+      '#FFFFFF',
+      { pos: [0, 0, zOff], surfaceWeight: 0.55 }
+    ));
+    ring1Group.add(makeMeshPart(
+      new THREE.TorusGeometry(15.4, 0.55, 10, 72),
+      '#F8FAFC',
+      { pos: [0, 0, zOff], surfaceWeight: 0.45 }
+    ));
+  });
+  group.add(ring1Group);
+
+  // Ring 2: Thick beveled Rose-Gold band (#FFB74D) interlocked at 35°
+  const ring2Group = new THREE.Group();
+  ring2Group.position.set(6.5, 19.5, 0);
+  ring2Group.rotation.x = THREE.MathUtils.degToRad(35);
+  ring2Group.rotation.y = THREE.MathUtils.degToRad(-21);
+
+  ring2Group.add(makeMeshPart(
+    new THREE.TorusGeometry(18.0, 3.0, 22, 72),
+    (x, y, z) => (Math.abs(z) > 1.7 ? '#FFE0B2' : '#FFB74D'),
+    { scale: [1.0, 1.0, 1.35], surfaceWeight: 1.0 }
+  ));
+  [-2.5, 2.5].forEach((zOff) => {
+    ring2Group.add(makeMeshPart(
+      new THREE.TorusGeometry(20.6, 0.55, 10, 72),
+      '#FFE0B2',
+      { pos: [0, 0, zOff], surfaceWeight: 0.55 }
+    ));
+    ring2Group.add(makeMeshPart(
+      new THREE.TorusGeometry(15.4, 0.55, 10, 72),
+      '#FFCC80',
+      { pos: [0, 0, zOff], surfaceWeight: 0.45 }
+    ));
+  });
+  group.add(ring2Group);
+
+  // Crown Setting + Solitaire Diamond anchored directly atop Ring 1
+  const crown = new THREE.Group();
+  crown.position.set(-7.0, 40.0, 0);
+  crown.rotation.y = THREE.MathUtils.degToRad(14);
+
+  // Cathedral shoulders curving up from platinum ring rim into gallery
+  [-1, 1].forEach((dir) => {
+    const shCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(dir * 9.5, -2.5, 0),
+      new THREE.Vector3(dir * 6.5,  1.2, 0),
+      new THREE.Vector3(dir * 4.4,  4.2, 0),
+    ]);
+    crown.add(makeMeshPart(
+      new THREE.TubeGeometry(shCurve, 16, 0.85, 8, false),
+      '#E2E8F0',
+      { surfaceWeight: 2.0 }
+    ));
+  });
+
+  // Gallery basket collar under diamond pavilion
+  crown.add(makeMeshPart(
+    new THREE.TorusGeometry(4.4, 0.72, 12, 36),
+    '#FFFFFF',
+    { pos: [0, 4.4, 0], rot: [Math.PI / 2, 0, 0], surfaceWeight: 2.1 }
+  ));
+
+  // 4 Curved Prongs clutching the solitaire diamond
+  for (let p = 0; p < 4; p++) {
+    const a = (p * Math.PI) / 2 + Math.PI / 4;
+    const ca = Math.cos(a), sa = Math.sin(a);
+    const prongCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(ca * 2.2,  0.4, sa * 2.2),
+      new THREE.Vector3(ca * 5.0,  4.6, sa * 5.0),
+      new THREE.Vector3(ca * 8.1,  9.2, sa * 8.1),
+      new THREE.Vector3(ca * 6.5, 11.4, sa * 6.5),
+    ]);
+    crown.add(makeMeshPart(
+      new THREE.TubeGeometry(prongCurve, 18, 0.56, 8, false),
+      '#F8FAFC',
+      { surfaceWeight: 2.4 }
+    ));
+  }
+
+  // Upright Brilliant-Cut Solitaire Diamond:
+  // Pointed pavilion cone pointing DOWN (y = 0.8), flat wide table facing UP (y = 13.0)
+  const diamondPts = [
+    new THREE.Vector2(0.0,  0.0), // sharp culet point facing DOWN into ring band
+    new THREE.Vector2(4.2,  4.3), // lower pavilion facets
+    new THREE.Vector2(8.0,  8.4), // sharp girdle edge
+    new THREE.Vector2(8.0,  9.2), // girdle band
+    new THREE.Vector2(5.0, 12.2), // upper crown bevel facets
+    new THREE.Vector2(0.0, 12.2), // flat wide table facing UP
+  ];
+  crown.add(makeMeshPart(
+    new THREE.LatheGeometry(diamondPts, 16),
+    (x, y) => {
+      if (y > 11.9) return '#FFFFFF'; // crisp flat top table
+      if (y > 8.1 && y < 9.4) return '#E0FFFF'; // brilliant girdle flash
+      return '#00F0FF'; // cyan-white pavilion & crown facets
+    },
+    { pos: [0, 0.8, 0], surfaceWeight: 2.5 }
+  ));
+
+  // Subtle crisp rim highlight around the flat top diamond table
+  crown.add(makeMeshPart(
+    new THREE.TorusGeometry(5.0, 0.30, 8, 16),
+    '#FFFFFF',
+    { pos: [0, 13.0, 0], rot: [Math.PI / 2, 0, 0], surfaceWeight: 2.8 }
+  ));
+
+  group.add(crown);
+  return group;
+}
+
+// -----------------------------------------------------------------------------
+// 2D. BEATING 3D HEART — True volumetric 3D parametric heart surface
+// -----------------------------------------------------------------------------
+function buildHeartGroup() {
+  const group = new THREE.Group();
+  const uSteps = 76;
+  const vSteps = 38;
+  const positions = [];
+  const colors = [];
+  const indices = [];
+
+  const cDeep = new THREE.Color('#FF1744');
+  const cMid  = new THREE.Color('#FF2A85');
+  const cGlow = new THREE.Color('#FFD1DC');
+
+  for (let iv = 0; iv <= vSteps; iv++) {
+    const v = -Math.PI / 2 + (iv / vSteps) * Math.PI;
+    const cosV = Math.cos(v);
+    const sinV = Math.sin(v);
+
+    for (let iu = 0; iu <= uSteps; iu++) {
+      const u = (iu / uSteps) * Math.PI * 2;
+      const sinU = Math.sin(u);
+      const x0 = 16 * sinU * sinU * sinU;
+      const y0 = 13 * Math.cos(u) - 5 * Math.cos(2 * u) - 2 * Math.cos(3 * u) - Math.cos(4 * u);
+
+      const x = cosV * x0;
+      const y = -2.0 + cosV * (y0 + 2.0);
+      const z = 11.4 * sinV * (0.74 + 0.26 * cosV * Math.abs(sinU));
+
+      positions.push(x, y, z);
+
+      // Gradient shading: warm highlight on upper lobes, deep ruby near base & cleft
+      const lobeMix = Math.max(0, Math.min(1, (y + 16) / 30));
+      const col = cDeep.clone().lerp(cMid, lobeMix);
+      if (y > 4 && Math.abs(sinV) < 0.72) {
+        col.lerp(cGlow, Math.max(0, (y - 4) / 14) * 0.55);
+      }
+      colors.push(col.r, col.g, col.b);
+    }
+  }
+
+  const stride = uSteps + 1;
+  for (let iv = 0; iv < vSteps; iv++) {
+    for (let iu = 0; iu < uSteps; iu++) {
+      const a = iv * stride + iu;
+      const b = a + 1;
+      const c = (iv + 1) * stride + iu;
+      const d = c + 1;
+      indices.push(a, c, b);
+      indices.push(b, c, d);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('color',    new THREE.Float32BufferAttribute(colors, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+
+  const heartMesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true }));
+  heartMesh.userData.surfaceWeight = 1.0;
+  group.add(heartMesh);
+  return group;
+}
+
+// -----------------------------------------------------------------------------
+// 2E. ROTATING 3D EARTH GLOBE — Sphere + raised continental land-mass clusters +
+//     equator/meridian & orbital rings
+// -----------------------------------------------------------------------------
+const CONTINENT_POLYGONS = [
+  // North America
+  { color: '#10B981', pts: [[-168,66],[-145,70],[-112,72],[-82,66],[-60,52],[-70,42],[-82,28],[-98,18],[-84,10],[-95,16],[-108,24],[-122,38],[-135,55]] },
+  // Greenland
+  { color: '#F8FAFC', pts: [[-56,60],[-20,70],[-18,82],[-55,82],[-62,72]] },
+  // South America
+  { color: '#34D399', pts: [[-80,10],[-64,11],[-36,-6],[-42,-22],[-56,-36],[-68,-54],[-74,-44],[-78,-18],[-81,-4]] },
+  // Europe
+  { color: '#34D399', pts: [[-9,37],[6,38],[26,40],[42,46],[46,66],[26,71],[6,62],[-4,52]] },
+  // Africa
+  { color: '#FBBF24', pts: [[-17,15],[-6,35],[12,35],[32,31],[42,12],[50,11],[40,-10],[28,-33],[18,-34],[12,-14],[8,4],[-8,6]] },
+  // Asia & Eurasia
+  { color: '#10B981', pts: [[36,42],[56,56],[90,74],[145,70],[172,66],[142,46],[122,36],[110,20],[100,12],[88,22],[66,26],[46,30]] },
+  // Indian Subcontinent (distinctive peninsula highlight)
+  { color: '#FFD700', pts: [[68,24],[78,34],[88,26],[86,18],[77,8],[72,18]] },
+  // Australia
+  { color: '#F59E0B', pts: [[114,-22],[130,-12],[144,-14],[153,-27],[148,-38],[132,-32],[115,-34]] },
+  // Antarctica
+  { color: '#F8FAFC', pts: [[-180,-72],[180,-72],[180,-89],[-180,-89]] },
+];
+
+function pointInPoly(lon, lat, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const xi = poly[i][0], yi = poly[i][1];
+    const xj = poly[j][0], yj = poly[j][1];
+    const intersect = ((yi > lat) !== (yj > lat))
+      && (lon < ((xj - xi) * (lat - yi)) / (yj - yi + 1e-9) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function classifyLand(lon, lat) {
+  for (let p = 0; p < CONTINENT_POLYGONS.length; p++) {
+    if (pointInPoly(lon, lat, CONTINENT_POLYGONS[p].pts)) {
+      return CONTINENT_POLYGONS[p].color;
+    }
+  }
+  return null;
+}
+
+function buildRaisedContinentsGeometry(radius) {
+  const lonSteps = 128;
+  const latSteps = 64;
+  const positions = [];
+  const colors = [];
+  const indices = [];
+  const tmpCol = new THREE.Color();
+
+  function sphPoint(lonDeg, latDeg, rad) {
+    const phi = THREE.MathUtils.degToRad(90 - latDeg);
+    const theta = THREE.MathUtils.degToRad(lonDeg + 180);
+    return [
+      -rad * Math.sin(phi) * Math.cos(theta),
+       rad * Math.cos(phi),
+       rad * Math.sin(phi) * Math.sin(theta),
+    ];
+  }
+
+  for (let j = 0; j < latSteps; j++) {
+    const lat0 = -86 + (j / latSteps) * 172;
+    const lat1 = -86 + ((j + 1) / latSteps) * 172;
+    const latMid = (lat0 + lat1) * 0.5;
+
+    for (let i = 0; i < lonSteps; i++) {
+      const lon0 = -180 + (i / lonSteps) * 360;
+      const lon1 = -180 + ((i + 1) / lonSteps) * 360;
+      const lonMid = (lon0 + lon1) * 0.5;
+
+      const hex = classifyLand(lonMid, latMid);
+      if (!hex) continue;
+
+      tmpCol.set(hex);
+      const baseIdx = positions.length / 3;
+      const p0 = sphPoint(lon0, lat0, radius);
+      const p1 = sphPoint(lon1, lat0, radius);
+      const p2 = sphPoint(lon1, lat1, radius);
+      const p3 = sphPoint(lon0, lat1, radius);
+
+      [p0, p1, p2, p3].forEach((p) => {
+        positions.push(p[0], p[1], p[2]);
+        colors.push(tmpCol.r, tmpCol.g, tmpCol.b);
+      });
+      indices.push(baseIdx, baseIdx + 1, baseIdx + 2);
+      indices.push(baseIdx, baseIdx + 2, baseIdx + 3);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('color',    new THREE.Float32BufferAttribute(colors, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+function buildEarthGlobeGroup() {
+  const group = new THREE.Group();
+
+  // Ocean Sphere (lower surfaceWeight so land masses pop brightly)
+  group.add(makeMeshPart(
+    new THREE.SphereGeometry(28.0, 48, 32),
+    (x, y) => (Math.abs(y) > 25.5 ? '#BAE6FD' : '#0284C7'),
+    { surfaceWeight: 0.45 }
+  ));
+
+  // Raised 3D Continental Land-Mass Clusters at radius 29.3
+  const landMesh = new THREE.Mesh(
+    buildRaisedContinentsGeometry(29.3),
+    new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide })
+  );
+  landMesh.userData.surfaceWeight = 2.15;
+  group.add(landMesh);
+
+  // Equator ring
+  group.add(makeMeshPart(
+    new THREE.TorusGeometry(31.4, 0.44, 10, 84),
+    '#38BDF8',
+    { rot: [Math.PI / 2, 0, 0], surfaceWeight: 1.4 }
+  ));
+
+  // Two orthogonal Meridian rings
+  [0, Math.PI / 2].forEach((ry) => {
+    group.add(makeMeshPart(
+      new THREE.TorusGeometry(31.1, 0.34, 10, 84),
+      '#7DD3FC',
+      { rot: [0, ry, 0], surfaceWeight: 1.0 }
+    ));
+  });
+
+  // Tilted Golden Orbital Ring
+  group.add(makeMeshPart(
+    new THREE.TorusGeometry(36.2, 0.44, 10, 84),
+    '#FFD700',
+    { rot: [THREE.MathUtils.degToRad(66), THREE.MathUtils.degToRad(18), 0], surfaceWeight: 1.35 }
+  ));
+
+  return group;
+}
+
+// -----------------------------------------------------------------------------
+// 2F. ISRO LVM3 ROCKET — Central core stage, twin strap-on S200 boosters,
+//     payload fairing nose cone, 4 delta fins, animated golden-orange exhaust
+// -----------------------------------------------------------------------------
+function buildIsroRocketGroup() {
+  const group = new THREE.Group();
+
+  // Central L110 + C25 Core Stage (y = 0 .. 43)
+  group.add(makeMeshPart(
+    new THREE.CylinderGeometry(4.1, 4.1, 43.0, 24),
+    (x, y) => {
+      if (y > 16.5 && y < 19.0) return '#FF9933'; // Tricolor saffron ring
+      if (y > 14.0 && y <= 16.5) return '#FFFFFF';
+      if (y > 11.5 && y <= 14.0) return '#10B981'; // Tricolor emerald ring
+      if (y < -14.0) return '#64748B';
+      return '#F8FAFC';
+    },
+    { pos: [0, 21.5, 0], surfaceWeight: 0.95 }
+  ));
+
+  // Payload Fairing & Tangent-Ogive Nose Cone (y = 43 .. 64)
+  const fairingPts = [
+    new THREE.Vector2(4.1,  0.0),
+    new THREE.Vector2(4.65, 2.2), // iconic bulbous 5m fairing shoulder
+    new THREE.Vector2(4.65, 8.5),
+    new THREE.Vector2(4.20, 12.0),
+    new THREE.Vector2(3.15, 15.5),
+    new THREE.Vector2(1.70, 18.5),
+    new THREE.Vector2(0.0,  21.0), // sharp nose tip
+  ];
+  group.add(makeMeshPart(
+    new THREE.LatheGeometry(fairingPts, 24),
+    (x, y) => (y > 18.0 ? '#FF9933' : (y > 7.5 && y < 9.5 ? '#38BDF8' : '#FFFFFF')),
+    { pos: [0, 43.0, 0], surfaceWeight: 1.25 }
+  ));
+
+  // Central Bell Nozzle (y = -4.2 .. 0)
+  const bellPts = [
+    new THREE.Vector2(1.6, 4.2),
+    new THREE.Vector2(1.2, 3.0),
+    new THREE.Vector2(2.6, 0.0),
+  ];
+  group.add(makeMeshPart(
+    new THREE.LatheGeometry(bellPts, 18),
+    '#94A3B8',
+    { pos: [0, -4.2, 0], surfaceWeight: 1.3 }
+  ));
+
+  // Twin Strap-On S200 Boosters (x = ±6.8)
+  [-1, 1].forEach((side) => {
+    const bx = side * 6.8;
+
+    group.add(makeMeshPart(
+      new THREE.CylinderGeometry(2.55, 2.55, 31.0, 20),
+      (x, y) => (y > 10.0 && y < 12.6 ? '#FF9933' : (y < -10.0 ? '#94A3B8' : '#E2E8F0')),
+      { pos: [bx, 15.5, 0], surfaceWeight: 0.95 }
+    ));
+
+    // Inward-canted aerodynamic S200 nose cone
+    group.add(makeMeshPart(
+      new THREE.ConeGeometry(2.55, 7.6, 20),
+      (x, y) => (y > 1.8 ? '#FF9933' : '#FFFFFF'),
+      { pos: [bx - side * 0.35, 34.6, 0], rot: [0, 0, side * 0.10], surfaceWeight: 1.3 }
+    ));
+
+    // Cross-struts linking S200 booster to central core
+    [8.0, 26.5].forEach((sy) => {
+      group.add(makeMeshPart(
+        new THREE.BoxGeometry(3.2, 1.4, 1.4),
+        '#94A3B8',
+        { pos: [side * 4.4, sy, 0], surfaceWeight: 1.1 }
+      ));
+    });
+
+    // S200 engine nozzle
+    group.add(makeMeshPart(
+      new THREE.LatheGeometry([
+        new THREE.Vector2(1.4, 3.6),
+        new THREE.Vector2(1.1, 2.6),
+        new THREE.Vector2(2.2, 0.0),
+      ], 16),
+      '#CBD5E1',
+      { pos: [bx, -3.6, 0], surfaceWeight: 1.25 }
+    ));
+  });
+
+  // 4 Swept Delta Fins (2 on outer S200 flanks ±X, 2 on fore/aft core flanks ±Z)
+  const finShape = new THREE.Shape();
+  finShape.moveTo(0, 0);
+  finShape.lineTo(6.5, -1.6);
+  finShape.lineTo(6.5, 2.0);
+  finShape.lineTo(0, 9.2);
+  finShape.closePath();
+
+  const finGeo = new THREE.ExtrudeGeometry(finShape, { depth: 0.6, bevelEnabled: false });
+  finGeo.translate(0, 0, -0.3);
+
+  group.add(makeMeshPart(finGeo.clone(), (x) => (x > 3.5 ? '#FF9933' : '#FFFFFF'), {
+    pos: [9.2, 2.2, 0], rot: [0, 0, 0], surfaceWeight: 1.45,
+  }));
+  group.add(makeMeshPart(finGeo.clone(), (x) => (x > 3.5 ? '#FF9933' : '#FFFFFF'), {
+    pos: [-9.2, 2.2, 0], rot: [0, Math.PI, 0], surfaceWeight: 1.45,
+  }));
+  group.add(makeMeshPart(finGeo.clone(), (x) => (x > 3.5 ? '#FF9933' : '#FFFFFF'), {
+    pos: [0, 2.2, 4.0], rot: [0, -Math.PI / 2, 0], surfaceWeight: 1.45,
+  }));
+  group.add(makeMeshPart(finGeo.clone(), (x) => (x > 3.5 ? '#FF9933' : '#FFFFFF'), {
+    pos: [0, 2.2, -4.0], rot: [0, Math.PI / 2, 0], surfaceWeight: 1.45,
+  }));
+
+  // 3 Live Golden-Orange Exhaust Plumes (below Y = -4, mapped below 34m alt)
+  const exhaustColor = (x, y) => {
+    if (y > 14.5) return '#FFFFFF';
+    if (y > 9.5)  return '#FFD700';
+    if (y > 4.5)  return '#FF6D00';
+    return '#FF2A00';
+  };
+
+  // Central core main exhaust plume (height 18)
+  const mainPlumePts = [
+    new THREE.Vector2(0.0,  0.0),
+    new THREE.Vector2(3.6,  5.0),
+    new THREE.Vector2(3.9, 11.0),
+    new THREE.Vector2(2.3, 18.0),
+  ];
+  group.add(makeMeshPart(
+    new THREE.LatheGeometry(mainPlumePts, 18),
+    exhaustColor,
+    { pos: [0, -22.2, 0], surfaceWeight: 1.45 }
+  ));
+
+  // Twin S200 booster exhaust plumes
+  [-6.8, 6.8].forEach((px) => {
+    const sidePlumePts = [
+      new THREE.Vector2(0.0,  0.0),
+      new THREE.Vector2(2.6,  4.2),
+      new THREE.Vector2(2.9,  9.5),
+      new THREE.Vector2(1.9, 15.2),
+    ];
+    group.add(makeMeshPart(
+      new THREE.LatheGeometry(sidePlumePts, 14),
+      exhaustColor,
+      { pos: [px, -19.0, 0], surfaceWeight: 1.35 }
+    ));
+  });
+
+  return group;
+}
+
+// -----------------------------------------------------------------------------
+// 3. MASTER HERO FORMATION BUILDER (runs through AeroSampler!)
+// -----------------------------------------------------------------------------
+window.buildHeroFormation = function buildHeroFormation(id, nDrones = 2200) {
+  const n = Math.max(500, Math.min(5000, Math.round(nDrones || 2200)));
+
+  if (id === 'taj') {
+    return window.AeroSampler.sampleMeshToDroneCloud(buildTajMahalGroup(), n, {
+      targetSpan: 78,
+      baseAlt: 16,
+    });
+  }
+  if (id === 'trishul') {
+    return window.AeroSampler.sampleMeshToDroneCloud(buildShivaTrishulGroup(), n, {
+      targetSpan: 80,
+      baseAlt: 15,
+    });
+  }
+  if (id === 'rings') {
+    return window.AeroSampler.sampleMeshToDroneCloud(buildWeddingRingsGroup(), n, {
+      targetSpan: 76,
+      baseAlt: 18,
+    });
+  }
+  if (id === 'heart') {
+    return window.AeroSampler.sampleMeshToDroneCloud(buildHeartGroup(), n, {
+      targetSpan: 68,
+      centerAlt: 56,
+      interiorRatio: 0.24,
+      interiorDepth: 0.42,
+    });
+  }
+  if (id === 'globe') {
+    return window.AeroSampler.sampleMeshToDroneCloud(buildEarthGlobeGroup(), n, {
+      targetSpan: 72,
+      centerAlt: 56,
+    });
+  }
+  if (id === 'rocket') {
+    return window.AeroSampler.sampleMeshToDroneCloud(buildIsroRocketGroup(), n, {
+      targetSpan: 82,
+      baseAlt: 14,
+    });
+  }
+
+  return window.AeroSampler.sampleMeshToDroneCloud(buildTajMahalGroup(), n, {
+    targetSpan: 78,
+    baseAlt: 16,
+  });
+};
+
+// -----------------------------------------------------------------------------
+// 4. AI BLUEPRINT GENERATOR (PUTER.JS + OFFLINE PROCEDURAL SILHOUETTES)
+// -----------------------------------------------------------------------------
 let _bpGenToken = 0;
 
 window.setBpPrompt = function setBpPrompt(txt, pal) {
-  document.getElementById('bpPromptInput').value = txt;
-  if (pal) document.getElementById('bpPaletteSelect').value = pal;
-  generateBlueprintPreview(false);
+  const input = document.getElementById('bpPromptInput');
+  const palEl = document.getElementById('bpPaletteSelect');
+  if (input) input.value = txt;
+  if (pal && palEl) palEl.value = pal;
+  window.generateBlueprintPreview(false);
 };
-
-function getBlueprintPalette(pal) {
-  if (pal === 'tricolour')   return { c1: '#FF9933', c2: '#FFFFFF', c3: '#10B981', glow: '#38BDF8' };
-  if (pal === 'divine_fire') return { c1: '#FFD700', c2: '#FF2A85', c3: '#FF6D00', glow: '#FEF08A' };
-  if (pal === 'diamond')     return { c1: '#FFFFFF', c2: '#38BDF8', c3: '#BAE6FD', glow: '#E0F2FE' };
-  return { c1: '#FFD700', c2: '#00E5FF', c3: '#FFFFFF', glow: '#FDE047' };
-}
 
 function drawFilledGlow(ctx, fillStyle, strokeStyle, lineWidth = 3) {
   if (fillStyle) { ctx.fillStyle = fillStyle; ctx.fill(); }
@@ -56,1595 +1077,895 @@ function drawStarPolygon(ctx, cx, cy, spikes, outerR, innerR, rot = -Math.PI / 2
     const a = rot + (i * Math.PI) / spikes;
     const x = cx + Math.cos(a) * r;
     const y = cy + Math.sin(a) * r;
-    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
   }
   ctx.closePath();
 }
 
-function renderProceduralBlueprint(raw, pal, ctx, w, h) {
-  const q = raw.toLowerCase();
-  const cx = w / 2, cy = h / 2;
-  const { c1, c2, c3, glow } = getBlueprintPalette(pal);
+/**
+ * Offline procedural high-contrast B&W / luminous silhouette fallback for common
+ * Indian & broadcast motifs. NEVER writes raw text words onto the canvas.
+ */
+function renderProceduralSilhouette(raw, ctx, w, h) {
+  const q  = (raw || '').toLowerCase();
+  const cx = w / 2;
+  const cy = h / 2;
 
   ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, w, h);
-  ctx.lineCap = 'round';
+  ctx.lineCap  = 'round';
   ctx.lineJoin = 'round';
 
-  // Helper for radial gradients so brighter centers protrude in 3D relief
-  const radGrad = (x, y, r, inner, outer) => {
-    const g = ctx.createRadialGradient(x, y, r * 0.08, x, y, r);
-    g.addColorStop(0, inner);
-    g.addColorStop(1, outer);
-    return g;
-  };
-
-  // 1. PEACOCK (with fanned plumage & eye-spots)
+  // 1. Peacock / Mayur
   if (q.includes('peacock') || q.includes('mayur') || q.includes('mor')) {
-    const fanCx = cx, fanCy = cy + 28;
+    const fanCy = cy + 32;
     for (let i = -5; i <= 5; i++) {
-      const a = -Math.PI / 2 + i * 0.24;
+      const a   = -Math.PI / 2 + i * 0.24;
       const len = 94 - Math.abs(i) * 4;
-      const fx = fanCx + Math.cos(a) * len;
-      const fy = fanCy + Math.sin(a) * len;
-      ctx.strokeStyle = c3; ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.moveTo(fanCx, fanCy); ctx.lineTo(fx, fy); ctx.stroke();
+      const fx  = cx + Math.cos(a) * len;
+      const fy  = fanCy + Math.sin(a) * len;
+      ctx.strokeStyle = '#CBD5E1';
+      ctx.lineWidth   = 2.6;
+      ctx.beginPath(); ctx.moveTo(cx, fanCy); ctx.lineTo(fx, fy); ctx.stroke();
       ctx.beginPath(); ctx.ellipse(fx, fy, 11, 15, a + Math.PI / 2, 0, Math.PI * 2);
-      drawFilledGlow(ctx, c2, c1, 2.2);
-      ctx.beginPath(); ctx.arc(fx, fy, 5, 0, Math.PI * 2);
-      drawFilledGlow(ctx, c1, '#FFFFFF', 1.2);
+      drawFilledGlow(ctx, '#FFFFFF', '#E2E8F0', 2);
+      ctx.beginPath(); ctx.arc(fx, fy, 4.5, 0, Math.PI * 2);
+      drawFilledGlow(ctx, '#000000', '#FFFFFF', 1.5);
     }
-    // Inner fan feathers
     for (let i = -3; i <= 3; i++) {
-      const a = -Math.PI / 2 + i * 0.30;
-      const fx = fanCx + Math.cos(a) * 56;
+      const a  = -Math.PI / 2 + i * 0.30;
+      const fx = cx + Math.cos(a) * 56;
       const fy = fanCy + Math.sin(a) * 56;
       ctx.beginPath(); ctx.ellipse(fx, fy, 8, 11, a + Math.PI / 2, 0, Math.PI * 2);
-      drawFilledGlow(ctx, c3, c2, 2);
+      drawFilledGlow(ctx, '#E2E8F0', '#FFFFFF', 2);
     }
-    // Peacock body & S-curved neck
-    ctx.beginPath();
-    ctx.ellipse(cx, cy + 44, 18, 28, 0, 0, Math.PI * 2);
-    drawFilledGlow(ctx, radGrad(cx, cy + 44, 28, '#FFFFFF', c2), c1, 3);
-    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 10;
+    ctx.beginPath(); ctx.ellipse(cx, cy + 46, 18, 28, 0, 0, Math.PI * 2);
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2.5);
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth   = 10;
     ctx.beginPath();
     ctx.moveTo(cx, cy + 28);
     ctx.bezierCurveTo(cx - 12, cy + 2, cx + 14, cy - 16, cx + 2, cy - 32);
     ctx.stroke();
     ctx.beginPath(); ctx.arc(cx + 2, cy - 34, 9, 0, Math.PI * 2);
-    drawFilledGlow(ctx, '#FFFFFF', c1, 2.5);
-    // Beak & crest
-    ctx.fillStyle = c1;
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2);
+    ctx.fillStyle = '#FFFFFF';
     ctx.beginPath(); ctx.moveTo(cx + 9, cy - 35); ctx.lineTo(cx + 21, cy - 31); ctx.lineTo(cx + 9, cy - 28); ctx.closePath(); ctx.fill();
     for (let k = -1; k <= 1; k++) {
-      ctx.strokeStyle = c1; ctx.lineWidth = 2;
+      ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(cx + 2, cy - 42); ctx.lineTo(cx + 2 + k * 7, cy - 56); ctx.stroke();
-      ctx.fillStyle = c2; ctx.beginPath(); ctx.arc(cx + 2 + k * 7, cy - 57, 2.5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx + 2 + k * 7, cy - 57, 2.5, 0, Math.PI * 2); ctx.fill();
     }
     return true;
   }
 
-  // 2. GATEWAY OF INDIA (check BEFORE generic india/map!)
+  // 2. Gateway of India
   if (q.includes('gateway')) {
     ctx.beginPath(); ctx.rect(52, 74, 216, 116);
-    drawFilledGlow(ctx, radGrad(cx, 130, 110, c2, '#1E293B'), c1, 3);
-    // Central grand arch cutout + bright rim
+    drawFilledGlow(ctx, '#E2E8F0', '#FFFFFF', 3);
     ctx.fillStyle = '#000000';
     ctx.beginPath(); ctx.moveTo(cx - 34, 190); ctx.lineTo(cx - 34, 128);
     ctx.arc(cx, 128, 34, Math.PI, 0); ctx.lineTo(cx + 34, 190); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 3.5; ctx.stroke();
-    // Side arches
-    [-68, 68].forEach(ox => {
+    [-68, 68].forEach((ox) => {
       ctx.fillStyle = '#000000';
       ctx.beginPath(); ctx.moveTo(cx + ox - 16, 190); ctx.lineTo(cx + ox - 16, 146);
       ctx.arc(cx + ox, 146, 16, Math.PI, 0); ctx.lineTo(cx + ox + 16, 190); ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = c1; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2.5; ctx.stroke();
     });
-    // Central dome & 4 corner turrets
     ctx.beginPath(); ctx.arc(cx, 74, 34, Math.PI, 0);
-    drawFilledGlow(ctx, '#FFFFFF', c1, 3.5);
-    [-100, -48, 48, 100].forEach(tx => {
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 3);
+    [-100, -48, 48, 100].forEach((tx) => {
       ctx.beginPath(); ctx.rect(cx + tx - 7, 50, 14, 140);
-      drawFilledGlow(ctx, c1, '#FFFFFF', 2);
+      drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2);
       ctx.beginPath(); ctx.arc(cx + tx, 50, 8, Math.PI, 0);
-      drawFilledGlow(ctx, '#FFFFFF', c1, 2);
+      drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2);
     });
-    ctx.strokeStyle = c3; ctx.lineWidth = 4;
+    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 4;
     ctx.beginPath(); ctx.moveTo(34, 192); ctx.lineTo(286, 192); ctx.stroke();
     return true;
   }
 
-  // 3. INDIA GATE (check BEFORE generic india/map!)
+  // 3. India Gate
   if (q.includes('india gate')) {
     ctx.beginPath(); ctx.rect(96, 44, 128, 152);
-    drawFilledGlow(ctx, radGrad(cx, 120, 90, c1, c3), '#FFFFFF', 3);
-    // Cornice tiers
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 3);
     ctx.beginPath(); ctx.rect(86, 36, 148, 14);
-    drawFilledGlow(ctx, '#FFFFFF', c1, 2.5);
+    drawFilledGlow(ctx, '#FFFFFF', '#E2E8F0', 2);
     ctx.beginPath(); ctx.rect(108, 22, 104, 14);
-    drawFilledGlow(ctx, c1, '#FFFFFF', 2.5);
-    // Tall central arch opening
+    drawFilledGlow(ctx, '#E2E8F0', '#FFFFFF', 2);
     ctx.fillStyle = '#000000';
     ctx.beginPath(); ctx.moveTo(cx - 28, 196); ctx.lineTo(cx - 28, 114);
     ctx.arc(cx, 114, 28, Math.PI, 0); ctx.lineTo(cx + 28, 196); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 3.5; ctx.stroke();
-    // Amar Jawan Jyoti flame inside arch
     ctx.beginPath(); ctx.moveTo(cx, 152); ctx.quadraticCurveTo(cx + 12, 170, cx, 184);
     ctx.quadraticCurveTo(cx - 12, 170, cx, 152);
-    drawFilledGlow(ctx, '#FFD700', '#FFFFFF', 2);
-    // Stepped base
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2);
     ctx.beginPath(); ctx.rect(72, 196, 176, 12);
-    drawFilledGlow(ctx, c3, '#FFFFFF', 2.5);
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2);
     return true;
   }
 
-  // 4. RAM MANDIR / AYODHYA
-  if (q.includes('ram mandir') || q.includes('ayodhya')) {
-    // Plinth
+  // 4. Lion / Ashoka Lion
+  if (q.includes('lion') || q.includes('sher') || q.includes('simha')) {
+    // Bold lion mane starburst + proud face + snout
+    drawStarPolygon(ctx, cx, cy - 8, 18, 72, 54);
+    drawFilledGlow(ctx, '#FFFFFF', '#E2E8F0', 3);
+    ctx.fillStyle = '#000000';
+    ctx.beginPath(); ctx.arc(cx, cy - 8, 42, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy - 6, 36, 0, Math.PI * 2);
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2.5);
+    // Eyes, nose, fierce brow & jaw
+    ctx.fillStyle = '#000000';
+    [-14, 14].forEach((ex) => {
+      ctx.beginPath(); ctx.ellipse(cx + ex, cy - 16, 6, 4, ex > 0 ? -0.25 : 0.25, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.beginPath();
+    ctx.moveTo(cx - 10, cy - 2); ctx.lineTo(cx + 10, cy - 2); ctx.lineTo(cx, cy + 10); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#000000'; ctx.lineWidth = 3.5;
+    ctx.beginPath(); ctx.moveTo(cx, cy + 10); ctx.lineTo(cx, cy + 20);
+    ctx.moveTo(cx - 14, cy + 20); ctx.quadraticCurveTo(cx, cy + 15, cx + 14, cy + 20); ctx.stroke();
+    return true;
+  }
+
+  // 5. Ram Mandir / Temple Shikhara
+  if (q.includes('ram mandir') || q.includes('temple') || q.includes('ayodhya')) {
     ctx.beginPath(); ctx.rect(42, 174, 236, 22);
-    drawFilledGlow(ctx, c3, '#FFFFFF', 2.5);
-    // Main Shikhara (tall stepped Nagara spire)
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2.5);
     for (let tier = 0; tier < 6; tier++) {
-      const tw = 74 - tier * 10;
+      const tw = 76 - tier * 10;
       const ty = 152 - tier * 17;
       ctx.beginPath(); ctx.rect(cx - tw / 2, ty, tw, 18);
-      drawFilledGlow(ctx, tier % 2 === 0 ? c1 : '#FFFFFF', c2, 2.2);
+      drawFilledGlow(ctx, tier % 2 === 0 ? '#FFFFFF' : '#CBD5E1', '#FFFFFF', 2);
     }
-    // Amalaka & Kalash + Saffron Flag (Dhwaja)
     ctx.beginPath(); ctx.arc(cx, 48, 8, 0, Math.PI * 2);
-    drawFilledGlow(ctx, '#FFFFFF', c1, 2);
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2);
     ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(cx, 42); ctx.lineTo(cx, 18); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx, 18); ctx.lineTo(cx + 26, 25); ctx.lineTo(cx, 32); ctx.closePath();
-    drawFilledGlow(ctx, '#FF9933', '#FFFFFF', 1.5);
-    // Side Mandapa domes
-    [-58, 58].forEach(mx => {
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 1.5);
+    [-58, 58].forEach((mx) => {
       ctx.beginPath(); ctx.rect(cx + mx - 24, 134, 48, 40);
-      drawFilledGlow(ctx, c2, '#FFFFFF', 2);
+      drawFilledGlow(ctx, '#E2E8F0', '#FFFFFF', 2);
       ctx.beginPath(); ctx.moveTo(cx + mx - 24, 134); ctx.lineTo(cx + mx, 102); ctx.lineTo(cx + mx + 24, 134); ctx.closePath();
-      drawFilledGlow(ctx, c1, '#FFFFFF', 2);
+      drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2);
     });
     return true;
   }
 
-  // 5. TAJ MAHAL
-  if (q.includes('taj') || q.includes('mahal')) {
-    ctx.beginPath(); ctx.rect(44, 174, 232, 18);
-    drawFilledGlow(ctx, c3, '#FFFFFF', 2.5);
-    ctx.beginPath(); ctx.rect(cx - 56, 92, 112, 82);
-    drawFilledGlow(ctx, radGrad(cx, 130, 60, '#FFFFFF', c2), c1, 3);
-    // Onion Dome
-    ctx.beginPath();
-    ctx.moveTo(cx - 32, 92);
-    ctx.bezierCurveTo(cx - 42, 62, cx - 18, 42, cx, 32);
-    ctx.bezierCurveTo(cx + 18, 42, cx + 42, 62, cx + 32, 92);
-    ctx.closePath();
-    drawFilledGlow(ctx, radGrad(cx, 66, 32, '#FFFFFF', c1), '#FFFFFF', 3);
-    ctx.strokeStyle = c1; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(cx, 16); ctx.lineTo(cx, 34); ctx.stroke();
-    // Pishtaq central arch
-    ctx.fillStyle = '#000000';
-    ctx.beginPath(); ctx.moveTo(cx - 22, 174); ctx.lineTo(cx - 22, 132);
-    ctx.arc(cx, 132, 22, Math.PI, 0); ctx.lineTo(cx + 22, 174); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = c1; ctx.lineWidth = 3; ctx.stroke();
-    // 4 Minarets
-    [-92, -72, 72, 92].forEach((mx, idx) => {
-      ctx.beginPath(); ctx.rect(cx + mx - 5, 62, 10, 112);
-      drawFilledGlow(ctx, idx % 2 === 0 ? c1 : '#FFFFFF', c2, 2);
-      ctx.beginPath(); ctx.arc(cx + mx, 58, 6, Math.PI, 0);
-      drawFilledGlow(ctx, '#FFFFFF', c1, 2);
-    });
-    return true;
-  }
-
-  // 6. INDIAN MAP (only when explicitly requested)
-  if (q.includes('india') || q.includes('map') || q.includes('bharat')) {
+  // 6. Indian Map + Ashoka Chakra
+  if (q.includes('india') || q.includes('map') || q.includes('bharat') || q.includes('chakra')) {
     const pts = [
       [148,22],[164,26],[174,42],[168,56],[186,68],[218,72],
       [246,62],[262,74],[248,92],[234,88],[214,96],[206,118],
       [184,146],[166,186],[156,216],[146,188],[130,148],[116,122],
       [94,114],[90,98],[114,92],[126,72],[136,48],
     ];
-    const grad = ctx.createLinearGradient(0, 20, 0, 216);
-    grad.addColorStop(0.0, c1);
-    grad.addColorStop(0.5, c2);
-    grad.addColorStop(1.0, c3);
     ctx.beginPath();
     pts.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)));
     ctx.closePath();
-    drawFilledGlow(ctx, grad, '#FFFFFF', 3.5);
-    ctx.strokeStyle = '#38BDF8'; ctx.lineWidth = 2.5;
+    drawFilledGlow(ctx, '#E2E8F0', '#FFFFFF', 3.5);
+    ctx.fillStyle = '#000000';
+    ctx.beginPath(); ctx.arc(160, 118, 22, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2.6;
     ctx.beginPath(); ctx.arc(160, 118, 20, 0, Math.PI * 2); ctx.stroke();
-    for (let k = 0; k < 12; k++) {
-      const a = (k / 12) * Math.PI * 2;
-      ctx.beginPath(); ctx.moveTo(160, 118); ctx.lineTo(160 + 19 * Math.cos(a), 118 + 19 * Math.sin(a)); ctx.stroke();
+    for (let s = 0; s < 12; s++) {
+      const a = (s / 12) * Math.PI * 2;
+      ctx.beginPath(); ctx.moveTo(160, 118); ctx.lineTo(160 + Math.cos(a) * 19, 118 + Math.sin(a) * 19); ctx.stroke();
     }
     return true;
   }
 
-  // 7. GANESHA
-  if (q.includes('ganesh') || q.includes('ganpati') || q.includes('vinayak') || q.includes('bappa')) {
-    // Large ears
-    [-1, 1].forEach(s => {
-      ctx.beginPath(); ctx.ellipse(cx + s * 56, cy + 4, 30, 44, s * 0.25, 0, Math.PI * 2);
-      drawFilledGlow(ctx, c2, c1, 3);
-    });
-    // Head
-    ctx.beginPath(); ctx.arc(cx, cy + 4, 42, 0, Math.PI * 2);
-    drawFilledGlow(ctx, radGrad(cx, cy + 4, 42, '#FFFFFF', c1), '#FFFFFF', 3);
-    // Crown (Mukut)
-    ctx.beginPath();
-    ctx.moveTo(cx - 28, cy - 30); ctx.lineTo(cx - 18, cy - 64);
-    ctx.lineTo(cx, cy - 82); ctx.lineTo(cx + 18, cy - 64); ctx.lineTo(cx + 28, cy - 30);
-    ctx.closePath();
-    drawFilledGlow(ctx, c1, '#FFFFFF', 3);
-    // Curved Trunk
-    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 14;
-    ctx.beginPath();
-    ctx.moveTo(cx, cy + 10);
-    ctx.bezierCurveTo(cx, cy + 54, cx + 28, cy + 72, cx + 44, cy + 54);
-    ctx.stroke();
-    ctx.strokeStyle = c1; ctx.lineWidth = 4; ctx.stroke();
-    // Tilak & Eyes
-    ctx.fillStyle = '#FF2A85';
-    ctx.beginPath(); ctx.arc(cx, cy - 12, 4.5, 0, Math.PI * 2); ctx.fill();
-    [-14, 14].forEach(ex => {
-      ctx.fillStyle = '#000000'; ctx.beginPath(); ctx.arc(cx + ex, cy - 2, 4, 0, Math.PI * 2); ctx.fill();
-    });
-    return true;
-  }
-
-  // 8. FLUTE (Bansuri + Mor Pankh)
-  if (q.includes('flute') || q.includes('bansuri') || q.includes('krishna') || q.includes('murali')) {
-    ctx.save();
-    ctx.translate(cx, cy + 12);
-    ctx.rotate(-0.35);
-    ctx.beginPath(); ctx.roundRect(-105, -9, 210, 18, 9);
-    drawFilledGlow(ctx, radGrad(0, 0, 100, '#FFFFFF', c1), '#FFFFFF', 3);
-    for (let i = -2; i <= 4; i++) {
-      ctx.fillStyle = '#000000';
-      ctx.beginPath(); ctx.arc(i * 22, 0, 3.8, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.restore();
-    // Peacock feather (Mor Pankh)
-    ctx.beginPath(); ctx.ellipse(cx + 38, cy - 48, 22, 30, 0.35, 0, Math.PI * 2);
-    drawFilledGlow(ctx, c3, c2, 3);
-    ctx.beginPath(); ctx.ellipse(cx + 38, cy - 48, 12, 16, 0.35, 0, Math.PI * 2);
-    drawFilledGlow(ctx, c1, '#FFFFFF', 2);
-    return true;
-  }
-
-  // 9. WEDDING COUPLE
-  if (q.includes('wedding') || q.includes('couple') || q.includes('bride') || q.includes('groom') || q.includes('shaadi') || q.includes('dulha')) {
-    // Mandap floral arch
-    ctx.strokeStyle = c1; ctx.lineWidth = 4.5;
-    ctx.beginPath(); ctx.arc(cx, cy + 28, 92, Math.PI, 0); ctx.stroke();
-    // Groom (left)
-    ctx.beginPath(); ctx.arc(cx - 32, cy - 20, 16, 0, Math.PI * 2);
-    drawFilledGlow(ctx, '#FFFFFF', c2, 2.5);
-    ctx.beginPath(); ctx.moveTo(cx - 56, cy + 78); ctx.lineTo(cx - 46, cy + 4); ctx.lineTo(cx - 18, cy + 4); ctx.lineTo(cx - 10, cy + 78); ctx.closePath();
-    drawFilledGlow(ctx, c2, '#FFFFFF', 2.5);
-    // Bride (right)
-    ctx.beginPath(); ctx.arc(cx + 32, cy - 16, 15, 0, Math.PI * 2);
-    drawFilledGlow(ctx, '#FFFFFF', c1, 2.5);
-    ctx.beginPath(); ctx.moveTo(cx + 8, cy + 78); ctx.lineTo(cx + 20, cy + 6); ctx.lineTo(cx + 44, cy + 6); ctx.lineTo(cx + 62, cy + 78); ctx.closePath();
-    drawFilledGlow(ctx, c1, '#FFFFFF', 2.5);
-    // Varmala garland + glowing heart
-    ctx.strokeStyle = '#FF2A85'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.arc(cx, cy + 10, 20, 0.1 * Math.PI, 0.9 * Math.PI); ctx.stroke();
-    drawStarPolygon(ctx, cx, cy - 52, 5, 14, 6);
-    drawFilledGlow(ctx, '#FF2A85', '#FFFFFF', 2);
-    return true;
-  }
-
-  // 10. DHOL / DRUM
-  if (q.includes('dhol') || q.includes('drum') || q.includes('tabla')) {
-    ctx.save();
-    ctx.translate(cx, cy + 8);
-    ctx.rotate(-0.18);
-    ctx.beginPath(); ctx.ellipse(0, 0, 74, 46, 0, 0, Math.PI * 2);
-    drawFilledGlow(ctx, radGrad(0, 0, 70, c1, c3), '#FFFFFF', 3.5);
-    // Drumheads
-    [-68, 68].forEach(dx => {
-      ctx.beginPath(); ctx.ellipse(dx, 0, 14, 44, 0, 0, Math.PI * 2);
-      drawFilledGlow(ctx, '#FFFFFF', c2, 3);
-    });
-    // Rope zig-zag lacing
-    ctx.strokeStyle = c2; ctx.lineWidth = 3;
-    ctx.beginPath();
+  // 7. Sacred Lotus
+  if (q.includes('lotus') || q.includes('kamal') || q.includes('flower')) {
     for (let i = -3; i <= 3; i++) {
-      ctx.lineTo(i * 18, i % 2 === 0 ? -40 : 40);
-    }
-    ctx.stroke();
-    ctx.restore();
-    // Crossed drumsticks
-    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(cx - 56, cy - 72); ctx.lineTo(cx + 12, cy - 36); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx + 56, cy - 72); ctx.lineTo(cx - 12, cy - 36); ctx.stroke();
-    return true;
-  }
-
-  // 11. TIGER
-  if (q.includes('tiger') || q.includes('bagh') || q.includes('sher')) {
-    [-1, 1].forEach(s => {
-      ctx.beginPath(); ctx.arc(cx + s * 52, cy - 54, 18, 0, Math.PI * 2);
-      drawFilledGlow(ctx, c1, '#FFFFFF', 3);
-    });
-    ctx.beginPath(); ctx.ellipse(cx, cy + 4, 68, 60, 0, 0, Math.PI * 2);
-    drawFilledGlow(ctx, radGrad(cx, cy, 66, '#FFFFFF', c1), '#FFFFFF', 3.5);
-    // Bold tiger stripes
-    ctx.strokeStyle = '#000000'; ctx.lineWidth = 6;
-    [-34, -18, 18, 34].forEach(sy => {
-      ctx.beginPath(); ctx.moveTo(cx - 52, cy + sy); ctx.lineTo(cx - 22, cy + sy - 6); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(cx + 52, cy + sy); ctx.lineTo(cx + 22, cy + sy - 6); ctx.stroke();
-    });
-    // Glowing eyes & nose
-    [-22, 22].forEach(ex => {
-      ctx.fillStyle = c2; ctx.beginPath(); ctx.ellipse(cx + ex, cy - 12, 9, 5, ex < 0 ? 0.2 : -0.2, 0, Math.PI * 2); ctx.fill();
-    });
-    ctx.beginPath(); ctx.moveTo(cx - 12, cy + 10); ctx.lineTo(cx + 12, cy + 10); ctx.lineTo(cx, cy + 24); ctx.closePath();
-    drawFilledGlow(ctx, '#FF2A85', '#FFFFFF', 2);
-    return true;
-  }
-
-  // 12. LION
-  if (q.includes('lion') || q.includes('simha')) {
-    // Radiant spiky mane
-    drawStarPolygon(ctx, cx, cy, 16, 92, 66);
-    drawFilledGlow(ctx, radGrad(cx, cy, 90, c1, c3), '#FFFFFF', 3);
-    ctx.beginPath(); ctx.arc(cx, cy + 4, 46, 0, Math.PI * 2);
-    drawFilledGlow(ctx, '#FFFFFF', c1, 3);
-    [-18, 18].forEach(ex => {
-      ctx.fillStyle = '#000000'; ctx.beginPath(); ctx.arc(cx + ex, cy - 8, 5, 0, Math.PI * 2); ctx.fill();
-    });
-    ctx.beginPath(); ctx.moveTo(cx - 10, cy + 8); ctx.lineTo(cx + 10, cy + 8); ctx.lineTo(cx, cy + 22); ctx.closePath();
-    drawFilledGlow(ctx, c1, '#000000', 2);
-    return true;
-  }
-
-  // 13. ELEPHANT
-  if (q.includes('elephant') || q.includes('hathi') || q.includes('airavat')) {
-    // Body
-    ctx.beginPath(); ctx.ellipse(cx - 16, cy + 10, 62, 44, 0, 0, Math.PI * 2);
-    drawFilledGlow(ctx, radGrad(cx - 16, cy + 10, 60, '#FFFFFF', c2), c1, 3);
-    // Legs
-    [-58, -32, 8, 32].forEach(lx => {
-      ctx.beginPath(); ctx.rect(cx + lx, cy + 38, 16, 44);
-      drawFilledGlow(ctx, c2, '#FFFFFF', 2.5);
-    });
-    // Head + Ear + Raised Trunk
-    ctx.beginPath(); ctx.arc(cx + 46, cy - 10, 28, 0, Math.PI * 2);
-    drawFilledGlow(ctx, '#FFFFFF', c1, 3);
-    ctx.beginPath(); ctx.ellipse(cx + 28, cy - 8, 18, 26, -0.2, 0, Math.PI * 2);
-    drawFilledGlow(ctx, c1, '#FFFFFF', 2.5);
-    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 12;
-    ctx.beginPath(); ctx.moveTo(cx + 66, cy - 4); ctx.bezierCurveTo(cx + 98, cy + 12, cx + 104, cy - 36, cx + 82, cy - 52); ctx.stroke();
-    // Ornate royal blanket
-    ctx.beginPath(); ctx.rect(cx - 46, cy - 28, 56, 34);
-    drawFilledGlow(ctx, c1, '#FFFFFF', 2.5);
-    return true;
-  }
-
-  // 14. TROPHY
-  if (q.includes('trophy') || q.includes('cup') || q.includes('champion') || q.includes('winner') || q.includes('ipl')) {
-    // Handles
-    [-1, 1].forEach(s => {
-      ctx.strokeStyle = c1; ctx.lineWidth = 6;
-      ctx.beginPath(); ctx.arc(cx + s * 46, cy - 26, 22, s < 0 ? Math.PI * 0.5 : -Math.PI * 0.5, s < 0 ? Math.PI * 1.5 : Math.PI * 0.5); ctx.stroke();
-    });
-    // Cup chalice
-    ctx.beginPath();
-    ctx.moveTo(cx - 48, cy - 68); ctx.lineTo(cx + 48, cy - 68);
-    ctx.quadraticCurveTo(cx + 44, cy + 6, cx, cy + 18);
-    ctx.quadraticCurveTo(cx - 44, cy + 6, cx - 48, cy - 68);
-    ctx.closePath();
-    drawFilledGlow(ctx, radGrad(cx, cy - 30, 50, '#FFFFFF', c1), '#FFFFFF', 3.5);
-    // Stem & Base
-    ctx.beginPath(); ctx.rect(cx - 10, cy + 16, 20, 38);
-    drawFilledGlow(ctx, c1, '#FFFFFF', 2.5);
-    ctx.beginPath(); ctx.rect(cx - 42, cy + 54, 84, 22);
-    drawFilledGlow(ctx, c2, '#FFFFFF', 3);
-    drawStarPolygon(ctx, cx, cy - 34, 5, 16, 7);
-    drawFilledGlow(ctx, c2, '#FFFFFF', 2);
-    return true;
-  }
-
-  // 15. GLOBE / EARTH
-  if (q.includes('globe') || q.includes('earth') || q.includes('world') || q.includes('planet')) {
-    ctx.beginPath(); ctx.arc(cx, cy, 74, 0, Math.PI * 2);
-    drawFilledGlow(ctx, radGrad(cx - 18, cy - 18, 76, '#38BDF8', '#0284C7'), '#FFFFFF', 3.5);
-    ctx.strokeStyle = '#10B981'; ctx.lineWidth = 3;
-    for (let k = -2; k <= 2; k++) {
-      ctx.beginPath(); ctx.ellipse(cx, cy, 74 * Math.cos(k * 0.4), 74, 0, 0, Math.PI * 2); ctx.stroke();
-    }
-    ctx.strokeStyle = c1; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.ellipse(cx, cy, 98, 24, -0.32, 0, Math.PI * 2); ctx.stroke();
-    return true;
-  }
-
-  // 16. ROCKET / ISRO
-  if (q.includes('rocket') || q.includes('isro') || q.includes('chandrayaan') || q.includes('space') || q.includes('missile')) {
-    // Exhaust flame
-    ctx.beginPath(); ctx.moveTo(cx - 16, cy + 44); ctx.lineTo(cx, cy + 98); ctx.lineTo(cx + 16, cy + 44); ctx.closePath();
-    drawFilledGlow(ctx, '#FF6D00', '#FFD700', 3);
-    // Fins
-    [-1, 1].forEach(s => {
-      ctx.beginPath(); ctx.moveTo(cx + s * 18, cy + 14); ctx.lineTo(cx + s * 44, cy + 54); ctx.lineTo(cx + s * 18, cy + 44); ctx.closePath();
-      drawFilledGlow(ctx, c2, '#FFFFFF', 2.5);
-    });
-    // Body + Nose
-    ctx.beginPath(); ctx.moveTo(cx, cy - 92); ctx.quadraticCurveTo(cx + 24, cy - 48, cx + 20, cy + 44);
-    ctx.lineTo(cx - 20, cy + 44); ctx.quadraticCurveTo(cx - 24, cy - 48, cx, cy - 92); ctx.closePath();
-    drawFilledGlow(ctx, radGrad(cx, cy - 20, 50, '#FFFFFF', c1), '#FFFFFF', 3.5);
-    ctx.beginPath(); ctx.arc(cx, cy - 24, 9, 0, Math.PI * 2);
-    drawFilledGlow(ctx, c2, '#FFFFFF', 2);
-    return true;
-  }
-
-  // 17. HEART
-  if (q.includes('heart') || q.includes('love') || q.includes('dil') || q.includes('pyaar')) {
-    ctx.beginPath();
-    ctx.moveTo(cx, cy + 72);
-    ctx.bezierCurveTo(cx - 98, cy + 12, cx - 86, cy - 78, cx, cy - 28);
-    ctx.bezierCurveTo(cx + 86, cy - 78, cx + 98, cy + 12, cx, cy + 72);
-    ctx.closePath();
-    drawFilledGlow(ctx, radGrad(cx, cy - 8, 76, '#FFFFFF', '#FF2A85'), c1, 4);
-    return true;
-  }
-
-  // 18. RINGS / DIAMOND
-  if (q.includes('ring') || q.includes('engagement') || q.includes('solitaire') || q.includes('diamond')) {
-    ctx.strokeStyle = c1; ctx.lineWidth = 10;
-    ctx.beginPath(); ctx.arc(cx - 26, cy + 14, 46, 0, Math.PI * 2); ctx.stroke();
-    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 10;
-    ctx.beginPath(); ctx.arc(cx + 26, cy + 14, 46, 0, Math.PI * 2); ctx.stroke();
-    // Solitaire diamond
-    ctx.beginPath();
-    ctx.moveTo(cx - 26, cy - 58); ctx.lineTo(cx - 14, cy - 76); ctx.lineTo(cx + 14, cy - 76);
-    ctx.lineTo(cx + 26, cy - 58); ctx.lineTo(cx, cy - 30); ctx.closePath();
-    drawFilledGlow(ctx, radGrad(cx, cy - 56, 26, '#FFFFFF', '#00E5FF'), '#FFFFFF', 3);
-    return true;
-  }
-
-  // 19. TRISHUL / SHIVA
-  if (q.includes('trishul') || q.includes('shiv') || q.includes('mahadev')) {
-    ctx.strokeStyle = c2; ctx.lineWidth = 6;
-    ctx.beginPath(); ctx.moveTo(cx, 20); ctx.lineTo(cx, 216); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx, 18); ctx.lineTo(cx - 14, 56); ctx.lineTo(cx + 14, 56); ctx.closePath();
-    drawFilledGlow(ctx, '#FFFFFF', c1, 3);
-    ctx.strokeStyle = c1; ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.moveTo(cx - 48, 36); ctx.quadraticCurveTo(cx - 54, 92, cx, 92);
-    ctx.quadraticCurveTo(cx + 54, 92, cx + 48, 36); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx - 26, 134); ctx.lineTo(cx + 26, 160); ctx.lineTo(cx + 26, 134); ctx.lineTo(cx - 26, 160); ctx.closePath();
-    drawFilledGlow(ctx, c3, '#FFFFFF', 2.5);
-    return true;
-  }
-
-  // 20. LOTUS
-  if (q.includes('lotus') || q.includes('kamal') || q.includes('padma') || q.includes('flower')) {
-    for (let layer = 2; layer >= 0; layer--) {
-      const petals = 8 + layer * 4, r = 38 + layer * 24;
-      const col = layer === 0 ? '#FFFFFF' : (layer === 1 ? c1 : c2);
-      for (let k = 0; k < petals; k++) {
-        const a = (k / petals) * Math.PI * 2;
-        ctx.beginPath();
-        ctx.ellipse(cx + Math.cos(a) * (r * 0.54), cy + Math.sin(a) * (r * 0.54), r * 0.44, 12, a, 0, Math.PI * 2);
-        drawFilledGlow(ctx, col, c3, 2);
-      }
-    }
-    ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI * 2);
-    drawFilledGlow(ctx, c1, '#FFFFFF', 2.5);
-    return true;
-  }
-
-  // 21. DIYA / LAMP
-  if (q.includes('diya') || q.includes('lamp') || q.includes('deepam') || q.includes('diwali')) {
-    ctx.beginPath(); ctx.arc(cx, cy + 18, 72, 0.08 * Math.PI, 0.92 * Math.PI); ctx.closePath();
-    drawFilledGlow(ctx, radGrad(cx, cy + 40, 68, c1, c3), '#FFFFFF', 3.5);
-    ctx.beginPath();
-    ctx.moveTo(cx, 28); ctx.quadraticCurveTo(cx + 38, 86, cx, 128); ctx.quadraticCurveTo(cx - 38, 86, cx, 28);
-    drawFilledGlow(ctx, radGrad(cx, 88, 36, '#FFFFFF', '#FFD700'), c1, 3);
-    return true;
-  }
-
-  // 22. CROWN
-  if (q.includes('crown') || q.includes('king') || q.includes('royal') || q.includes('tiara') || q.includes('queen')) {
-    ctx.beginPath();
-    ctx.moveTo(64, 178); ctx.lineTo(50, 82); ctx.lineTo(106, 124);
-    ctx.lineTo(cx, 54); ctx.lineTo(214, 124); ctx.lineTo(270, 82);
-    ctx.lineTo(256, 178); ctx.closePath();
-    drawFilledGlow(ctx, radGrad(cx, 130, 86, '#FFFFFF', c1), '#FFFFFF', 3.5);
-    [50, cx, 270].forEach(jx => {
-      ctx.beginPath(); ctx.arc(jx, jx === cx ? 48 : 76, 8, 0, Math.PI * 2);
-      drawFilledGlow(ctx, c2, '#FFFFFF', 2);
-    });
-    return true;
-  }
-
-  // 23. OM / AUM
-  if (q.includes('om') || q.includes('aum')) {
-    ctx.beginPath(); ctx.arc(cx, cy, 86, 0, Math.PI * 2);
-    ctx.strokeStyle = c2; ctx.lineWidth = 4; ctx.stroke();
-    ctx.font = 'bold 124px Georgia, serif';
-    ctx.fillStyle = c1; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('ॐ', cx, cy + 6);
-    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2.5;
-    ctx.strokeText('ॐ', cx, cy + 6);
-    return true;
-  }
-
-  // 24. MANDALA / RANGOLI / YANTRA
-  if (q.includes('mandala') || q.includes('rangoli') || q.includes('yantra')) {
-    for (let r = 88; r >= 22; r -= 22) {
-      drawStarPolygon(ctx, cx, cy, 12, r, r * 0.68, r * 0.02);
-      drawFilledGlow(ctx, r === 22 ? '#FFFFFF' : (r % 44 === 0 ? c1 : c2), '#FFFFFF', 2.5);
-    }
-    return true;
-  }
-
-  // 25. ASHOKA CHAKRA / WHEEL
-  if (q.includes('chakra') || q.includes('wheel')) {
-    ctx.strokeStyle = c2; ctx.lineWidth = 8;
-    ctx.beginPath(); ctx.arc(cx, cy, 82, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI * 2);
-    drawFilledGlow(ctx, '#FFFFFF', c1, 3);
-    for (let k = 0; k < 24; k++) {
-      const a = (k / 24) * Math.PI * 2;
-      ctx.strokeStyle = k % 2 === 0 ? '#FFFFFF' : c2; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + 80 * Math.cos(a), cy + 80 * Math.sin(a)); ctx.stroke();
-    }
-    return true;
-  }
-
-  // 26. BUTTERFLY
-  if (q.includes('butterfly') || q.includes('titli')) {
-    [-1, 1].forEach(s => {
-      ctx.beginPath(); ctx.ellipse(cx + s * 52, cy - 26, 44, 34, s * -0.35, 0, Math.PI * 2);
-      drawFilledGlow(ctx, radGrad(cx + s * 52, cy - 26, 40, '#FFFFFF', c1), c2, 3);
-      ctx.beginPath(); ctx.ellipse(cx + s * 40, cy + 28, 30, 26, s * 0.35, 0, Math.PI * 2);
-      drawFilledGlow(ctx, c2, '#FFFFFF', 3);
-    });
-    ctx.beginPath(); ctx.ellipse(cx, cy + 4, 8, 44, 0, 0, Math.PI * 2);
-    drawFilledGlow(ctx, '#FFFFFF', c1, 2.5);
-    return true;
-  }
-
-  // 27. EAGLE / GARUDA / PHOENIX / BIRD
-  if (q.includes('eagle') || q.includes('garuda') || q.includes('phoenix') || q.includes('bird') || q.includes('falcon') || q.includes('hawk') || q.includes('dove')) {
-    [-1, 1].forEach(s => {
+      const ang = i * 0.34;
+      ctx.save();
+      ctx.translate(cx, cy + 44);
+      ctx.rotate(ang);
       ctx.beginPath();
-      ctx.moveTo(cx, cy - 10);
-      ctx.quadraticCurveTo(cx + s * 64, cy - 84, cx + s * 116, cy - 36);
-      ctx.quadraticCurveTo(cx + s * 78, cy + 12, cx + s * 14, cy + 18);
-      ctx.closePath();
-      drawFilledGlow(ctx, radGrad(cx + s * 56, cy - 26, 54, '#FFFFFF', c1), '#FFFFFF', 3);
-    });
-    ctx.beginPath(); ctx.moveTo(cx, cy - 52); ctx.lineTo(cx + 14, cy + 26); ctx.lineTo(cx, cy + 72); ctx.lineTo(cx - 14, cy + 26); ctx.closePath();
-    drawFilledGlow(ctx, c2, '#FFFFFF', 3);
-    return true;
-  }
-
-  // 28. HORSE / UNICORN
-  if (q.includes('horse') || q.includes('ashwa') || q.includes('stallion') || q.includes('unicorn')) {
-    ctx.beginPath();
-    ctx.moveTo(cx - 46, cy + 68); ctx.lineTo(cx - 28, cy + 8);
-    ctx.quadraticCurveTo(cx - 10, cy - 64, cx + 34, cy - 66);
-    ctx.lineTo(cx + 62, cy - 42); ctx.lineTo(cx + 42, cy - 26);
-    ctx.quadraticCurveTo(cx + 16, cy - 24, cx + 22, cy + 68);
-    ctx.closePath();
-    drawFilledGlow(ctx, radGrad(cx, cy, 60, '#FFFFFF', c1), '#FFFFFF', 3.5);
-    if (q.includes('unicorn')) {
-      ctx.strokeStyle = c2; ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.moveTo(cx + 34, cy - 64); ctx.lineTo(cx + 62, cy - 96); ctx.stroke();
-    }
-    return true;
-  }
-
-  // 29. SHIP / BOAT / YACHT
-  if (q.includes('ship') || q.includes('boat') || q.includes('yacht') || q.includes('sail')) {
-    ctx.beginPath(); ctx.moveTo(cx - 88, cy + 36); ctx.lineTo(cx + 88, cy + 36);
-    ctx.lineTo(cx + 62, cy + 74); ctx.lineTo(cx - 62, cy + 74); ctx.closePath();
-    drawFilledGlow(ctx, c2, '#FFFFFF', 3.5);
-    ctx.beginPath(); ctx.moveTo(cx - 6, cy + 32); ctx.lineTo(cx - 6, cy - 78); ctx.lineTo(cx + 58, cy + 24); ctx.closePath();
-    drawFilledGlow(ctx, '#FFFFFF', c1, 3);
-    ctx.beginPath(); ctx.moveTo(cx - 14, cy + 28); ctx.lineTo(cx - 14, cy - 58); ctx.lineTo(cx - 68, cy + 24); ctx.closePath();
-    drawFilledGlow(ctx, c1, '#FFFFFF', 2.5);
-    return true;
-  }
-
-  // 30. AIRPLANE / JET
-  if (q.includes('plane') || q.includes('jet') || q.includes('aircraft') || q.includes('fighter')) {
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - 88); ctx.lineTo(cx + 14, cy - 24); ctx.lineTo(cx + 98, cy + 16);
-    ctx.lineTo(cx + 98, cy + 34); ctx.lineTo(cx + 14, cy + 14); ctx.lineTo(cx + 10, cy + 62);
-    ctx.lineTo(cx + 36, cy + 82); ctx.lineTo(cx, cy + 74);
-    ctx.lineTo(cx - 36, cy + 82); ctx.lineTo(cx - 10, cy + 62);
-    ctx.lineTo(cx - 14, cy + 14); ctx.lineTo(cx - 98, cy + 34); ctx.lineTo(cx - 98, cy + 16);
-    ctx.lineTo(cx - 14, cy - 24); ctx.closePath();
-    drawFilledGlow(ctx, radGrad(cx, cy, 70, '#FFFFFF', c2), c1, 3.5);
-    return true;
-  }
-
-  // 31. SUPERCAR / F1
-  if (q.includes('car') || q.includes('supercar') || q.includes('formula') || q.includes('racing')) {
-    ctx.beginPath();
-    ctx.moveTo(cx - 102, cy + 24); ctx.quadraticCurveTo(cx - 96, cy - 6, cx - 44, cy - 12);
-    ctx.quadraticCurveTo(cx - 14, cy - 42, cx + 36, cy - 36);
-    ctx.lineTo(cx + 92, cy - 6); ctx.lineTo(cx + 104, cy + 24); ctx.closePath();
-    drawFilledGlow(ctx, radGrad(cx, cy, 75, '#FFFFFF', c1), '#FFFFFF', 3.5);
-    [-62, 62].forEach(wx => {
-      ctx.beginPath(); ctx.arc(cx + wx, cy + 26, 22, 0, Math.PI * 2);
-      drawFilledGlow(ctx, '#000000', c2, 5);
-    });
-    return true;
-  }
-
-  // 32. GUITAR / SITAR / MUSIC
-  if (q.includes('guitar') || q.includes('sitar') || q.includes('veena') || q.includes('music')) {
-    ctx.save(); ctx.translate(cx, cy + 12); ctx.rotate(-0.45);
-    ctx.beginPath(); ctx.ellipse(0, 32, 34, 38, 0, 0, Math.PI * 2);
-    drawFilledGlow(ctx, c1, '#FFFFFF', 3);
-    ctx.beginPath(); ctx.ellipse(0, -6, 24, 24, 0, 0, Math.PI * 2);
-    drawFilledGlow(ctx, c1, '#FFFFFF', 3);
-    ctx.beginPath(); ctx.rect(-6, -92, 12, 74);
-    drawFilledGlow(ctx, '#FFFFFF', c2, 2.5);
-    ctx.fillStyle = '#000000'; ctx.beginPath(); ctx.arc(0, 14, 11, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-    return true;
-  }
-
-  // 33. CASTLE / FORT / PALACE
-  if (q.includes('castle') || q.includes('fort') || q.includes('palace') || q.includes('qila') || q.includes('hawa')) {
-    ctx.beginPath(); ctx.rect(cx - 76, cy - 10, 152, 92);
-    drawFilledGlow(ctx, radGrad(cx, cy + 36, 70, '#FFFFFF', c2), c1, 3);
-    [-68, 0, 68].forEach((tx, idx) => {
-      const th = idx === 1 ? 124 : 96;
-      ctx.beginPath(); ctx.rect(cx + tx - 16, cy + 82 - th, 32, th);
-      drawFilledGlow(ctx, c1, '#FFFFFF', 2.5);
-      ctx.beginPath(); ctx.moveTo(cx + tx - 20, cy + 82 - th); ctx.lineTo(cx + tx, cy + 52 - th); ctx.lineTo(cx + tx + 20, cy + 82 - th); ctx.closePath();
-      drawFilledGlow(ctx, '#FFFFFF', c2, 2);
-    });
-    ctx.fillStyle = '#000000';
-    ctx.beginPath(); ctx.arc(cx, cy + 54, 18, Math.PI, 0); ctx.lineTo(cx + 18, cy + 82); ctx.lineTo(cx - 18, cy + 82); ctx.closePath(); ctx.fill();
-    return true;
-  }
-
-  // 34. BRIDGE / SEA LINK
-  if (q.includes('bridge') || q.includes('sea link') || q.includes('howrah')) {
-    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 5;
-    ctx.beginPath(); ctx.moveTo(24, cy + 36); ctx.lineTo(296, cy + 36); ctx.stroke();
-    [-58, 58].forEach(px => {
-      ctx.beginPath(); ctx.rect(cx + px - 6, cy - 64, 12, 116);
-      drawFilledGlow(ctx, c1, '#FFFFFF', 2.5);
-      for (let k = -4; k <= 4; k++) {
-        ctx.strokeStyle = c2; ctx.lineWidth = 1.8;
-        ctx.beginPath(); ctx.moveTo(cx + px, cy - 58); ctx.lineTo(cx + px + k * 14, cy + 36); ctx.stroke();
-      }
-    });
-    return true;
-  }
-
-  // 35. TREE / BANYAN / NATURE
-  if (q.includes('tree') || q.includes('banyan') || q.includes('palm') || q.includes('nature')) {
-    ctx.beginPath(); ctx.moveTo(cx - 14, cy + 86); ctx.lineTo(cx - 8, cy); ctx.lineTo(cx + 8, cy); ctx.lineTo(cx + 14, cy + 86); ctx.closePath();
-    drawFilledGlow(ctx, c1, '#FFFFFF', 3);
-    [[0, -34, 52], [-42, -12, 38], [42, -12, 38], [-24, -56, 36], [24, -56, 36]].forEach(([ox, oy, r]) => {
-      ctx.beginPath(); ctx.arc(cx + ox, cy + oy, r, 0, Math.PI * 2);
-      drawFilledGlow(ctx, '#10B981', '#FFFFFF', 2.5);
-    });
-    return true;
-  }
-
-  // 36. SUN / SURYA
-  if (q.includes('sun') || q.includes('surya') || q.includes('solar')) {
-    drawStarPolygon(ctx, cx, cy, 16, 92, 58);
-    drawFilledGlow(ctx, radGrad(cx, cy, 80, '#FFFFFF', '#FF6D00'), '#FFD700', 3);
-    ctx.beginPath(); ctx.arc(cx, cy, 44, 0, Math.PI * 2);
-    drawFilledGlow(ctx, '#FFFFFF', '#FFD700', 3);
-    return true;
-  }
-
-  // 37. CRESCENT MOON / EID
-  if (q.includes('moon') || q.includes('chand') || q.includes('eid') || q.includes('crescent')) {
-    ctx.beginPath(); ctx.arc(cx - 10, cy, 70, 0, Math.PI * 2);
-    drawFilledGlow(ctx, radGrad(cx - 10, cy, 70, '#FFFFFF', c1), '#FFFFFF', 3);
-    ctx.fillStyle = '#000000';
-    ctx.beginPath(); ctx.arc(cx + 18, cy - 10, 58, 0, Math.PI * 2); ctx.fill();
-    drawStarPolygon(ctx, cx + 48, cy - 36, 5, 18, 7);
-    drawFilledGlow(ctx, '#FFFFFF', c2, 2);
-    return true;
-  }
-
-  // 38. ANGEL WINGS / VICTORY WINGS
-  if (q.includes('wing') || q.includes('angel') || q.includes('victory')) {
-    [-1, 1].forEach(s => {
-      for (let f = 0; f < 5; f++) {
-        ctx.beginPath();
-        ctx.ellipse(cx + s * (38 + f * 16), cy - 34 + f * 18, 36 - f * 4, 12, s * (-0.4 + f * 0.14), 0, Math.PI * 2);
-        drawFilledGlow(ctx, f % 2 === 0 ? '#FFFFFF' : c2, c1, 2.5);
-      }
-    });
-    return true;
-  }
-
-  // 39. STAR / COMPASS
-  if (q.includes('star') || q.includes('compass') || q.includes('polaris')) {
-    drawStarPolygon(ctx, cx, cy, 8, 92, 28);
-    drawFilledGlow(ctx, radGrad(cx, cy, 80, '#FFFFFF', c1), c2, 3.5);
-    ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI * 2);
-    drawFilledGlow(ctx, '#FFFFFF', c1, 2.5);
-    return true;
-  }
-
-  // 40. TEMPLE BELL
-  if (q.includes('bell') || q.includes('ghanta')) {
-    ctx.beginPath();
-    ctx.moveTo(cx - 64, cy + 52);
-    ctx.quadraticCurveTo(cx - 52, cy - 42, cx, cy - 64);
-    ctx.quadraticCurveTo(cx + 52, cy - 42, cx + 64, cy + 52);
-    ctx.closePath();
-    drawFilledGlow(ctx, radGrad(cx, cy, 60, '#FFFFFF', c1), '#FFFFFF', 3.5);
-    ctx.beginPath(); ctx.arc(cx, cy + 62, 12, 0, Math.PI * 2);
-    drawFilledGlow(ctx, c2, '#FFFFFF', 2.5);
-    return true;
-  }
-
-  // 41. KALASH
-  if (q.includes('kalash') || q.includes('kumbh') || q.includes('coconut')) {
-    ctx.beginPath(); ctx.ellipse(cx, cy + 28, 48, 44, 0, 0, Math.PI * 2);
-    drawFilledGlow(ctx, radGrad(cx, cy + 28, 48, '#FFFFFF', c1), '#FFFFFF', 3.5);
-    ctx.beginPath(); ctx.arc(cx, cy - 28, 24, 0, Math.PI * 2);
-    drawFilledGlow(ctx, c3, '#FFFFFF', 3);
-    [-1, 0, 1].forEach(d => {
-      ctx.beginPath(); ctx.ellipse(cx + d * 26, cy - 16, 18, 8, d * 0.5, 0, Math.PI * 2);
-      drawFilledGlow(ctx, '#10B981', '#FFFFFF', 2);
-    });
-    return true;
-  }
-
-  // 42. CHAMPAGNE / CELEBRATION / CHEERS
-  if (q.includes('champagne') || q.includes('party') || q.includes('cheers') || q.includes('toast')) {
-    [-1, 1].forEach(s => {
-      ctx.save(); ctx.translate(cx + s * 22, cy + 12); ctx.rotate(s * -0.22);
-      ctx.beginPath(); ctx.moveTo(-16, -54); ctx.lineTo(16, -54); ctx.lineTo(10, 6); ctx.lineTo(-10, 6); ctx.closePath();
-      drawFilledGlow(ctx, c1, '#FFFFFF', 3);
-      ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.moveTo(0, 6); ctx.lineTo(0, 56); ctx.moveTo(-18, 56); ctx.lineTo(18, 56); ctx.stroke();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(-24, -42, -20, -96, 0, -118 + Math.abs(i) * 10);
+      ctx.bezierCurveTo(20, -96, 24, -42, 0, 0);
+      drawFilledGlow(ctx, i === 0 ? '#FFFFFF' : '#E2E8F0', '#FFFFFF', 2.8);
       ctx.restore();
+    }
+    ctx.beginPath(); ctx.ellipse(cx, cy + 56, 72, 11, 0, 0, Math.PI * 2);
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2);
+    return true;
+  }
+
+  // 8. Diwali Diya
+  if (q.includes('diya') || q.includes('lamp') || q.includes('diwali') || q.includes('flame')) {
+    ctx.beginPath();
+    ctx.moveTo(cx - 78, cy + 16);
+    ctx.quadraticCurveTo(cx, cy + 84, cx + 78, cy + 16);
+    ctx.quadraticCurveTo(cx, cy + 36, cx - 78, cy + 16);
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 3);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 82);
+    ctx.bezierCurveTo(cx + 32, cy - 32, cx + 24, cy + 18, cx, cy + 20);
+    ctx.bezierCurveTo(cx - 24, cy + 18, cx - 32, cy - 32, cx, cy - 82);
+    drawFilledGlow(ctx, '#FFFFFF', '#E2E8F0', 3);
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 42);
+    ctx.bezierCurveTo(cx + 12, cy - 18, cx + 8, cy + 6, cx, cy + 8);
+    ctx.bezierCurveTo(cx - 8, cy + 6, cx - 12, cy - 18, cx, cy - 42);
+    ctx.fill();
+    return true;
+  }
+
+  // 9. Royal Crown
+  if (q.includes('crown') || q.includes('king') || q.includes('queen') || q.includes('royal')) {
+    ctx.beginPath();
+    ctx.moveTo(cx - 86, cy + 44);
+    ctx.lineTo(cx - 98, cy - 34);
+    ctx.lineTo(cx - 48, cy + 4);
+    ctx.lineTo(cx,      cy - 58);
+    ctx.lineTo(cx + 48, cy + 4);
+    ctx.lineTo(cx + 98, cy - 34);
+    ctx.lineTo(cx + 86, cy + 44);
+    ctx.closePath();
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 3.5);
+    [-98, 0, 98].forEach((jx, idx) => {
+      ctx.beginPath(); ctx.arc(cx + jx, idx === 1 ? cy - 66 : cy - 42, 9, 0, Math.PI * 2);
+      drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2);
     });
-    drawStarPolygon(ctx, cx, cy - 68, 6, 20, 7);
-    drawFilledGlow(ctx, '#FFFFFF', c2, 2);
+    ctx.beginPath(); ctx.rect(cx - 86, cy + 48, 172, 16);
+    drawFilledGlow(ctx, '#E2E8F0', '#FFFFFF', 2.5);
     return true;
   }
 
-  // 43. CRICKET
-  if (q.includes('cricket') || q.includes('bat') || q.includes('stadium')) {
-    [-20, 0, 20].forEach(sx => {
-      ctx.beginPath(); ctx.rect(cx + sx - 4, cy - 42, 8, 112);
-      drawFilledGlow(ctx, '#FFFFFF', c1, 2);
+  // 10. Ganesh / Elephant
+  if (q.includes('ganesh') || q.includes('ganpati') || q.includes('elephant')) {
+    // Crown + Ears + Head + Curved Trunk
+    [-58, 58].forEach((ex) => {
+      ctx.beginPath(); ctx.ellipse(cx + ex, cy + 2, 34, 46, ex > 0 ? 0.25 : -0.25, 0, Math.PI * 2);
+      drawFilledGlow(ctx, '#E2E8F0', '#FFFFFF', 2.8);
     });
-    ctx.strokeStyle = c1; ctx.lineWidth = 10;
-    ctx.beginPath(); ctx.moveTo(cx - 72, cy + 62); ctx.lineTo(cx + 42, cy - 62); ctx.stroke();
-    ctx.beginPath(); ctx.arc(cx + 56, cy - 14, 18, 0, Math.PI * 2);
-    drawFilledGlow(ctx, '#FF2A85', '#FFFFFF', 2.5);
+    ctx.beginPath(); ctx.arc(cx, cy - 4, 42, 0, Math.PI * 2);
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 3);
+    // Mukut crown
+    ctx.beginPath();
+    ctx.moveTo(cx - 26, cy - 38); ctx.lineTo(cx, cy - 86); ctx.lineTo(cx + 26, cy - 38); ctx.closePath();
+    drawFilledGlow(ctx, '#FFFFFF', '#E2E8F0', 2.5);
+    // Curved Trunk
+    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 18;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + 12);
+    ctx.bezierCurveTo(cx, cy + 56, cx + 38, cy + 68, cx + 42, cy + 40);
+    ctx.stroke();
     return true;
   }
 
-  // 44. CAMERA / CINEMA / FILM
-  if (q.includes('camera') || q.includes('cinema') || q.includes('film') || q.includes('bollywood')) {
-    ctx.beginPath(); ctx.roundRect(cx - 58, cy - 18, 96, 68, 10);
-    drawFilledGlow(ctx, radGrad(cx - 10, cy + 16, 54, '#FFFFFF', c2), c1, 3.5);
-    ctx.beginPath(); ctx.arc(cx - 32, cy - 46, 24, 0, Math.PI * 2);
-    drawFilledGlow(ctx, c1, '#FFFFFF', 3);
-    ctx.beginPath(); ctx.arc(cx + 18, cy - 46, 20, 0, Math.PI * 2);
-    drawFilledGlow(ctx, c1, '#FFFFFF', 3);
-    ctx.beginPath(); ctx.moveTo(cx + 38, cy); ctx.lineTo(cx + 96, cy - 28); ctx.lineTo(cx + 96, cy + 56); ctx.lineTo(cx + 38, cy + 28); ctx.closePath();
-    drawFilledGlow(ctx, '#FFFFFF', c2, 2.5);
+  // 11. Butterfly
+  if (q.includes('butterfly') || q.includes('titli')) {
+    [-1, 1].forEach((s) => {
+      ctx.beginPath();
+      ctx.ellipse(cx + s * 48, cy - 22, 46, 34, s * 0.4, 0, Math.PI * 2);
+      drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 3);
+      ctx.beginPath();
+      ctx.ellipse(cx + s * 34, cy + 28, 30, 24, -s * 0.35, 0, Math.PI * 2);
+      drawFilledGlow(ctx, '#E2E8F0', '#FFFFFF', 2.5);
+    });
+    ctx.beginPath(); ctx.ellipse(cx, cy + 4, 8, 42, 0, 0, Math.PI * 2);
+    drawFilledGlow(ctx, '#FFFFFF', '#000000', 2);
     return true;
   }
 
-  // FALLBACK (NEVER print prompt text or unrelated India map — render a rich 3D-shaded Sacred Geometric Crest)
+  // 12. Eagle / Bird / Garuda / Phoenix
+  if (q.includes('eagle') || q.includes('bird') || q.includes('phoenix') || q.includes('garuda')) {
+    [-1, 1].forEach((s) => {
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.bezierCurveTo(cx + s * 42, cy - 58, cx + s * 96, cy - 68, cx + s * 124, cy - 34);
+      ctx.lineTo(cx + s * 96, cy + 10);
+      ctx.lineTo(cx + s * 46, cy + 18);
+      ctx.closePath();
+      drawFilledGlow(ctx, '#FFFFFF', '#E2E8F0', 2.5);
+    });
+    ctx.beginPath(); ctx.ellipse(cx, cy + 6, 16, 44, 0, 0, Math.PI * 2);
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2.5);
+    return true;
+  }
+
+  // 13. Taj Mahal silhouette (for blueprint mode)
+  if (q.includes('taj') || q.includes('mahal')) {
+    ctx.beginPath(); ctx.rect(44, 174, 232, 18);
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2.5);
+    ctx.beginPath(); ctx.rect(cx - 56, 92, 112, 82);
+    drawFilledGlow(ctx, '#E2E8F0', '#FFFFFF', 3);
+    ctx.beginPath();
+    ctx.moveTo(cx - 32, 92);
+    ctx.bezierCurveTo(cx - 42, 62, cx - 18, 42, cx, 32);
+    ctx.bezierCurveTo(cx + 18, 42, cx + 42, 62, cx + 32, 92);
+    ctx.closePath();
+    drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 3);
+    ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx, 16); ctx.lineTo(cx, 34); ctx.stroke();
+    ctx.fillStyle = '#000000';
+    ctx.beginPath(); ctx.moveTo(cx - 22, 174); ctx.lineTo(cx - 22, 132);
+    ctx.arc(cx, 132, 22, Math.PI, 0); ctx.lineTo(cx + 22, 174); ctx.closePath(); ctx.fill();
+    [-92, -72, 72, 92].forEach((mx) => {
+      ctx.beginPath(); ctx.rect(cx + mx - 5, 62, 10, 112);
+      drawFilledGlow(ctx, '#FFFFFF', '#FFFFFF', 2);
+    });
+    return true;
+  }
+
+  // 14. Generic Sacred Mandala / Starburst Emblem (never raw text!)
   for (let r = 84; r >= 28; r -= 28) {
-    drawStarPolygon(ctx, cx, cy, 8, r, r * 0.56, r === 56 ? Math.PI / 8 : 0);
-    drawFilledGlow(ctx, r === 28 ? '#FFFFFF' : (r === 56 ? c2 : c1), '#FFFFFF', 3);
+    drawStarPolygon(ctx, cx, cy, r === 84 ? 12 : 8, r, r * 0.56);
+    drawFilledGlow(ctx, r === 28 ? '#FFFFFF' : (r === 56 ? '#CBD5E1' : '#FFFFFF'), '#FFFFFF', 2.8);
   }
-  ctx.beginPath(); ctx.arc(cx, cy, 16, 0, Math.PI * 2);
-  drawFilledGlow(ctx, '#FFFFFF', c1, 2.5);
+  ctx.beginPath(); ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+  drawFilledGlow(ctx, '#000000', '#FFFFFF', 2.5);
   return false;
 }
 
+/**
+ * Normalizes any Puter AI image into a crisp high-contrast black-and-white
+ * silhouette on pure #000000 background for clean 3D depth extrusion.
+ */
+function paintNormalizedSilhouette(imgEl, ctx, w, h) {
+  const off = document.createElement('canvas');
+  off.width = w;
+  off.height = h;
+  const octx = off.getContext('2d');
+  octx.fillStyle = '#000000';
+  octx.fillRect(0, 0, w, h);
+
+  const iw = imgEl.naturalWidth || imgEl.width || w;
+  const ih = imgEl.naturalHeight || imgEl.height || h;
+  const fit = Math.min((w - 14) / iw, (h - 14) / ih);
+  const dw = iw * fit;
+  const dh = ih * fit;
+  octx.drawImage(imgEl, (w - dw) / 2, (h - dh) / 2, dw, dh);
+
+  const imgData = octx.getImageData(0, 0, w, h);
+  const data = imgData.data;
+
+  // Detect background brightness from image border pixels
+  let borderSum = 0;
+  let borderCnt = 0;
+  for (let x = 0; x < w; x += 4) {
+    const top = x * 4;
+    const bot = ((h - 1) * w + x) * 4;
+    borderSum += (data[top] + data[top + 1] + data[top + 2]) / 3;
+    borderSum += (data[bot] + data[bot + 1] + data[bot + 2]) / 3;
+    borderCnt += 2;
+  }
+  const invertBg = (borderSum / Math.max(1, borderCnt)) > 140;
+
+  // Convert to crisp high-contrast grayscale silhouette
+  for (let i = 0; i < data.length; i += 4) {
+    const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    const v = invertBg ? (255 - lum) : lum;
+    const sharp = v > 72 ? Math.min(255, (v - 50) * 1.45) : 0;
+    data[i] = data[i + 1] = data[i + 2] = sharp;
+    data[i + 3] = 255;
+  }
+  octx.putImageData(imgData, 0, 0);
+
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(off, 0, 0);
+}
+
+/**
+ * Stage 1 Blueprint Preview:
+ * Attempts Puter.js txt2img high-contrast B&W silhouette when allowAI is true,
+ * backed by instant offline procedural silhouettes so Stage 1 never fails or
+ * renders raw text.
+ */
 window.generateBlueprintPreview = function generateBlueprintPreview(allowAI = true) {
-  const raw = (document.getElementById('bpPromptInput').value || 'Sacred Lotus').trim();
-  const pal = document.getElementById('bpPaletteSelect').value;
-  const c   = document.getElementById('blueprintCanvas');
-  const ctx = c.getContext('2d');
+  const raw   = (document.getElementById('bpPromptInput')?.value || 'Peacock').trim();
+  const c     = document.getElementById('blueprintCanvas');
+  if (!c) return;
+  const ctx   = c.getContext('2d');
   const token = ++_bpGenToken;
 
-  const matchedProcedural = renderProceduralBlueprint(raw, pal, ctx, c.width, c.height);
+  const matchedFallback = renderProceduralSilhouette(raw, ctx, c.width, c.height);
 
   const badge = document.getElementById('bpStatusBadge');
   const toast = document.getElementById('statusToast');
-  badge.textContent = 'PREVIEW READY';
-  badge.className   = 'text-sky-400 font-bold';
-  toast.textContent = `👁️ Blueprint ready for "${raw.slice(0,22)}" — click 'Approve & Compile' to fly!`;
+  if (badge) {
+    badge.textContent = matchedFallback ? 'SILHOUETTE READY' : 'EMBLEM READY';
+    badge.className   = 'text-sky-400 font-bold';
+  }
+  if (toast) {
+    toast.textContent = `👁️ Stage 1 preview ready for "${raw.slice(0, 24)}" — click Approve to compile 3D drones`;
+  }
 
-  const canUsePuter = allowAI && typeof puter !== 'undefined' && puter.ai && typeof puter.ai.txt2img === 'function';
-  const puterSignedIn = canUsePuter && puter.auth && typeof puter.auth.isSignedIn === 'function' && puter.auth.isSignedIn();
+  const canUsePuter = allowAI
+    && typeof puter !== 'undefined'
+    && puter.ai
+    && typeof puter.ai.txt2img === 'function';
 
-  if (canUsePuter && (!matchedProcedural || puterSignedIn)) {
-    const aiPrompt = `minimalist high-contrast glowing neon vector silhouette of ${raw} on pure solid #000000 black background, bold thick shapes, centered, no text, no background clutter`;
-    badge.textContent = 'AI GENERATING...';
-    badge.className   = 'text-amber-300 font-bold animate-pulse';
-    toast.textContent = `✨ Puter AI generating neon silhouette for "${raw.slice(0,22)}"...`;
+  if (canUsePuter) {
+    const aiPrompt = `minimalist high-contrast pure white silhouette of ${raw} centered on solid #000000 pitch-black background, crisp bold shapes, vector stencil style, no text, no letters, no watermark`;
+    if (badge) {
+      badge.textContent = 'PUTER AI GENERATING...';
+      badge.className   = 'text-amber-300 font-bold animate-pulse';
+    }
+    if (toast) {
+      toast.textContent = `✨ Puter AI generating B&W silhouette for "${raw.slice(0, 24)}"...`;
+    }
 
-    Promise.resolve(puter.ai.txt2img(aiPrompt))
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Puter AI timeout')), 14000)
+    );
+
+    Promise.race([Promise.resolve(puter.ai.txt2img(aiPrompt)), timeoutPromise])
       .then((imgEl) => {
         if (token !== _bpGenToken || !imgEl) return;
-        const paintImg = () => {
+        const applyImg = () => {
           if (token !== _bpGenToken) return;
-          ctx.fillStyle = '#000000';
-          ctx.fillRect(0, 0, c.width, c.height);
-          const iw = imgEl.naturalWidth || imgEl.width || c.width;
-          const ih = imgEl.naturalHeight || imgEl.height || c.height;
-          const fit = Math.min((c.width - 12) / iw, (c.height - 12) / ih);
-          const dw = iw * fit, dh = ih * fit;
-          ctx.drawImage(imgEl, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
-          badge.textContent = 'AI PREVIEW READY';
-          badge.className   = 'text-emerald-400 font-bold';
-          toast.textContent = `✨ AI Blueprint ready for "${raw.slice(0,22)}" — click 'Approve & Compile' to fly!`;
+          paintNormalizedSilhouette(imgEl, ctx, c.width, c.height);
+          if (badge) {
+            badge.textContent = 'AI B&W READY';
+            badge.className   = 'text-emerald-400 font-bold';
+          }
+          if (toast) {
+            toast.textContent = `✨ Puter AI silhouette ready for "${raw.slice(0, 24)}" — click Approve to fly!`;
+          }
         };
-        if (imgEl.complete && imgEl.naturalWidth > 0) paintImg();
-        else imgEl.onload = paintImg;
+        if (imgEl.complete && imgEl.naturalWidth > 0) applyImg();
+        else imgEl.onload = applyImg;
       })
       .catch(() => {
         if (token !== _bpGenToken) return;
-        badge.textContent = 'PREVIEW READY';
-        badge.className   = 'text-sky-400 font-bold';
+        if (badge) {
+          badge.textContent = matchedFallback ? 'OFFLINE FALLBACK READY' : 'EMBLEM READY';
+          badge.className   = 'text-sky-400 font-bold';
+        }
+        if (toast) {
+          toast.textContent = `✓ Offline silhouette ready for "${raw.slice(0, 24)}" — click Approve to compile`;
+        }
       });
   }
 };
 
-// ---------------------------------------------------------------------------
-// 2. STAGE 2: APPROVE & COMPILE TO 3D DRONES
-// ---------------------------------------------------------------------------
-window.approveBlueprintToDrones = function approveBlueprintToDrones() {
-  const drones   = parseInt(document.getElementById('droneManualInput').value, 10) || 2200;
-  const pal      = document.getElementById('bpPaletteSelect').value;
-  const depthAmp = parseFloat(document.getElementById('bpDepthSelect').value);
-  const label    = (document.getElementById('bpPromptInput').value || 'Blueprint').trim().slice(0,20);
-  const canvas   = document.getElementById('blueprintCanvas');
+// -----------------------------------------------------------------------------
+// 5. STAGE 2: DISTANCE-FIELD + SOBEL 3D DEPTH-EXTRUDED CLOUD COMPILER
+// -----------------------------------------------------------------------------
+function paletteColorAt(pal, nx, ny) {
+  if (pal === 'tricolour') {
+    if (ny > 0.32) return '#FF9933';
+    if (ny < -0.32) return '#10B981';
+    return '#FFFFFF';
+  }
+  if (pal === 'divine_fire') {
+    return ny > 0.25 ? '#FFD700' : (ny < -0.25 ? '#FF2A85' : '#FF6D00');
+  }
+  if (pal === 'diamond') {
+    return (Math.abs(nx) + Math.abs(ny)) < 0.7 ? '#FFFFFF' : '#7DD3FC';
+  }
+  // gold_cyan default
+  return ny > 0.2 ? '#FFD700' : (ny < -0.3 ? '#38BDF8' : '#00E5FF');
+}
 
-  const cloud = compileImageTo3DCloud(canvas, drones, pal, depthAmp);
-  window.slides[window.activeSlideIdx] = {
-    ...window.slides[window.activeSlideIdx],
-    type: 'blueprint', label, cloud,
-  };
-  document.getElementById('bpStatusBadge').textContent = 'COMPILED ✓';
-  document.getElementById('bpStatusBadge').className   = 'text-emerald-400 font-bold';
-  if (typeof window.activateSlide === 'function') window.activateSlide(window.activeSlideIdx, false);
-};
-
-// ---------------------------------------------------------------------------
-// 3. HYBRID CONTOUR (45%) + INTERIOR VOLUMETRIC POISSON/STRATIFIED (55%) 3D COMPILER
-// ---------------------------------------------------------------------------
-function sampleStratifiedPoisson(pts, targetCount, minX, maxX, minY, maxY) {
+function sampleStratifiedPoints(pts, targetCount, minX, maxX, minY, maxY) {
   if (!pts.length || targetCount <= 0) return [];
   const spanX = Math.max(1, maxX - minX);
   const spanY = Math.max(1, maxY - minY);
-  const area = spanX * spanY;
-  let minDist = Math.max(1.2, Math.sqrt(area / Math.max(1, targetCount)) * 0.72);
+  const cols  = Math.max(6, Math.ceil(Math.sqrt(targetCount * (spanX / spanY))));
+  const rows  = Math.max(6, Math.ceil(targetCount / cols));
+  const cellW = spanX / cols;
+  const cellH = spanY / rows;
+  const grid  = Array.from({ length: cols * rows }, () => []);
 
-  // Build spatial hash buckets for fast Poisson-disc spacing checks
-  const cols = Math.max(4, Math.ceil(Math.sqrt(targetCount * (spanX / spanY))));
-  const rows = Math.max(4, Math.ceil(targetCount / cols));
-  const cellW = spanX / cols, cellH = spanY / rows;
-  const grid = Array.from({ length: cols * rows }, () => []);
   for (let i = 0; i < pts.length; i++) {
-    const p = pts[i];
-    const gx = Math.min(cols - 1, Math.max(0, Math.floor((p[0] - minX) / cellW)));
-    const gy = Math.min(rows - 1, Math.max(0, Math.floor((p[1] - minY) / cellH)));
+    const p  = pts[i];
+    const gx = Math.min(cols - 1, Math.max(0, Math.floor((p.x - minX) / cellW)));
+    const gy = Math.min(rows - 1, Math.max(0, Math.floor((p.y - minY) / cellH)));
     grid[gy * cols + gx].push(p);
   }
 
-  // Deterministic golden-ratio stride inside each cell so bright regions fill evenly
   const out = [];
   const used = new Set();
-  for (let pass = 0; pass < 3 && out.length < targetCount; pass++) {
-    const distSq = (minDist * Math.pow(0.55, pass)) ** 2;
+  for (let pass = 0; pass < 4 && out.length < targetCount; pass++) {
     for (let c = 0; c < grid.length && out.length < targetCount; c++) {
       const bucket = grid[c];
       if (!bucket.length) continue;
-      const pick = bucket[(pass * 7 + c * 13) % bucket.length];
-      const key = `${pick[0]},${pick[1]}`;
-      if (used.has(key)) continue;
-      let tooClose = false;
-      if (pass < 2) {
-        for (let k = Math.max(0, out.length - 48); k < out.length; k++) {
-          const dx = out[k][0] - pick[0], dy = out[k][1] - pick[1];
-          if (dx * dx + dy * dy < distSq) { tooClose = true; break; }
-        }
-      }
-      if (!tooClose) {
+      const pick = bucket[(pass * 11 + c * 17) % bucket.length];
+      const key  = `${pick.x}_${pick.y}`;
+      if (!used.has(key)) {
         used.add(key);
         out.push(pick);
       }
     }
   }
-  for (let i = 0; out.length < targetCount && i < targetCount * 2; i++) {
-    out.push(pts[Math.floor((i / Math.max(1, targetCount)) * pts.length) % pts.length]);
+  for (let i = 0; out.length < targetCount; i++) {
+    out.push(pts[Math.floor((i * 0.6180339887 % 1) * pts.length)]);
   }
   return out;
 }
 
-window.compileImageTo3DCloud = function compileImageTo3DCloud(imgSource, nDrones, styleTheme = 'gold_cyan', depthAmp = 14) {
-  const w = 260, h = 220;
-  const c = document.createElement('canvas');
-  c.width = w; c.height = h;
-  const ctx = c.getContext('2d');
-  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+window.compileImageTo3DCloud = function compileImageTo3DCloud(imgSource, nDrones = 2200, styleTheme = 'gold_cyan', depthAmp = 14) {
+  const n = Math.max(500, Math.min(5000, Math.round(nDrones || 2200)));
+  const W = 200;
+  const H = 150;
 
-  const iw = imgSource.width || w, ih = imgSource.height || h;
-  const fit = Math.min((w - 16) / iw, (h - 16) / ih);
-  const dw = iw * fit, dh = ih * fit;
-  ctx.drawImage(imgSource, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  const off = document.createElement('canvas');
+  off.width = W;
+  off.height = H;
+  const ctx = off.getContext('2d');
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, W, H);
+  if (imgSource) ctx.drawImage(imgSource, 0, 0, W, H);
 
-  const data = ctx.getImageData(0, 0, w, h).data;
-  const cornerLum = (data[0] + data[1] + data[2] + data[(w - 1) * 4] + data[(w - 1) * 4 + 1] + data[(w - 1) * 4 + 2]) / 6;
-  const isLightBg = cornerLum > 165;
+  const rgba = ctx.getImageData(0, 0, W, H).data;
+  const lum  = new Float32Array(W * H);
 
-  const lumGrid = new Float32Array(w * h);
-  for (let i = 0; i < w * h; i++) {
-    const r = data[i * 4], g = data[i * 4 + 1], b = data[i * 4 + 2];
-    const rawL = 0.299 * r + 0.587 * g + 0.114 * b;
-    lumGrid[i] = isLightBg ? (255 - rawL) : rawL;
+  // Check if pasted image has bright background
+  let borderLum = 0;
+  for (let x = 0; x < W; x++) {
+    const iTop = x * 4;
+    const iBot = ((H - 1) * W + x) * 4;
+    borderLum += (rgba[iTop] + rgba[iTop + 1] + rgba[iTop + 2]) / 3;
+    borderLum += (rgba[iBot] + rgba[iBot + 1] + rgba[iBot + 2]) / 3;
+  }
+  const invert = (borderLum / (2 * W)) > 150;
+
+  let minX = W, maxX = 0, minY = H, maxY = 0;
+  const mask = new Uint8Array(W * H);
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const idx = y * W + x;
+      const p   = idx * 4;
+      const rawL = 0.299 * rgba[p] + 0.587 * rgba[p + 1] + 0.114 * rgba[p + 2];
+      const v    = invert ? 255 - rawL : rawL;
+      lum[idx]   = v;
+      if (v > 42) {
+        mask[idx] = 1;
+        if (x < minX) minX = x; if (x > maxX) maxX = x;
+        if (y < minY) minY = y; if (y > maxY) maxY = y;
+      }
+    }
   }
 
-  const edgePts = [], fillPts = [];
-  let minX = w, maxX = 0, minY = h, maxY = 0;
-  for (let y = 2; y < h - 2; y += 1) {
-    for (let x = 2; x < w - 2; x += 1) {
-      const idx = y * w + x;
-      const lum = lumGrid[idx];
-      if (lum < 26) continue;
-      const gx = -lumGrid[idx - w - 1] + lumGrid[idx - w + 1] - 2 * lumGrid[idx - 1] + 2 * lumGrid[idx + 1] - lumGrid[idx + w - 1] + lumGrid[idx + w + 1];
-      const gy = -lumGrid[idx - w - 1] - 2 * lumGrid[idx - w] - lumGrid[idx - w + 1] + lumGrid[idx + w - 1] + 2 * lumGrid[idx + w] + lumGrid[idx + w + 1];
-      const edgeMag = Math.hypot(gx, gy);
-      const pIdx = idx * 4;
-      const r = data[pIdx], g = data[pIdx + 1], b = data[pIdx + 2];
-      const item = [x, y, lum, r, g, b, edgeMag];
-      if (edgeMag > 115) edgePts.push(item);
-      else if (lum >= 34) fillPts.push(item);
+  if (maxX <= minX || maxY <= minY) {
+    return window.buildHeroFormation('taj', n);
+  }
+
+  // 2-Pass Chamfer Distance Transform for smooth 3D volumetric depth extrusion
+  const dist = new Float32Array(W * H);
+  const INF  = 9999;
+  for (let i = 0; i < W * H; i++) dist[i] = mask[i] ? INF : 0;
+
+  for (let y = 1; y < H - 1; y++) {
+    for (let x = 1; x < W - 1; x++) {
+      const i = y * W + x;
+      if (!mask[i]) continue;
+      dist[i] = Math.min(dist[i], dist[i - 1] + 1, dist[i - W] + 1, dist[i - W - 1] + 1.414);
+    }
+  }
+  let maxDist = 1;
+  for (let y = H - 2; y >= 1; y--) {
+    for (let x = W - 2; x >= 1; x--) {
+      const i = y * W + x;
+      if (!mask[i]) continue;
+      dist[i] = Math.min(dist[i], dist[i + 1] + 1, dist[i + W] + 1, dist[i + W + 1] + 1.414);
+      if (dist[i] > maxDist) maxDist = dist[i];
+    }
+  }
+
+  // Separate sharp Sobel edges (45%) & volumetric interior (55%)
+  const edgePts = [];
+  const fillPts = [];
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      const idx = y * W + x;
+      if (!mask[idx]) continue;
+      const gx = (x < W - 1 ? lum[idx + 1] : 0) - (x > 0 ? lum[idx - 1] : 0);
+      const gy = (y < H - 1 ? lum[idx + W] : 0) - (y > 0 ? lum[idx - W] : 0);
+      const grad = Math.hypot(gx, gy);
+      const p = idx * 4;
+      const pt = {
+        x, y,
+        dNorm: Math.sqrt(dist[idx] / maxDist),
+        r: rgba[p], g: rgba[p + 1], b: rgba[p + 2],
+      };
+      if (grad > 65 || dist[idx] <= 1.8) edgePts.push(pt);
+      else fillPts.push(pt);
+    }
+  }
+
+  const edgeTarget = Math.min(edgePts.length, Math.round(n * 0.45));
+  const fillTarget = n - edgeTarget;
+  const chosen = [
+    ...sampleStratifiedPoints(edgePts, edgeTarget, minX, maxX, minY, maxY),
+    ...sampleStratifiedPoints(fillPts.length ? fillPts : edgePts, fillTarget, minX, maxX, minY, maxY),
+  ];
+
+  const cx = (minX + maxX) * 0.5;
+  const cy = (minY + maxY) * 0.5;
+  const span = Math.max(1, maxX - minX, maxY - minY);
+  const scale = 72.0 / span;
+
+  return chosen.slice(0, n).map((pt, idx) => {
+    const wx = (pt.x - cx) * scale;
+    const wy = (cy - pt.y) * scale + 56.0;
+    const nx = (pt.x - cx) / Math.max(1, (maxX - minX) * 0.5);
+    const ny = (cy - pt.y) / Math.max(1, (maxY - minY) * 0.5);
+
+    // Front/back symmetric 3D relief extrusion based on Chamfer distance field
+    const sign = (idx % 2 === 0) ? 1 : -1;
+    const wz = depthAmp > 0
+      ? sign * depthAmp * (0.20 + 0.80 * pt.dNorm)
+      : 0;
+
+    let hex;
+    if (styleTheme === 'original') {
+      hex = window.AeroSampler.toHexFromRgb(pt.r / 255, pt.g / 255, pt.b / 255);
+    } else {
+      hex = paletteColorAt(styleTheme, nx, ny);
+    }
+    return [+wx.toFixed(2), +wz.toFixed(2), +wy.toFixed(2), hex];
+  });
+};
+
+window.approveBlueprintToDrones = function approveBlueprintToDrones() {
+  const drones   = parseInt(document.getElementById('droneManualInput')?.value, 10) || 2200;
+  const pal      = document.getElementById('bpPaletteSelect')?.value || 'gold_cyan';
+  const depthAmp = parseFloat(document.getElementById('bpDepthSelect')?.value ?? '14');
+  const label    = (document.getElementById('bpPromptInput')?.value || 'Blueprint').trim().slice(0, 20);
+  const canvas   = document.getElementById('blueprintCanvas');
+
+  const cloud = window.compileImageTo3DCloud(canvas, drones, pal, depthAmp);
+  window.slides[window.activeSlideIdx] = {
+    ...window.slides[window.activeSlideIdx],
+    type: 'blueprint',
+    label,
+    cloud,
+  };
+  const badge = document.getElementById('bpStatusBadge');
+  if (badge) {
+    badge.textContent = 'COMPILED ✓';
+    badge.className   = 'text-emerald-400 font-bold';
+  }
+  if (typeof window.activateSlide === 'function') window.activateSlide(window.activeSlideIdx, false);
+};
+
+// -----------------------------------------------------------------------------
+// 6. 3D SKY TYPOGRAPHY (BOLD EXTRUDED BLOCK LETTERS + ARCHED STADIUM BANNER)
+// -----------------------------------------------------------------------------
+window.build3DTextCloud = function build3DTextCloud(
+  textStr = 'INDIA 2026',
+  nDrones = 2200,
+  colorTheme = 'tricolour',
+  fontCss = '900 Arial, sans-serif',
+  arched = true
+) {
+  const n   = Math.max(500, Math.min(5000, Math.round(nDrones || 2200)));
+  const str = (textStr || 'INDIA 2026').trim().slice(0, 18) || 'INDIA 2026';
+
+  const W = 560;
+  const H = 160;
+  const c = document.createElement('canvas');
+  c.width = W;
+  c.height = H;
+  const ctx = c.getContext('2d');
+
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  let fontSize = 104;
+  const familyPart = fontCss.replace(/^(900|bold|italic)\s+/gi, '');
+  const weightPart = fontCss.match(/^(900|bold|italic|\s)+/i)?.[0] || '900 ';
+  while (fontSize > 28) {
+    ctx.font = `${weightPart}${fontSize}px ${familyPart}`;
+    if (ctx.measureText(str).width <= W - 36) break;
+    fontSize -= 4;
+  }
+  ctx.fillText(str, W / 2, H / 2);
+
+  const rgba = ctx.getImageData(0, 0, W, H).data;
+  const edgePts = [];
+  const bodyPts = [];
+  let minX = W, maxX = 0, minY = H, maxY = 0;
+
+  for (let y = 1; y < H - 1; y++) {
+    for (let x = 1; x < W - 1; x++) {
+      const idx = (y * W + x) * 4;
+      if (rgba[idx] < 120) continue;
       if (x < minX) minX = x; if (x > maxX) maxX = x;
       if (y < minY) minY = y; if (y > maxY) maxY = y;
+
+      const isEdge = rgba[idx - 4] < 120 || rgba[idx + 4] < 120
+                  || rgba[idx - W * 4] < 120 || rgba[idx + W * 4] < 120;
+      if (isEdge) edgePts.push({ x, y });
+      else bodyPts.push({ x, y });
     }
   }
 
-  const combined = [...edgePts, ...fillPts];
-  if (combined.length < 20) return build3DTextCloud('AEROGRID', nDrones, 'gold');
+  if (!edgePts.length && !bodyPts.length) {
+    return window.buildHeroFormation('taj', n);
+  }
 
-  const midX = (minX + maxX) / 2, midY = (minY + maxY) / 2;
-  const spanX = Math.max(1, maxX - minX), spanY = Math.max(1, maxY - minY);
-  const scale = Math.min(104 / spanX, 68 / spanY);
+  const edgeTarget = Math.min(edgePts.length, Math.round(n * 0.42));
+  const bodyTarget = n - edgeTarget;
+  const chosen = [
+    ...sampleStratifiedPoints(edgePts, edgeTarget, minX, maxX, minY, maxY),
+    ...sampleStratifiedPoints(bodyPts.length ? bodyPts : edgePts, bodyTarget, minX, maxX, minY, maxY),
+  ];
 
-  // 45% high-contrast edge contour + 55% volumetric Poisson/stratified interior
-  const edgeTarget = Math.floor(nDrones * 0.45);
-  const selectedEdges = sampleStratifiedPoisson(
-    edgePts.length ? edgePts : fillPts,
-    Math.min(edgeTarget, (edgePts.length || fillPts.length)),
-    minX, maxX, minY, maxY
-  );
-  const fillTarget = nDrones - selectedEdges.length;
-  const fillPool = fillPts.length > 0 ? fillPts : edgePts;
-  const selectedFill = sampleStratifiedPoisson(fillPool, fillTarget, minX, maxX, minY, maxY);
-  const selected = [...selectedEdges, ...selectedFill];
+  const cx = (minX + maxX) * 0.5;
+  const cy = (minY + maxY) * 0.5;
+  const spanX = Math.max(1, maxX - minX);
+  const spanY = Math.max(1, maxY - minY);
+  const targetWidth = Math.min(92, Math.max(58, str.length * 7.8));
+  const scale = targetWidth / spanX;
 
-  const out = [];
-  for (let i = 0; i < nDrones; i++) {
-    const [px, py, lum, r, g, b, edgeMag] = selected[i % selected.length];
-    const normX = (px - minX) / spanX, normY = (py - minY) / spanY;
-    const archDepth = depthAmp > 0 ? Math.cos((normX - 0.5) * Math.PI) * (depthAmp * 0.42) : 0;
-    const lumDepth  = depthAmp > 0 ? ((lum / 255) - 0.28) * (depthAmp * 0.85) : 0;
-    const maxC = Math.max(r, g, b), minC = Math.min(r, g, b);
-    const isColorful = !isLightBg && (maxC - minC > 40);
-    let hex;
-    if (isColorful) {
-      hex = `#${Math.min(255, r + 25).toString(16).padStart(2, '0')}${Math.min(255, g + 25).toString(16).padStart(2, '0')}${Math.min(255, b + 25).toString(16).padStart(2, '0')}`;
-    } else if (styleTheme === 'tricolour') {
-      hex = normY < 0.34 ? '#FF9933' : (normY < 0.67 ? '#FFFFFF' : '#10B981');
-    } else if (styleTheme === 'divine_fire') {
-      hex = edgeMag > 145 ? '#FFD700' : (normY < 0.5 ? '#FF6D00' : '#FF2A85');
-    } else if (styleTheme === 'diamond') {
-      hex = edgeMag > 145 ? '#FFFFFF' : '#38BDF8';
+  return chosen.slice(0, n).map((pt, idx) => {
+    const ux = (pt.x - cx) / Math.max(1, spanX * 0.5); // -1 .. +1
+    const uy = (cy - pt.y) / Math.max(1, spanY * 0.5); // -1 .. +1
+
+    // 3D Block Letter Thickness (front face, back face, extruded side slices)
+    const slice = (idx % 4) / 3 - 0.5; // -0.5 .. +0.5
+    const extrudeZ = slice * 5.2;
+
+    let wx, wy, wz;
+    if (arched) {
+      // Sweeping stadium arc curvature in X/Z + slight rainbow rise in Y
+      const arcAngle = ux * 0.52;
+      const rad = targetWidth * 1.15;
+      wx = Math.sin(arcAngle) * (rad + extrudeZ);
+      wz = (Math.cos(arcAngle) * (rad + extrudeZ)) - rad;
+      wy = (cy - pt.y) * scale + Math.cos(ux * 1.1) * 5.0 + 54.0;
     } else {
-      hex = edgeMag > 135 ? '#FFD700' : (lum > 145 ? '#FFFFFF' : '#00E5FF');
+      wx = (pt.x - cx) * scale;
+      wy = (cy - pt.y) * scale + 56.0;
+      wz = extrudeZ;
     }
-    out.push([+((px - midX) * scale).toFixed(2), +(archDepth + lumDepth).toFixed(2), +(66 - (py - midY) * scale).toFixed(2), hex]);
-  }
-  return out;
+
+    let hex = '#FFFFFF';
+    if (colorTheme === 'tricolour') {
+      hex = uy > 0.25 ? '#FF9933' : (uy < -0.25 ? '#10B981' : '#FFFFFF');
+    } else if (colorTheme === 'gold') {
+      hex = Math.abs(slice) > 0.35 ? '#F59E0B' : '#FFD700';
+    } else if (colorTheme === 'cyan') {
+      hex = Math.abs(slice) > 0.35 ? '#0284C7' : '#00E5FF';
+    } else if (colorTheme === 'pink') {
+      hex = Math.abs(slice) > 0.35 ? '#DB2777' : '#FF2A85';
+    } else if (colorTheme === 'white') {
+      hex = Math.abs(slice) > 0.35 ? '#BAE6FD' : '#FFFFFF';
+    }
+
+    return [+wx.toFixed(2), +wz.toFixed(2), +wy.toFixed(2), hex];
+  });
 };
 
-// ---------------------------------------------------------------------------
-// 4. HERO VAULT FORMATIONS
-// ---------------------------------------------------------------------------
-function allocateParts(parts, nDrones) {
-  const out=[]; let rem=nDrones;
-  parts.forEach((p, idx) => {
-    const count=idx===parts.length-1?rem:Math.max(1,Math.round(nDrones*p.w));
-    rem-=count;
-    if (!p.pts||p.pts.length===0) return;
-    for (let i=0; i<count; i++) {
-      const j=Math.floor((i/count)*p.pts.length);
-      const pt=p.pts[j];
-      out.push([pt[0],pt[1],pt[2],pt[3]||p.col]);
-    }
-  });
-  return out;
-}
+// -----------------------------------------------------------------------------
+// 7. SYMMETRY SKY DRAW PAD & CTRL+V CLIPBOARD PASTE
+// -----------------------------------------------------------------------------
+let _drawColor = '#FFD700';
+let _isDrawing = false;
+let _lastDrawPt = null;
 
-window.buildHeroFormation = function buildHeroFormation(id, nDrones) {
-  if (id === 'taj') {
-    const waterPool = [], plinth = [], mausoleum = [], chhatris = [], mainDome = [], minarets = [];
-
-    // 1. Cyan Charbagh Water-Pool Reflection Base (extending forward from plinth)
-    for (let y = 24; y <= 50; y += 2.6) {
-      for (let x = -11; x <= 11; x += 2.2) {
-        const isBorder = Math.abs(x) >= 9.5 || y <= 25.5 || y >= 48.5;
-        const isFountain = Math.abs(x) < 2.2 && Math.abs(y - 37) < 2.2;
-        if (isBorder || isFountain || ((Math.round(x) + Math.round(y)) % 4 === 0)) {
-          waterPool.push([x, y, 33.5, isFountain ? '#FFFFFF' : (isBorder ? '#38BDF8' : '#00E5FF')]);
-        }
-      }
-    }
-
-    // 2. Wide Marble Plinth Terrace (x: -48..48, y: -22..22, z: 36..43)
-    for (let x = -48; x <= 48; x += 3.0) {
-      for (let y = -22; y <= 22; y += 3.5) {
-        const isEdge = Math.abs(x) >= 45 || Math.abs(y) >= 19.5;
-        plinth.push([x, y, isEdge ? 43 : 36, isEdge ? '#FFFDF7' : '#CBD5E1']);
-        if (isEdge) plinth.push([x, y, 39.5, '#E2E8F0']);
-      }
-    }
-    // Front plinth stair balustrade & cornice
-    for (let x = -10; x <= 10; x += 2.0) {
-      plinth.push([x, 22, 36, '#FFD700'], [x, 22, 43, '#FFD700']);
-    }
-
-    // 3. Main Mausoleum Facade, Chamfered Corners & Central Pishtaq Arch (z: 43..70)
-    const addArchWall = (isXWall, sign, fixedCoord) => {
-      for (let z = 43; z <= 70; z += 1.8) {
-        for (let u = -22; u <= 22; u += 2.0) {
-          const inCentralIwan = Math.abs(u) < 8.5 && z < 65 && (Math.pow(u / 8.5, 2) + Math.pow((z - 43) / 22, 2) < 1);
-          const inSideAlcove  = Math.abs(u) > 11.5 && Math.abs(u) < 19.5 && ((z > 44 && z < 54) || (z > 57 && z < 67));
-          if (!inCentralIwan && !inSideAlcove) {
-            const isGoldTrim = Math.abs(u) <= 9.5 && Math.abs(z - 69.5) < 1.2;
-            const col = isGoldTrim ? '#FFD700' : '#FFFDF7';
-            mausoleum.push(isXWall ? [fixedCoord, u * 0.72, z, col] : [u, fixedCoord, z, col]);
-          }
-        }
-      }
-      // Tall Central Pishtaq Portal Frame rising above roof (z: 70..75)
-      if (!isXWall) {
-        for (let z = 70; z <= 75; z += 1.6) {
-          for (let u = -10; u <= 10; u += 2.0) {
-            if (Math.abs(u) >= 8.5 || z >= 73.5) {
-              mausoleum.push([u, fixedCoord + sign * 1.2, z, z >= 73.5 ? '#FFD700' : '#FFFDF7']);
-            }
-          }
-        }
-      }
-    };
-    addArchWall(false,  1,  16); // Front facade
-    addArchWall(false, -1, -16); // Back facade
-    addArchWall(true,   1,  22); // Right facade
-    addArchWall(true,  -1, -22); // Left facade
-
-    // 4. Grand Central Onion Dome + Drum + Lotus Finial Spire (z: 70..112)
-    // Cylindrical drum
-    for (let z = 70; z <= 76; z += 2.0) {
-      for (let k = 0; k < 24; k++) {
-        const a = (k / 24) * Math.PI * 2;
-        mainDome.push([14.2 * Math.cos(a), 14.2 * Math.sin(a), z, z >= 75 ? '#FFD700' : '#F8FAFC']);
-      }
-    }
-    // True bulbous onion dome surface
-    for (let i = 0; i < 460; i++) {
-      const u = i / 460;
-      const th = (i * 2.39996) % (Math.PI * 2);
-      const r = 15.8 * Math.sin(u * Math.PI * 0.86 + 0.12) * (1 + 0.18 * Math.sin(u * Math.PI * 1.15));
-      const z = 76 + u * 24;
-      const col = u > 0.88 ? '#FFD700' : (u < 0.08 ? '#FDE047' : '#FFFDF7');
-      mainDome.push([r * Math.cos(th), r * Math.sin(th), z, col]);
-    }
-    // Lotus base & Imperial Gold Kalash Finial Spire (z: 100..112)
-    for (let k = 0; k < 10; k++) {
-      const a = (k / 10) * Math.PI * 2;
-      mainDome.push([2.8 * Math.cos(a), 2.8 * Math.sin(a), 100.5, '#FFD700']);
-    }
-    for (let z = 101; z <= 112; z += 1.0) {
-      const kalashR = (Math.abs(z - 103.5) < 0.8 || Math.abs(z - 106.5) < 0.8) ? 1.2 : 0.0;
-      mainDome.push([kalashR, 0, z, '#FFD700']);
-      if (kalashR > 0) mainDome.push([-kalashR, 0, z, '#FFD700'], [0, kalashR, z, '#FFD700']);
-    }
-
-    // 5. Four Surrounding Chhatri Domes on roof corners (z: 70..83)
-    [[-15, 10], [15, 10], [-15, -10], [15, -10]].forEach(([cx, cy]) => {
-      for (let k = 0; k < 4; k++) {
-        const a = (k / 4) * Math.PI * 2 + Math.PI / 4;
-        for (let z = 70; z <= 75; z += 1.6) {
-          chhatris.push([cx + 2.8 * Math.cos(a), cy + 2.8 * Math.sin(a), z, '#E2E8F0']);
-        }
-      }
-      for (let u = 0; u <= 1; u += 0.2) {
-        const r = 3.8 * Math.sin(u * Math.PI * 0.88 + 0.1);
-        const z = 75 + u * 5.5;
-        for (let k = 0; k < 8; k++) {
-          const a = (k / 8) * Math.PI * 2;
-          chhatris.push([cx + r * Math.cos(a), cy + r * Math.sin(a), z, u > 0.7 ? '#FFD700' : '#FFFDF7']);
-        }
-      }
-      chhatris.push([cx, cy, 82.5, '#FFD700']);
-    });
-
-    // 6. Four Tall Slender Corner Minarets with 3 Tiered Balconies (z: 43..96)
-    [[-42, 18], [42, 18], [-42, -18], [42, -18]].forEach(([mx, my]) => {
-      for (let z = 43; z <= 88; z += 1.6) {
-        const rad = 2.9 - (z - 43) * 0.024;
-        const isBalcony = Math.abs(z - 57) < 1.1 || Math.abs(z - 71) < 1.1 || Math.abs(z - 85) < 1.1;
-        const rUse = isBalcony ? rad + 1.35 : rad;
-        for (let k = 0; k < 8; k++) {
-          const a = (k / 8) * Math.PI * 2;
-          minarets.push([mx + rUse * Math.cos(a), my + rUse * Math.sin(a), z, isBalcony ? '#FFD700' : '#FFFDF7']);
-        }
-      }
-      // Minaret cupola + finial
-      for (let k = 0; k < 8; k++) {
-        const a = (k / 8) * Math.PI * 2;
-        minarets.push([mx + 2.0 * Math.cos(a), my + 2.0 * Math.sin(a), 90.5, '#FFFDF7']);
-      }
-      minarets.push([mx, my, 93.5, '#FFD700'], [mx, my, 96.0, '#FFD700']);
-    });
-
-    return allocateParts([
-      { pts: waterPool, col: '#00E5FF', w: 0.08 },
-      { pts: plinth,    col: '#E2E8F0', w: 0.14 },
-      { pts: mausoleum, col: '#FFFDF7', w: 0.28 },
-      { pts: chhatris,  col: '#FFFDF7', w: 0.10 },
-      { pts: mainDome,  col: '#FFFDF7', w: 0.22 },
-      { pts: minarets,  col: '#FFFDF7', w: 0.18 },
-    ], nDrones);
-  }
-
-  if (id === 'trishul') {
-    const shaft = [], rudraksha = [], collar = [], centralBlade = [], outerProngs = [], damru = [];
-
-    // 1. Vertical Cylindrical Staff (z: 24..80)
-    for (let z = 24; z <= 80; z += 1.4) {
-      for (let k = 0; k < 8; k++) {
-        const a = (k / 8) * Math.PI * 2;
-        const r = 1.35;
-        shaft.push([r * Math.cos(a), r * Math.sin(a), z, z > 74 ? '#FFD700' : '#E2E8F0']);
-      }
-    }
-
-    // 2. Subtle Rudraksha Bead Rings along the Staff
-    [32, 42, 68, 75].forEach(rz => {
-      for (let k = 0; k < 10; k++) {
-        const a = (k / 10) * Math.PI * 2;
-        rudraksha.push([2.3 * Math.cos(a), 2.3 * Math.sin(a), rz, '#D97706']);
-        rudraksha.push([2.5 * Math.cos(a + 0.15), 2.5 * Math.sin(a + 0.15), rz + 0.8, '#B45309']);
-      }
-    });
-
-    // 3. Ornate Crescent Collar at Base of Prongs (z: 78..83)
-    for (let s = -24; s <= 24; s++) {
-      const u = s / 24;
-      const x = u * 11.5;
-      const z = 78.5 + u * u * 4.5;
-      collar.push([x, 1.4, z, '#FFD700'], [x, -1.4, z, '#FFD700']);
-      if (Math.abs(s) % 3 === 0) collar.push([x, 0, z - 0.8, '#00E5FF']);
-    }
-
-    // 4. Tall Vertical Central Spearhead Blade (#FFD700 gold, z: 80..114)
-    for (let s = 0; s <= 72; s++) {
-      const u = s / 72;
-      const z = 80 + u * 34;
-      const halfW = u < 0.24 ? 1.4 + (u / 0.24) * 3.6 : 5.0 * Math.pow(1 - (u - 0.24) / 0.76, 0.85);
-      const ridgeY = 1.9 * (1 - u * 0.85);
-      centralBlade.push(
-        [-halfW, 0, z, '#FFD700'],
-        [ halfW, 0, z, '#FFD700'],
-        [0,  ridgeY, z, '#FEF08A'],
-        [0, -ridgeY, z, '#FEF08A']
-      );
-    }
-
-    // 5. Two Symmetrical Sweeping Outer Curved Prongs Tapering to Sharp Points
-    [-1, 1].forEach(side => {
-      for (let s = 0; s <= 90; s++) {
-        const u = s / 90;
-        // Sweeps out gracefully from collar (x=+-3.5, z=80) to wide curve (x=+-20.5, z=93) and tapers inward to razor tip (x=+-15.5, z=109)
-        const x = side * (3.5 + Math.sin(u * Math.PI * 0.82) * 17.0 - (u > 0.72 ? (u - 0.72) * 14.0 : 0));
-        const z = 79.5 + u * 29.5 - Math.sin(u * Math.PI) * 3.8;
-        const thickness = 1.65 * (1 - u * 0.90);
-        outerProngs.push(
-          [x,  thickness, z, '#FFD700'],
-          [x, -thickness, z, '#FFD700'],
-          [x - side * thickness * 1.1, 0, z + 0.4, u > 0.65 ? '#FFFFFF' : '#00E5FF']
-        );
-      }
-    });
-
-    // 6. 3D Hourglass Damru Tied with Crimson/Gold Cord Mid-Shaft (z: 56)
-    const tilt = -0.30;
-    const cosT = Math.cos(tilt), sinT = Math.sin(tilt);
-    for (let s = -9.5; s <= 9.5; s += 0.95) {
-      const r = 1.9 + Math.pow(Math.abs(s) / 9.5, 1.15) * 4.6;
-      const isCord = Math.abs(s) < 2.4;
-      const isDrumhead = Math.abs(s) > 8.6;
-      const col = isCord ? (Math.round(s * 3) % 2 === 0 ? '#FF2A85' : '#FFD700') : (isDrumhead ? '#FEF3C7' : '#D97706');
-      for (let k = 0; k < 12; k++) {
-        const a = (k / 12) * Math.PI * 2;
-        const lx = s;
-        const ly = r * Math.sin(a);
-        const lz = r * Math.cos(a);
-        const rx = lx * cosT - lz * sinT;
-        const rz = lx * sinT + lz * cosT + 56;
-        damru.push([rx, ly, rz, col]);
-      }
-    }
-    // Crimson/Gold knotted cord hanging from Damru waist
-    for (let d = 0; d <= 10; d++) {
-      damru.push([1.8 + Math.sin(d * 0.4) * 1.2, 2.2, 54 - d * 1.1, d % 2 === 0 ? '#FF2A85' : '#FFD700']);
-      damru.push([-1.8 - Math.sin(d * 0.4) * 1.2, -2.2, 54 - d * 1.1, d % 2 === 0 ? '#FFD700' : '#FF2A85']);
-    }
-
-    return allocateParts([
-      { pts: shaft,        col: '#E2E8F0', w: 0.16 },
-      { pts: rudraksha,    col: '#D97706', w: 0.08 },
-      { pts: collar,       col: '#FFD700', w: 0.08 },
-      { pts: centralBlade, col: '#FFD700', w: 0.24 },
-      { pts: outerProngs,  col: '#FFD700', w: 0.24 },
-      { pts: damru,        col: '#FF2A85', w: 0.20 },
-    ], nDrones);
-  }
-
-  if (id === 'heart') {
-    // Volumetric 3D parametric heart with smooth front/back shells
-    const pts = [];
-    for (let layer = 0; layer < 9; layer++) {
-      const frac = layer / 8;
-      const sc = 1.72 * Math.sin(frac * Math.PI * 0.85 + 0.25);
-      const hy = (frac - 0.5) * 18.0;
-      const col = (frac > 0.35 && frac < 0.65) ? '#FF2A85' : (layer % 2 === 0 ? '#FF6D00' : '#FFD700');
-      for (let k = 0; k < 110; k++) {
-        const t = (k / 110) * Math.PI * 2;
-        const hx = 16 * Math.pow(Math.sin(t), 3) * sc;
-        const hz = (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) * sc + 66;
-        pts.push([hx, hy, hz, col]);
-      }
-    }
-    return allocateParts([{ pts, col: '#FF2A85', w: 1.0 }], nDrones);
-  }
-
-  if (id === 'rings') {
-    const band1 = [], band2 = [], prongs = [], diamond = [];
-
-    // Helper: Thick beveled 3D comfort-fit torus band
-    const buildTorusBand = (out, cx, cy, cz, R, rTube, rotXDeg, rotYDeg, rotZDeg, mainCol, bevelCol) => {
-      const rx = rotXDeg * Math.PI / 180;
-      const ry = rotYDeg * Math.PI / 180;
-      const rz = rotZDeg * Math.PI / 180;
-      const cosX = Math.cos(rx), sinX = Math.sin(rx);
-      const cosY = Math.cos(ry), sinY = Math.sin(ry);
-      const cosZ = Math.cos(rz), sinZ = Math.sin(rz);
-
-      for (let i = 0; i < 84; i++) {
-        const u = (i / 84) * Math.PI * 2;
-        const cu = Math.cos(u), su = Math.sin(u);
-        for (let j = 0; j < 10; j++) {
-          const v = (j / 10) * Math.PI * 2;
-          // Beveled comfort-fit profile: slightly wider/flatter outer edge
-          const radOffset = rTube * (1 - 0.14 * Math.pow(Math.cos(v), 2));
-          const lx = (R + radOffset * Math.cos(v)) * cu;
-          const lz = (R + radOffset * Math.cos(v)) * su;
-          const ly = radOffset * 1.25 * Math.sin(v);
-
-          // Rotate X -> Y -> Z
-          const y1 = ly * cosX - lz * sinX;
-          const z1 = ly * sinX + lz * cosX;
-          const x2 = lx * cosY + z1 * sinY;
-          const z2 = -lx * sinY + z1 * cosY;
-          const x3 = x2 * cosZ - y1 * sinZ;
-          const y3 = x2 * sinZ + y1 * cosZ;
-
-          const isBevelEdge = Math.abs(Math.sin(v)) > 0.78;
-          out.push([cx + x3, cy + y3, cz + z2, isBevelEdge ? bevelCol : mainCol]);
-        }
-      }
-    };
-
-    // 1. Primary Rose-Gold Band (centered at -9, 0, 58, upright in XZ plane so crown apex is at (-9, 0, 81))
-    buildTorusBand(band1, -9, 0, 58, 20, 3.2, 0, 0, 0, '#FFD700', '#F59E0B');
-
-    // 2. Secondary Platinum Band (centered at +9, 0, 58, tilted 35° around X so it cleanly interlocks through Band 1's hole)
-    buildTorusBand(band2,  9, 0, 58, 20, 3.1, 35, 0, 90, '#E2E8F0', '#FFFFFF');
-
-    // 3. 4-Prong Cathedral Setting on Crown Apex (-9, 0, 81)
-    const apexX = -9, apexY = 0, culetZ = 82.5, girdleZ = 90.0, tableZ = 93.8;
-    [Math.PI / 4, 3 * Math.PI / 4, 5 * Math.PI / 4, 7 * Math.PI / 4].forEach(ang => {
-      for (let s = 0; s <= 10; s++) {
-        const u = s / 10;
-        const pr = 2.0 + u * 5.1;
-        const pz = 80.5 + u * 10.6;
-        prongs.push([apexX + pr * Math.cos(ang), apexY + pr * Math.sin(ang), pz, '#FFFFFF']);
-      }
-    });
-
-    // 4. Upright Brilliant-Cut Solitaire Diamond:
-    //    - Pointed pavilion cone pointing DOWN into the ring band (z: 82.5 -> 90.0)
-    //    - Wide girdle at z = 90.0 (r = 6.8)
-    //    - Crown tapering to flat wide table facing UP at z = 93.8 (r = 4.2)
-    for (let s = 0; s <= 12; s++) {
-      const u = s / 12;
-      const r = 0.25 + u * 6.55;
-      const z = culetZ + u * (girdleZ - culetZ);
-      const facets = 16;
-      for (let k = 0; k < facets; k++) {
-        const a = (k / facets) * Math.PI * 2;
-        const col = (k % 2 === 0) ? '#00E5FF' : '#FFFFFF';
-        diamond.push([apexX + r * Math.cos(a), apexY + r * Math.sin(a), z, col]);
-      }
-    }
-    // Crown facets (girdle -> flat table)
-    for (let s = 1; s <= 6; s++) {
-      const u = s / 6;
-      const r = 6.8 - u * 2.6;
-      const z = girdleZ + u * (tableZ - girdleZ);
-      for (let k = 0; k < 16; k++) {
-        const a = (k / 16) * Math.PI * 2;
-        diamond.push([apexX + r * Math.cos(a), apexY + r * Math.sin(a), z, u > 0.7 ? '#FFFFFF' : '#38BDF8']);
-      }
-    }
-    // Flat Wide Table facing UP
-    for (let ring = 0; ring <= 3; ring++) {
-      const r = (ring / 3) * 3.8;
-      const nPts = Math.max(1, ring * 6);
-      for (let k = 0; k < nPts; k++) {
-        const a = (k / nPts) * Math.PI * 2;
-        diamond.push([apexX + r * Math.cos(a), apexY + r * Math.sin(a), tableZ, '#FFFFFF']);
-      }
-    }
-
-    return allocateParts([
-      { pts: band1,   col: '#FFD700', w: 0.36 },
-      { pts: band2,   col: '#E2E8F0', w: 0.36 },
-      { pts: prongs,  col: '#FFFFFF', w: 0.08 },
-      { pts: diamond, col: '#00E5FF', w: 0.20 },
-    ], nDrones);
-  }
-
-  if (id === 'globe') {
-    const spherePts = [], ringPts = [];
-    const R = 31;
-    const sphereCount = Math.floor(nDrones * 0.86);
-    for (let i = 0; i < sphereCount; i++) {
-      const phi = Math.acos(1 - 2 * (i + 0.5) / sphereCount);
-      const theta = Math.PI * (1 + Math.sqrt(5)) * i;
-      const x = R * Math.sin(phi) * Math.cos(theta);
-      const y = R * Math.sin(phi) * Math.sin(theta);
-      const z = R * Math.cos(phi) + 66;
-      const lat = Math.PI / 2 - phi; // -pi/2 .. +pi/2
-      const lon = ((theta % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
-      // Distinct continental lobes (Americas, Eurasia/Africa, Australia)
-      const america = Math.exp(-Math.pow((lon + 1.65) / 0.55, 2) - Math.pow((lat - 0.35) / 0.55, 2))
-                    + Math.exp(-Math.pow((lon + 1.15) / 0.35, 2) - Math.pow((lat + 0.40) / 0.50, 2));
-      const eurasia = Math.exp(-Math.pow((lon - 0.85) / 0.95, 2) - Math.pow((lat - 0.55) / 0.42, 2))
-                    + Math.exp(-Math.pow((lon - 0.35) / 0.42, 2) - Math.pow((lat - 0.02) / 0.52, 2));
-      const aus     = Math.exp(-Math.pow((lon - 2.25) / 0.35, 2) - Math.pow((lat + 0.45) / 0.25, 2));
-      const isLand  = (america + eurasia + aus) > 0.42;
-      const isPolar = Math.abs(Math.cos(phi)) > 0.88;
-      spherePts.push([x, y, z, isPolar ? '#FFFFFF' : (isLand ? '#10B981' : '#0284C7')]);
-    }
-    // Crisp Latitude Rings (Equator + Tropics)
-    [0, 0.42, -0.42].forEach((lat, idx) => {
-      const rRing = (R + 0.8) * Math.cos(lat);
-      const zRing = 66 + (R + 0.8) * Math.sin(lat);
-      const steps = idx === 0 ? 96 : 64;
-      for (let k = 0; k < steps; k++) {
-        const a = (k / steps) * Math.PI * 2;
-        ringPts.push([rRing * Math.cos(a), rRing * Math.sin(a), zRing, idx === 0 ? '#FFD700' : '#38BDF8']);
-      }
-    });
-    return allocateParts([
-      { pts: spherePts, col: '#0284C7', w: 0.86 },
-      { pts: ringPts,   col: '#38BDF8', w: 0.14 },
-    ], nDrones);
-  }
-
-  // ISRO Launch Rocket (default / id === 'rocket')
-  const core = [], boosters = [], fins = [], flame = [];
-  // Core stage + Payload fairing + Nose cone (z: 44..104)
-  for (let z = 44; z <= 104; z += 1.5) {
-    const u = (z - 44) / 60;
-    const r = u > 0.74 ? 6.2 * (1 - (u - 0.74) / 0.26) : 6.2;
-    const col = u > 0.74 ? '#FF9933' : (u > 0.50 ? '#FFFFFF' : (u > 0.36 ? '#10B981' : '#E2E8F0'));
-    for (let k = 0; k < 20; k++) {
-      const a = (k / 20) * Math.PI * 2;
-      core.push([r * Math.cos(a), r * Math.sin(a), z, col]);
-    }
-  }
-  // Dual Strap-on Boosters (LVM3 style, z: 44..76)
-  [-9.8, 9.8].forEach(bx => {
-    for (let z = 44; z <= 76; z += 1.8) {
-      const u = (z - 44) / 32;
-      const r = u > 0.82 ? 2.8 * (1 - (u - 0.82) / 0.18) : 2.8;
-      for (let k = 0; k < 10; k++) {
-        const a = (k / 10) * Math.PI * 2;
-        boosters.push([bx + r * Math.cos(a), r * Math.sin(a), z, u > 0.82 ? '#FF9933' : '#CBD5E1']);
-      }
-    }
-  });
-  // 4 Swept Delta Fins
-  [0, Math.PI / 2, Math.PI, Math.PI * 1.5].forEach(ang => {
-    for (let s = 0; s <= 12; s++) {
-      const r = 6.2 + s * 0.75, z = 44 + (12 - s) * 1.25;
-      fins.push([r * Math.cos(ang), r * Math.sin(ang), z, '#38BDF8']);
-    }
-  });
-  // Live Exhaust Plume (z < 44 triggers live flicker in three-engine.js)
-  for (let z = 20; z < 44; z += 1.2) {
-    const r = ((z - 20) / 24) * 6.4;
-    for (let k = 0; k < 14; k++) {
-      const a = (k / 14) * Math.PI * 2;
-      const flameCol = z > 38 ? '#FFFFFF' : (z > 31 ? '#FFD700' : (k % 2 === 0 ? '#FF8C00' : '#FF5500'));
-      flame.push([r * Math.cos(a), r * Math.sin(a), z, flameCol]);
-    }
-  }
-  return allocateParts([
-    { pts: core,     col: '#FFFFFF', w: 0.44 },
-    { pts: boosters, col: '#CBD5E1', w: 0.20 },
-    { pts: fins,     col: '#38BDF8', w: 0.14 },
-    { pts: flame,    col: '#FF5500', w: 0.22 },
-  ], nDrones);
+window.setDrawColor = function setDrawColor(hex) {
+  _drawColor = hex;
 };
-
-// ---------------------------------------------------------------------------
-// 5. 3D TYPOGRAPHY BUILDER
-// ---------------------------------------------------------------------------
-window.build3DTextCloud = function build3DTextCloud(textStr, nDrones, colorTheme='tricolour', fontCss='900 Arial, sans-serif') {
-  const clean=(textStr||'AEROGRID').trim().slice(0,18);
-  const c=document.createElement('canvas');
-  c.width=760; c.height=190;
-  const ctx=c.getContext('2d');
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,c.width,c.height);
-  const fsize=Math.max(46,Math.min(115,Math.floor(640/Math.max(1,clean.length*0.58))));
-  const family=fontCss.includes('Georgia')?'Georgia, serif':(fontCss.includes('Courier')?"'Courier New', monospace":'Arial, sans-serif');
-  const weight=fontCss.includes('italic')?'italic bold':'900';
-  ctx.font=`${weight} ${fsize}px ${family}`;
-  ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText(clean, c.width/2, c.height/2);
-
-  const imgData=ctx.getImageData(0,0,c.width,c.height).data;
-  const lit=[]; let minX=c.width, maxX=0, minY=c.height, maxY=0;
-  for (let y=0; y<c.height; y+=2)
-    for (let x=0; x<c.width; x+=2)
-      if (imgData[(y*c.width+x)*4]>135) {
-        lit.push([x,y]);
-        if (x<minX) minX=x; if (x>maxX) maxX=x;
-        if (y<minY) minY=y; if (y>maxY) maxY=y;
-      }
-  if (lit.length<15) return [];
-  const midX=(minX+maxX)/2, midY=(minY+maxY)/2;
-  const scale=Math.min(116/Math.max(1,maxX-minX), 38/Math.max(1,maxY-minY));
-  const solidMap={gold:'#FFD700',cyan:'#00E5FF',pink:'#FF2A85',white:'#FFFFFF'};
-  const out=[];
-  for (let i=0; i<nDrones; i++) {
-    const idx=Math.floor((i/nDrones)*(lit.length-1));
-    const [px,py]=lit[idx];
-    const normX=(px-minX)/Math.max(1,maxX-minX);
-    const triCol=normX<0.34?'#FF9933':(normX<0.67?'#FFFFFF':'#10B981');
-    const col=colorTheme==='tricolour'?triCol:(solidMap[colorTheme]||'#00E5FF');
-    out.push([+((px-midX)*scale).toFixed(2),0.0,+(66-(py-midY)*scale).toFixed(2),col]);
-  }
-  return out;
-};
-
-// ---------------------------------------------------------------------------
-// 6. SYMMETRY SKY DRAW PAD
-// ---------------------------------------------------------------------------
-let _drawColor='#FFD700', _isDrawingPad=false, _lastPadPt=null;
-
-window.setDrawColor = function setDrawColor(hex) { _drawColor=hex; };
 
 window.initSkyDrawPad = function initSkyDrawPad() {
-  const c=document.getElementById('skyDrawCanvas');
-  const ctx=c.getContext('2d');
-  ctx.fillStyle='#000000'; ctx.fillRect(0,0,c.width,c.height);
-  _drawCenterGuide(ctx, c.width, c.height);
+  const c = document.getElementById('skyDrawCanvas');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, c.width, c.height);
 
-  const getPos=(e)=>{
-    const rect=c.getBoundingClientRect();
-    const clientX=e.touches?e.touches[0].clientX:e.clientX;
-    const clientY=e.touches?e.touches[0].clientY:e.clientY;
-    return { x:((clientX-rect.left)/rect.width)*c.width, y:((clientY-rect.top)/rect.height)*c.height };
-  };
-  const startDraw=(e)=>{ _isDrawingPad=true; _lastPadPt=getPos(e); };
-  const moveDraw=(e)=>{
-    if (!_isDrawingPad) return;
-    e.preventDefault();
-    const pt=getPos(e);
-    ctx.strokeStyle=_drawColor; ctx.lineWidth=4; ctx.lineCap='round';
-    ctx.beginPath(); ctx.moveTo(_lastPadPt.x,_lastPadPt.y); ctx.lineTo(pt.x,pt.y); ctx.stroke();
-    if (document.getElementById('mirrorDrawChk').checked) {
-      ctx.beginPath(); ctx.moveTo(c.width-_lastPadPt.x,_lastPadPt.y); ctx.lineTo(c.width-pt.x,pt.y); ctx.stroke();
+  function getPos(ev) {
+    const rect = c.getBoundingClientRect();
+    const clientX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+    const clientY = ev.touches ? ev.touches[0].clientY : ev.clientY;
+    return {
+      x: ((clientX - rect.left) / Math.max(1, rect.width)) * c.width,
+      y: ((clientY - rect.top)  / Math.max(1, rect.height)) * c.height,
+    };
+  }
+
+  function paintSegment(fromPt, toPt) {
+    ctx.strokeStyle = _drawColor;
+    ctx.fillStyle   = _drawColor;
+    ctx.lineWidth   = 10;
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+
+    const drawStroke = (x1, y1, x2, y2) => {
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x2, y2, 5, 0, Math.PI * 2);
+      ctx.fill();
+    };
+
+    drawStroke(fromPt.x, fromPt.y, toPt.x, toPt.y);
+    const mirror = document.getElementById('mirrorDrawChk')?.checked;
+    if (mirror) {
+      drawStroke(c.width - fromPt.x, fromPt.y, c.width - toPt.x, toPt.y);
     }
-    _lastPadPt=pt;
-  };
-  const endDraw=()=>{ _isDrawingPad=false; _lastPadPt=null; };
+  }
 
-  c.addEventListener('mousedown',startDraw);
-  c.addEventListener('mousemove',moveDraw);
-  window.addEventListener('mouseup',endDraw);
-  c.addEventListener('touchstart',startDraw,{passive:false});
-  c.addEventListener('touchmove',moveDraw,{passive:false});
-  c.addEventListener('touchend',endDraw);
+  const startDraw = (ev) => {
+    _isDrawing = true;
+    const p = getPos(ev);
+    _lastDrawPt = p;
+    paintSegment(p, p);
+  };
+  const moveDraw = (ev) => {
+    if (!_isDrawing) return;
+    ev.preventDefault();
+    const p = getPos(ev);
+    paintSegment(_lastDrawPt || p, p);
+    _lastDrawPt = p;
+  };
+  const endDraw = () => {
+    _isDrawing = false;
+    _lastDrawPt = null;
+  };
+
+  c.addEventListener('mousedown', startDraw);
+  c.addEventListener('mousemove', moveDraw);
+  window.addEventListener('mouseup', endDraw);
+  c.addEventListener('touchstart', startDraw, { passive: true });
+  c.addEventListener('touchmove', moveDraw, { passive: false });
+  window.addEventListener('touchend', endDraw);
 };
 
-function _drawCenterGuide(ctx, w, h) {
-  ctx.save();
-  ctx.strokeStyle='#0f172a'; ctx.setLineDash([4,4]); ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(w/2,0); ctx.lineTo(w/2,h); ctx.stroke();
-  ctx.restore();
-}
-
 window.clearSkyDrawPad = function clearSkyDrawPad() {
-  const c=document.getElementById('skyDrawCanvas');
-  const ctx=c.getContext('2d');
-  ctx.fillStyle='#000000'; ctx.fillRect(0,0,c.width,c.height);
-  _drawCenterGuide(ctx, c.width, c.height);
+  const c = document.getElementById('skyDrawCanvas');
+  if (!c) return;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, c.width, c.height);
 };
 
 window.sendSkyDrawingToDrones = function sendSkyDrawingToDrones() {
-  const drones=parseInt(document.getElementById('droneManualInput').value,10)||2200;
-  const drawC=document.getElementById('skyDrawCanvas');
-  const bpC=document.getElementById('blueprintCanvas');
-  const bpCtx=bpC.getContext('2d');
-  bpCtx.fillStyle='#000000'; bpCtx.fillRect(0,0,bpC.width,bpC.height);
-  bpCtx.drawImage(drawC,0,0,bpC.width,bpC.height);
-
-  const cloud=compileImageTo3DCloud(drawC,drones,'gold_cyan',10);
-  window.slides[window.activeSlideIdx]={...window.slides[window.activeSlideIdx],type:'custom',label:'Custom Sky Art',cloud};
-  if (typeof window.activateSlide==='function') window.activateSlide(window.activeSlideIdx,false);
+  const c      = document.getElementById('skyDrawCanvas');
+  const drones = parseInt(document.getElementById('droneManualInput')?.value, 10) || 2200;
+  const cloud  = window.compileImageTo3DCloud(c, drones, 'original', 10);
+  window.slides[window.activeSlideIdx] = {
+    ...window.slides[window.activeSlideIdx],
+    type: 'custom_draw',
+    label: 'Custom Sky Art',
+    cloud,
+  };
+  if (typeof window.activateSlide === 'function') window.activateSlide(window.activeSlideIdx, false);
 };
 
-// ---------------------------------------------------------------------------
-// 7. CTRL+V GLOBAL PASTE
-// ---------------------------------------------------------------------------
-window.addEventListener('paste',(e)=>{
-  const items=e.clipboardData?.items;
+// Global Ctrl+V Clipboard Image-to-3D-Drone Compiler
+window.addEventListener('paste', (e) => {
+  const items = e.clipboardData?.items;
   if (!items) return;
   for (const item of items) {
-    if (item.type.startsWith('image/')) {
-      const blob=item.getAsFile();
-      const reader=new FileReader();
-      reader.onload=(ev)=>{
-        const img=new Image();
-        img.onload=()=>{
-          const c=document.getElementById('blueprintCanvas');
-          const ctx=c.getContext('2d');
-          ctx.fillStyle='#000000'; ctx.fillRect(0,0,c.width,c.height);
-          const fit=Math.min((c.width-16)/img.width,(c.height-16)/img.height);
-          const dw=img.width*fit, dh=img.height*fit;
-          ctx.drawImage(img,(c.width-dw)/2,(c.height-dh)/2,dw,dh);
-          if (typeof window.switchSidebarTab==='function') window.switchSidebarTab('blueprint');
-          document.getElementById('bpPromptInput').value='Pasted AI Art';
-          document.getElementById('bpStatusBadge').textContent='IMAGE PASTED';
-          window.approveBlueprintToDrones();
-        };
-        img.src=ev.target.result;
+    if (item.type && item.type.startsWith('image/')) {
+      const blob = item.getAsFile();
+      if (!blob) continue;
+      const img = new Image();
+      img.onload = () => {
+        const c = document.getElementById('blueprintCanvas');
+        if (!c) return;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, c.width, c.height);
+        const fit = Math.min((c.width - 14) / img.width, (c.height - 14) / img.height);
+        const dw  = img.width * fit;
+        const dh  = img.height * fit;
+        ctx.drawImage(img, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
+        if (typeof window.switchSidebarTab === 'function') window.switchSidebarTab('blueprint');
+        const bpInput = document.getElementById('bpPromptInput');
+        if (bpInput) bpInput.value = 'Pasted AI Blueprint';
+        window.approveBlueprintToDrones();
       };
-      reader.readAsDataURL(blob);
+      img.src = URL.createObjectURL(blob);
       break;
     }
   }
